@@ -184,10 +184,7 @@ details.pm-in .tr{direction:ltr;font-family:Nunito,system-ui,sans-serif;font-siz
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0f6b57">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
@@ -367,6 +364,7 @@ function setLang(){var h=document.documentElement;if($('back4'))$('back4').textC
  $('tag').textContent=t('tag');$('sbt').textContent=t('search');$('back1').textContent=$('back2').textContent=$('cancel').textContent='\u2190 '+t('back');
  $('addBtn').textContent=t('add');$('reset').textContent=$('zreset').textContent=t('reset');$('save').textContent=t('save');
  $('fT').textContent=t('newt');$('fTitle').placeholder=t('ttl');$('fAu').placeholder=T('Auteur / poète (facultatif)','Author / poet (optional)','الشاعر / المؤلف (اختياري)');$('fBody').placeholder=t('body');$('fH').textContent=t('hint');$('q').placeholder=t('search');$('zT').textContent='📿 '+t('zikr')}
+var HAY={};function hay(b){if(HAY[b.id]!==undefined&&b.id.charAt(0)!=='c')return HAY[b.id];var tt=TT[b.id]||{},x=[b.title,b.ar,b.au];Object.keys(tt).forEach(function(k){x.push(tt[k])});(b.lines||[]).forEach(function(l){x.push(l)});(b.items||[]).forEach(function(i){x.push(i.a,i.fr,i.en)});(b.bayts||[]).forEach(function(v){x.push(v.join(' '))});var h=x.filter(Boolean).join(' ');h=(h+' '+noTash(h)).toLowerCase();HAY[b.id]=h;return h}
 function cnt(id){return all().filter(function(b){return b.cat===id}).length}
 function home(){
  var q=$('quick');q.innerHTML='';
@@ -473,7 +471,7 @@ $('back2').onclick=function(){openCat(cat)};
 $('cancel').onclick=function(){openCat(cat)};
 $('sb').onclick=function(){openCat('search',[],t('res'));var q=$('q');q.classList.remove('hide');q.value='';q.focus()};
 $('q').oninput=function(){var v=this.value.trim().toLowerCase();
- var r=v?all().filter(function(b){return (b.title+' '+(b.ar||'')+' '+b.lines.join(' ')).toLowerCase().indexOf(v)>-1}):[];
+ var r=v?all().filter(function(b){return hay(b).indexOf(v)>-1}):[];
  var keep=this.value;openCat('search',r,t('res'));$('q').classList.remove('hide');$('q').value=keep;$('q').focus()};
 $('back1').addEventListener('click',function(){$('q').classList.add('hide')});
 $('addBtn').onclick=function(){var s=$('fCat');s.innerHTML='';
@@ -616,6 +614,7 @@ function drawGuide(){
 }
 
 function T(fr,en,ar){return lang==='ar'?ar:lang==='en'?en:fr}
+var SB={url:'',key:''};
 var CFG={url:'',waveLink:'',wave:'+221 710876405',om:'+221 710876405',wa:'221784712919',mail:'Alynourouba@gmail.com',phone:'+221 78 471 29 19',by:'Mouhmadoul Aly Ba'};
 var prof={name:'',shares:0,rate:0,theme:'auto'};
 try{prof=Object.assign(prof,JSON.parse(localStorage.getItem('defteram_prof')||'{}'))}catch(e){}
@@ -672,6 +671,12 @@ function rate(){
  draw();$('rc').placeholder=T('Ton avis (facultatif)','Your feedback (optional)','رأيك (اختياري)');$('rs').textContent=T('Envoyer','Send','إرسال');
  $('rs').onclick=function(){if(!stars){toast(T('Choisis une note','Pick a rating','اختر تقييما'));return}
   prof.rate=stars;sp();var m='DEFTERAM '+stars+'/5\n'+$('rc').value;
+  if(SB.url&&SB.key){var rs=$('rs');rs.disabled=true;
+   fetch(SB.url+'/rest/v1/avis',{method:'POST',headers:{'apikey':SB.key,'Authorization':'Bearer '+SB.key,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body:JSON.stringify({note:stars,commentaire:$('rc').value.slice(0,2000),langue:lang,nom:(prof.name||'').slice(0,30)})})
+   .then(function(r){if(!r.ok)throw 0;$('rc').value='';toast(T('Merci pour ta note ! 🙏','Thanks for your rating! 🙏','شكرا لتقييمك 🙏'))})
+   .catch(function(){toast(T('Envoi impossible. Vérifie la connexion.','Could not send. Check your connection.','تعذر الإرسال. تحقق من الاتصال.'))})
+   .then(function(){rs.disabled=false});return}
   if(CFG.wa)window.open('https://wa.me/'+CFG.wa+'?text='+encodeURIComponent(m));else if(CFG.mail)location.href='mailto:'+CFG.mail+'?subject=DEFTERAM&body='+encodeURIComponent(m);
   toast(T('Merci pour ta note ! 🙏','Thanks for your rating! 🙏','شكرا لتقييمك 🙏'))}}
 function settings(){
@@ -682,7 +687,7 @@ function about(){page(T("À propos",'About','حول التطبيق'),'<div class
  var cd=document.createElement('div');cd.className='card';cd.style.textAlign='center';
  var by=document.createElement('p');by.style.fontWeight='700';by.textContent=T('Créé par ','Created by ','من إعداد ')+CFG.by+T(' de Fass',' of Fass',' من فاس');cd.appendChild(by);
  function ln(txt,href){var a=document.createElement('a');a.textContent=txt;a.href=href;a.style.cssText='display:block;margin:8px 0;color:var(--accent);font-weight:700;direction:ltr';a.target='_blank';a.rel='noopener';cd.appendChild(a)}
- ln('✉ '+CFG.mail,'mailto:'+CFG.mail);ln('☎ '+CFG.phone,'tel:'+CFG.phone.replace(/\s/g,''));ln('💬 WhatsApp','https://wa.me/'+CFG.wa);
+ ln('✉ '+CFG.mail,'mailto:'+CFG.mail);ln('☎ '+CFG.phone,'tel:'+CFG.phone.replace(/\s/g,''));ln('💬 WhatsApp','https://wa.me/'+CFG.wa);ln('🔒 '+T('Politique de confidentialité','Privacy policy','سياسة الخصوصية'),'privacy.html');
  $('pg').appendChild(cd)}
 $('mBtn').onclick=function(){drawer(true)};$('drawer').lastChild.onclick=function(){drawer(false)};
 $('gBtn').onclick=function(){grp=!grp;openCat(cat,LI,LT)};
