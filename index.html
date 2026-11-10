@@ -85,6 +85,7 @@ nav button.on{color:var(--accent);font-weight:700;background:rgba(226,192,113,.2
 #sheet h2{text-align:center;margin:0 0 14px}
 #sheet button{display:block;width:100%;margin-bottom:8px;padding:15px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:1.05rem;cursor:pointer}
 #sheet button.on{border-color:var(--sun);font-weight:700;box-shadow:0 0 0 3px rgba(226,192,113,.3)}
+#upd{position:fixed;left:16px;right:16px;margin:0 auto;width:fit-content;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:40;background:var(--sun);color:#1c1d3a;border:0;border-radius:999px;padding:10px 18px;font:700 .95rem Nunito,system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer;animation:rise .3s both;text-align:center}
 #toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--hero2);color:var(--gold2);border:1px solid var(--sun);padding:10px 18px;border-radius:999px;font-size:.9rem;z-index:30;animation:rise .3s both}
 .author{position:relative;margin:20px 0 12px;padding:16px 44px;text-align:center;font-weight:700;font-family:Amiri,Fraunces,serif;font-size:1.15rem;color:var(--accent);border-top:3px double var(--sun);border-bottom:3px double var(--sun);background:linear-gradient(90deg,transparent,rgba(226,192,113,.18),transparent)}
 .author::before,.author::after{content:"❦";position:absolute;top:50%;transform:translateY(-50%);font-size:1.6rem;color:var(--sun);inset-inline-start:10px}
@@ -708,7 +709,25 @@ function pageSrc(n,cb){
 </script>
 
 <script>
-if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){window.addEventListener('load',function(){try{navigator.serviceWorker.register('sw.js').catch(function(){})}catch(e){}})}
+var SWR=null;
+if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){window.addEventListener('load',function(){try{navigator.serviceWorker.register('sw.js').then(function(r){SWR=r}).catch(function(){})}catch(e){}})}
+// Mises à jour : quand l'appli revient au premier plan, on vérifie si le site a changé.
+// Si oui, on recharge tout de suite (écran d'accueil) ou on propose « Mettre à jour ».
+(function(){
+ if(!/^https?:/.test(location.protocol)||!window.fetch)return;
+ var tag=null,last=0,busy=false;
+ function stamp(){return fetch('./index.html',{method:'HEAD',cache:'no-store'}).then(function(r){return r.ok?(r.headers.get('etag')||r.headers.get('last-modified')||''):''}).catch(function(){return ''})}
+ function bar(){if($('upd'))return;var b=document.createElement('button');b.id='upd';
+  b.textContent='✨ '+T('Nouveautés disponibles · Mettre à jour','New content available · Update','محتوى جديد · تحديث');
+  b.onclick=function(){location.reload()};document.body.appendChild(b)}
+ function check(){if(busy||Date.now()-last<30000)return;busy=true;last=Date.now();if(SWR)try{SWR.update()}catch(e){}
+  stamp().then(function(s){busy=false;if(!s)return;if(tag===null){tag=s;return}
+   if(s!==tag){if(view==='home')location.reload();else bar()}})}
+ stamp().then(function(s){tag=s||null;last=Date.now()});
+ document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')check()});
+ window.addEventListener('focus',check);window.addEventListener('online',function(){last=0;check()});
+ setInterval(function(){if(document.visibilityState==='visible')check()},15*60*1000);
+})();
 </script>
 </body>
 </html>
