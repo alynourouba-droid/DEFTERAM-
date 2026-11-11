@@ -644,7 +644,7 @@ $('save').onclick=function(){
  if(!ti||!body.length){toast(t('need'));return}
  custom.push({id:'c'+Date.now(),cat:$('fCat').value,lang:$('fLang').value,title:ti,au:$('fAu').value.trim(),lines:body});
  save(KEY,custom);$('fTitle').value='';$('fAu').value='';$('fBody').value='';openCat($('fCat').value)};
-function render(){nav(view==='home'?'home':'');if(view==='home')home();else if(view==='cat'){if(cat==='search'){home();show('home')}else openCat(cat)}else if(view==='reader')openBook(cur);else if(view==='mushaf')openMushaf(mp);else if(view==='zikr')zk();else if(view==='pg'&&$('pg').dataset.k==='w'&&cur&&cur.guide)openGuide(cur);else if(view==='pg'&&$('pg').dataset.k==='l'&&cur&&cur.learn)openLearn(cur);else if(view==='pg'){var F={b:badges,a:authors,r:rate,s:support,t:settings,x:about,acc:account}[$('pg').dataset.k];if(F){RT.restoring=true;F();setTimeout(function(){RT.restoring=false},0)}}}
+function render(){nav(view==='home'?'home':'');if(view==='home')home();else if(view==='cat'){if(cat==='search'){home();show('home')}else openCat(cat)}else if(view==='reader')openBook(cur);else if(view==='mushaf')openMushaf(mp);else if(view==='zikr')zk();else if(view==='pg'&&$('pg').dataset.k==='w'&&cur&&cur.guide)openGuide(cur);else if(view==='pg'&&$('pg').dataset.k==='l'&&cur&&cur.learn)openLearn(cur);else if(view==='pg'){var F={i:installer,b:badges,a:authors,r:rate,s:support,t:settings,x:about,acc:account}[$('pg').dataset.k];if(F){RT.restoring=true;F();setTimeout(function(){RT.restoring=false},0)}}}
 
 function surOf(p){var r=SUR[0];SUR.forEach(function(s){if(s.page<=p)r=s});return r}
 function openMushaf(p){mp=Math.max(1,Math.min(604,Math.round(p)||1));
@@ -786,6 +786,7 @@ var LGN=0;function logo(s){var k=++LGN;return ('<svg width="'+s+'" height="'+s+'
 function drawer(open){var d=$('drawer');if(!open){d.classList.add('hide');return}
  var p=d.firstChild;p.innerHTML='<div class="dh">'+logo(64)+'<b>DEFTERAM</b><span>'+t('tag')+'</span></div>';
  (sbOn()?[['👤',AUTH.s?T('Mon compte','My account','حسابي')+' · '+AUTH.s.user.name:T('Connexion','Sign in','تسجيل الدخول'),account]]:[]).concat([
+  ['📲',T("Installer l'application",'Install the app','تثبيت التطبيق'),installer],
   ['🏅',T('Badges et partage','Badges and sharing','الأوسمة والمشاركة'),badges],
   ['✍️',T('Auteurs','Authors','الشعراء والمؤلفون'),authors],
   ['⭐',T('Laisser une note','Leave a rating','قيّم التطبيق'),rate],
@@ -864,7 +865,7 @@ function routeNow(){
  if(view==='mushaf')return '#/m/'+mp;
  if(view==='zikr')return '#/zikr';
  if(view==='form')return '#/add/'+cat;
- if(view==='pg'){var k=$('pg').dataset.k;if((k==='w'||k==='l')&&cur)return '#/t/'+cur.id;var P={b:'badges',a:'auteurs',r:'note',s:'soutien',t:'parametres',x:'apropos',acc:'compte'};if(P[k])return '#/p/'+P[k]}
+ if(view==='pg'){var k=$('pg').dataset.k;if((k==='w'||k==='l')&&cur)return '#/t/'+cur.id;var P={i:'installer',b:'badges',a:'auteurs',r:'note',s:'soutien',t:'parametres',x:'apropos',acc:'compte'};if(P[k])return '#/p/'+P[k]}
  return '#/'}
 function setRoute(h,rep){if(RT.restoring)return;var now=location.hash||'#/';if(now===h)return;
  var d=(history.state&&history.state.d)||0,u=h==='#/'?location.pathname+location.search:h;
@@ -882,7 +883,7 @@ function goRoute(h){
  if(a==='s'){$('sb').click();if(x){var q=$('q');q.value=x;q.oninput.call(q)}return}
  if(a==='au'&&x){grp=false;return openCat('search',authorsOf(x),x)}
  if(a==='add'){openCat(NAME[x]?x:'daara');return $('addBtn').click()}
- if(a==='p'){var F={badges:badges,auteurs:authors,note:rate,soutien:support,parametres:settings,apropos:about,compte:sbOn()?account:null}[x];if(F)return F()}
+ if(a==='p'){var F={installer:installer,badges:badges,auteurs:authors,note:rate,soutien:support,parametres:settings,apropos:about,compte:sbOn()?account:null}[x];if(F)return F()}
  home();show('home')}
 window.addEventListener('popstate',function(){RT.restoring=true;try{goRoute(location.hash)}finally{setTimeout(function(){RT.restoring=false},0)}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!$('drawer').classList.contains('hide')){drawer(false);$('mBtn').focus()}else if(!$('sheet').classList.contains('hide'))$('sheet').classList.add('hide')}});
@@ -1035,6 +1036,33 @@ function showStats(){var h=$('hstats');if(h){h.innerHTML=statsHtml();h.classList
 (function(){var first=false,seen=false;try{first=!localStorage.getItem('defteram_vid');seen=sessionStorage.getItem('defteram_seen')==='1'}catch(e){}
  var ev=first?'new':seen?'':'visit';
  setTimeout(function(){stat(ev).then(function(j){if(j){try{if(first)localStorage.setItem('defteram_vid','1');sessionStorage.setItem('defteram_seen','1')}catch(e){}}})},first?600:1500)})();
+
+/* ===== Installer l'application (écran d'accueil) ===== */
+var INST=null;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();INST=e;if(view==='pg'&&$('pg').dataset.k==='i')installer()});
+window.addEventListener('appinstalled',function(){INST=null;toast(T('DEFTERAM est installée ✓','DEFTERAM is installed ✓','تم تثبيت DEFTERAM ✓'));if(view==='pg'&&$('pg').dataset.k==='i')installer()});
+function isStandalone(){try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}}
+function installer(){
+ page(T("Installer l'application",'Install the app','تثبيت التطبيق'),'<div id="ins"></div>');$('pg').dataset.k='i';
+ var g=$('ins');function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e}
+ var c=el('div','card');c.style.textAlign='center';
+ if(isStandalone()){c.appendChild(el('b','','✅ '+T('DEFTERAM est déjà installée sur cet appareil.','DEFTERAM is already installed on this device.','DEFTERAM مثبت بالفعل على هذا الجهاز.')));g.appendChild(c);return}
+ c.appendChild(el('p','wp',T("Ajoute DEFTERAM sur l'écran d'accueil : elle s'ouvre d'un seul toucher, en plein écran, même sans connexion.","Add DEFTERAM to your home screen: it opens with one tap, full screen, even offline.",'أضف DEFTERAM إلى الشاشة الرئيسية: يفتح بلمسة واحدة وبملء الشاشة حتى دون اتصال.')));
+ if(INST){var b=el('button','btn fill wide','📲 '+T('Installer maintenant','Install now','ثبّت الآن'));b.style.marginTop='12px';
+  b.onclick=function(){var e=INST;INST=null;e.prompt();(e.userChoice||Promise.resolve()).then(function(){installer()})};c.appendChild(b)}
+ g.appendChild(c);
+ var vl=lang==='wo'?'-wo':lang==='ff'?'-ff':'';
+ var v=el('video');v.controls=true;v.playsInline=true;v.preload='none';v.poster='videos/installer-poster'+vl+'.jpg';v.src='videos/installer-defteram'+vl+'.mp4';
+ v.setAttribute('aria-label',T("Vidéo : ajouter DEFTERAM sur l'écran d'accueil","Video: add DEFTERAM to the home screen",'فيديو: إضافة DEFTERAM إلى الشاشة الرئيسية'));
+ v.style.cssText='width:100%;max-width:420px;display:block;margin:0 auto 14px;border-radius:18px;border:2px solid var(--sun);background:#06352c;aspect-ratio:9/16';
+ g.appendChild(v);
+ var ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+ var A=['🤖 Android · Chrome',[T('Ouvre defteram.vercel.app dans Chrome.','Open defteram.vercel.app in Chrome.','افتح defteram.vercel.app في Chrome.'),T('Touche le menu ⋮ en haut à droite.','Tap the ⋮ menu at the top right.','المس القائمة ⋮ في الأعلى.'),T("Touche « Ajouter à l'écran d'accueil » (ou « Installer l'application »).",'Tap “Add to Home screen” (or “Install app”).','المس «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق».'),T('Touche « Installer ».','Tap “Install”.','المس «تثبيت».')]];
+ var I=['🍏 iPhone · Safari',[T('Ouvre defteram.vercel.app dans Safari.','Open defteram.vercel.app in Safari.','افتح defteram.vercel.app في Safari.'),T('Touche le bouton Partager (carré avec une flèche vers le haut).','Tap the Share button (square with an up arrow).','المس زر المشاركة (مربع بسهم إلى الأعلى).'),T("Fais défiler et touche « Sur l'écran d'accueil ».",'Scroll and tap “Add to Home Screen”.','مرّر والمس «إضافة إلى الشاشة الرئيسية».'),T('Touche « Ajouter » en haut à droite.','Tap “Add” at the top right.','المس «إضافة» في الأعلى.')]];
+ (ios?[I,A]:[A,I]).forEach(function(x){var k=el('div','card');k.appendChild(el('b','',x[0]));var ol=el('ol');ol.style.cssText='margin:8px 0 0;padding-inline-start:22px;line-height:1.7';x[1].forEach(function(s){ol.appendChild(el('li','',s))});k.appendChild(ol);g.appendChild(k)});
+ var sh=el('button','btn wide','📤 '+T('Partager cette vidéo','Share this video','مشاركة الفيديو'));
+ sh.onclick=function(){var u=location.origin+'/videos/installer-defteram'+vl+'.mp4';if(navigator.share)navigator.share({title:'DEFTERAM',url:u}).then(function(){stat('share')}).catch(function(){});else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){toast(T('Lien copié','Link copied','تم نسخ الرابط'))}).catch(function(){prompt('',u)});else prompt('',u)};
+ g.appendChild(sh)}
 
 $('logoS').innerHTML=logo(32);$('logoH').innerHTML=logo(76);applyTheme();
 setLang();home();nav('home');
