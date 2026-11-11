@@ -39,5 +39,40 @@
    "type": "image/png",
    "purpose": "maskable"
   }
+ ],
+ "id": "/",
+ "dir": "auto",
+ "shortcuts": [
+  {
+   "name": "Al Mushaf",
+   "short_name": "Mushaf",
+   "url": "./#/c/quran",
+   "icons": [
+    {
+     "src": "icons/icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Zikr",
+   "url": "./#/zikr",
+   "icons": [
+    {
+     "src": "icons/icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "Favoris",
+   "url": "./#/c/fav",
+   "icons": [
+    {
+     "src": "icons/icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  }
  ]
 }

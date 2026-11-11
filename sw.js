@@ -2,7 +2,7 @@
 // - Pages : réseau d'abord (avec délai max), donc les nouveautés du site s'affichent dès l'ouverture.
 //   Sans connexion, la dernière version enregistrée est affichée.
 // - Autres fichiers du site : affichés depuis le cache puis rafraîchis en arrière-plan.
-const V='defteram-v5';
+const V='defteram-v6';
 const CORE=['./','./index.html','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(CORE.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
@@ -11,9 +11,10 @@ self.addEventListener('fetch',e=>{
  const r=e.request; if(r.method!=='GET'||r.headers.has('range'))return;
  const u=new URL(r.url);
  if(r.mode==='navigate'){
-  const net=fetch(r.url,{cache:'no-cache',credentials:'same-origin'}).then(x=>put('./index.html',x));
+  const app=/\/(index\.html)?$/.test(u.pathname),key=app?'./index.html':u.origin+u.pathname;
+  const net=fetch(u.origin+u.pathname+u.search,{cache:'no-cache',credentials:'same-origin'}).then(x=>put(key,x));
   e.respondWith(new Promise((ok,no)=>{let done=false;const fin=x=>{if(!done&&x){done=true;ok(x)}};
-   const old=()=>caches.match('./index.html');
+   const old=()=>caches.match(key).then(m=>m||(app?null:caches.match('./index.html')));
    setTimeout(()=>old().then(fin),6000);
    net.then(fin,()=>old().then(m=>m?fin(m):(done||no(new Error('offline')))));
   }));
