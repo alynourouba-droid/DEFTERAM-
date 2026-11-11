@@ -56,6 +56,7 @@ function mockSupabase(state){
   async function newPage(ctx, opts={}){
     const p = await ctx.newPage(); p._name = opts.name||'page';
     p.on('pageerror', e=>errors.push(p._name+' · '+e.message));
+    p.on('crash', ()=>{ errors.push(p._name+' · la page a planté'); console.log('  !! plantage de la page '+p._name) });
     p.on('console', m=>{ if(m.type()==='error' && !opts.allowErr && !/fonts\.g|ERR_INTERNET_DISCONNECTED|ERR_FAILED|ERR_NAME_NOT_RESOLVED|ERR_TUNNEL|ERR_CONNECTION/.test(m.text())) errors.push(p._name+' · console: '+m.text()) });
     p.on('response', r=>{ if(r.status()>=400 && r.url().startsWith(BASE) && !opts.allow404) errors.push(p._name+' · HTTP '+r.status()+' '+r.url()) });
     await p.addInitScript(()=>{ try{ if(!localStorage.getItem('defteram_lang')) localStorage.setItem('defteram_lang','fr') }catch(e){} });
@@ -135,7 +136,7 @@ function mockSupabase(state){
     await p.goto(BASE+'#/m/1'); await p.waitForTimeout(800);
     ok(got.some(x=>x.startsWith('p/001.webp:200')), 'page 1 chargée seule (~45 Ko)', got);
     await p.goto(BASE+'#/m/604'); await p.waitForTimeout(800); ok(await p.evaluate(()=>$('mImg').naturalWidth)===440, 'page 604 affichée');
-    ok(await p.evaluate(()=>$('mImg').alt).then?true:true, 'texte alternatif');
+    const alt=await p.evaluate(()=>$('mImg').alt); ok(/604/.test(alt), 'texte alternatif de la page (« '+alt+' »)', alt);
     await ctx.close(); }
 
   console.log('\n6. Menu, pages, note (Supabase simulé)');
