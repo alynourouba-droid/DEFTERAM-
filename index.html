@@ -410,7 +410,7 @@ function show(v){view=v;if(v!=='reader'&&typeof stopAudio==='function')stopAudio
  var m=v==='cat'&&cat==='fav'?'fav':v==='zikr'?'zikr':v==='home'?'home':(v==='pg'&&$('pg').dataset.k==='acc')?'acc':'';
  nav(m);window.scrollTo(0,0);Promise.resolve().then(syncRoute)}
 function nav(on){
- var d=[['home','🏠'],['fav','⭐'],['zikr','📿'],['acc','👤'],['lang','🌍']],h='';
+ var d=[['home','🏠'],['fav','⭐'],['zikr','📿']].concat(sbOn()?[['acc','👤']]:[],[['lang','🌍']]),h='';
  d.forEach(function(x){var lb=x[0]==='acc'?accLabel():t(x[0]==='fav'?'favs':x[0]);h+='<button data-n="'+x[0]+'" class="'+(on===x[0]?'on':'')+'"'+(on===x[0]?' aria-current="page"':'')+'><i aria-hidden="true">'+x[1]+'</i><span></span></button>'});
  $('nav').innerHTML=h;$('nav').querySelectorAll('button').forEach(function(b,i){b.lastChild.textContent=d[i][0]==='acc'?accLabel():t(d[i][0]==='fav'?'favs':d[i][0])});
  $('nav').querySelectorAll('button').forEach(function(b){b.onclick=function(){var k=b.dataset.n;
@@ -694,14 +694,14 @@ function applyTheme(){var r=document.documentElement;if(prof.theme==='auto')r.re
 var LGN=0;function logo(s){var k=++LGN;return ('<svg width="'+s+'" height="'+s+'" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lgr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#17937a"/><stop offset="1" stop-color="#06352c"/></linearGradient><mask id="mk"><rect width="64" height="64" fill="#fff"/><circle cx="35" cy="11.5" r="6" fill="#000"/></mask></defs><rect width="64" height="64" rx="16" fill="url(#lgr)"/><path d="M32 24c-5-3-12-3-19-1v23c7-2 14-2 19 1z" fill="#fff6e0"/><path d="M32 24c5-3 12-3 19-1v23c-7-2-14-2-19 1z" fill="#f1d9a2"/><path d="M32 24v23" stroke="#d98a2b" stroke-width="1.6"/><path d="M17 30h10M17 34h10M37 30h10M37 34h10" stroke="#0e5a49" stroke-width="1.2" opacity=".45"/><circle cx="32" cy="14" r="7" fill="#f0a94c" mask="url(#mk)"/><path d="M42 10l1.2 2.6 2.8.3-2.1 1.9.6 2.8-2.5-1.4-2.5 1.4.6-2.8-2.1-1.9 2.8-.3z" fill="#f0a94c"/></svg>').replace(/lgr/g,'lgr'+k).replace(/"mk"/g,'"mk'+k+'"').replace(/#mk\)/g,'#mk'+k+')')}
 function drawer(open){var d=$('drawer');if(!open){d.classList.add('hide');return}
  var p=d.firstChild;p.innerHTML='<div class="dh">'+logo(64)+'<b>DEFTERAM</b><span>'+t('tag')+'</span></div>';
- [['👤',AUTH.s?T('Mon compte','My account','حسابي')+' · '+AUTH.s.user.name:T('Connexion','Sign in','تسجيل الدخول'),account],
+ (sbOn()?[['👤',AUTH.s?T('Mon compte','My account','حسابي')+' · '+AUTH.s.user.name:T('Connexion','Sign in','تسجيل الدخول'),account]]:[]).concat([
   ['🏅',T('Badges et partage','Badges and sharing','الأوسمة والمشاركة'),badges],
   ['✍️',T('Auteurs','Authors','الشعراء والمؤلفون'),authors],
   ['⭐',T('Laisser une note','Leave a rating','قيّم التطبيق'),rate],
   ['💚',T('Soutenir le projet (Wave / Orange Money)','Support the project (Wave / Orange Money)','ادعم المشروع (Wave / Orange Money)'),support],
   ['⚙️',T('Paramètres','Settings','الإعدادات'),settings],
   ['📤',T("Partager l'application",'Share the app','مشاركة التطبيق'),shareApp],
-  ['ℹ️',T("À propos de l'application",'About the app','حول التطبيق'),about]].forEach(function(x){
+  ['ℹ️',T("À propos de l'application",'About the app','حول التطبيق'),about]]).forEach(function(x){
   var b=document.createElement('button');b.className='mi';b.innerHTML='<i>'+x[0]+'</i><span></span>';b.lastChild.textContent=x[1];
   b.onclick=function(){drawer(false);x[2]()};p.appendChild(b)});
  d.classList.remove('hide');var f=p.querySelector('.mi');if(f)f.focus()}
@@ -790,7 +790,7 @@ function goRoute(h){
  if(a==='s'){$('sb').click();if(x){var q=$('q');q.value=x;q.oninput.call(q)}return}
  if(a==='au'&&x){grp=false;return openCat('search',authorsOf(x),x)}
  if(a==='add'){openCat(NAME[x]?x:'daara');return $('addBtn').click()}
- if(a==='p'){var F={badges:badges,auteurs:authors,note:rate,soutien:support,parametres:settings,apropos:about,compte:account}[x];if(F)return F()}
+ if(a==='p'){var F={badges:badges,auteurs:authors,note:rate,soutien:support,parametres:settings,apropos:about,compte:sbOn()?account:null}[x];if(F)return F()}
  home();show('home')}
 window.addEventListener('popstate',function(){RT.restoring=true;try{goRoute(location.hash)}finally{setTimeout(function(){RT.restoring=false},0)}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!$('drawer').classList.contains('hide')){drawer(false);$('mBtn').focus()}else if(!$('sheet').classList.contains('hide'))$('sheet').classList.add('hide')}});

@@ -82,7 +82,7 @@ function mockSupabase(state){
 
   console.log('\n2. Routes, liens directs et bouton Retour');
   { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'routes'});
-    for(const [h,v] of [['#/c/parab','cat'],['#/t/p2','reader'],['#/t/g1','pg'],['#/t/lw','pg'],['#/m/50','mushaf'],['#/zikr','zikr'],['#/p/compte','pg'],['#/p/parametres','pg'],['#/p/apropos','pg'],['#/p/soutien','pg'],['#/p/note','pg'],['#/p/badges','pg'],['#/p/auteurs','pg'],['#/s/fatiha','cat'],['#/add/daara','form'],['#/inconnu','home']]){
+    for(const [h,v] of [['#/c/parab','cat'],['#/t/p2','reader'],['#/t/g1','pg'],['#/t/lw','pg'],['#/m/50','mushaf'],['#/zikr','zikr'],['#/p/compte','home'],['#/p/parametres','pg'],['#/p/apropos','pg'],['#/p/soutien','pg'],['#/p/note','pg'],['#/p/badges','pg'],['#/p/auteurs','pg'],['#/s/fatiha','cat'],['#/add/daara','form'],['#/inconnu','home']]){
       await p.goto(BASE+h); await p.waitForTimeout(250);
       ok(await p.evaluate(()=>view)===v, 'lien direct '+h+' → '+v, await p.evaluate(()=>view));
     }
@@ -178,7 +178,7 @@ function mockSupabase(state){
     await q.evaluate(()=>{ AUTH.s.exp=0; save('defteram_auth',AUTH.s); tog('p4'); save(FK,favs) }); await q.waitForTimeout(2200);
     ok(st.log.some(l=>/refresh_token/.test(l)) && st.rows.u0.favs.includes('p4'), 'jeton expiré renouvelé automatiquement');
     const c3=await b.newContext({serviceWorkers:'block'}); const r=await newPage(c3,{name:'sans-config'}); await r.goto(BASE+'#/p/compte'); await r.waitForTimeout(200);
-    ok(/pas encore activée/.test(await r.textContent('#acc')), 'sans configuration : message clair, pas de faux formulaire');
+    ok(await r.evaluate(()=>view)==='home' && !(await r.$('#nav [data-n=acc]')), 'sans Supabase : pas de bouton Connexion ni de page compte');
     await c1.close(); await c2.close(); await c3.close(); }
 
   console.log('\n8. Affichage mobile / tablette / ordinateur');
