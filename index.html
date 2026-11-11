@@ -713,7 +713,7 @@ function drawGuide(){
 
 function T(fr,en,ar){return lang==='ar'?ar:lang==='en'?en:fr}
 var SB={url:'',key:''};
-var CFG={url:'',waveLink:'https://pay.wave.com/m/M_sn_l_8DYG8duKFM/c/sn/',wave:'+221 710876405',om:'+221 710876405',wa:'221784712919',mail:'Alynourouba@gmail.com',phone:'+221 78 471 29 19',by:'Mouhmadoul Aly Ba'};
+var CFG={url:'',waveLink:'',wave:'+221 710876405',om:'+221 710876405',wa:'221784712919',mail:'Alynourouba@gmail.com',phone:'+221 78 471 29 19',by:'Mouhmadoul Aly Ba'};
 var prof={name:'',shares:0,rate:0,theme:'auto'};
 try{prof=Object.assign(prof,JSON.parse(localStorage.getItem('defteram_prof')||'{}'))}catch(e){}
 function sp(){save('defteram_prof',prof)}
@@ -759,7 +759,7 @@ function support(){
  function card(c,name,num,steps,link,lbl){return '<div class="pay" style="background:'+c+'"><b>'+name+'</b><div class="num">'+(num||T('Numéro à venir','Number coming soon','الرقم قريبا'))+'</div>'+(link?'<a class="btn" style="display:inline-block;margin:0 8px 6px 0;background:#fff;color:#111;font-weight:700;text-decoration:none" href="'+link+'" target="_blank" rel="noopener">'+lbl+'</a>':'')+(num?'<button data-c="'+num+'">'+T('Copier le numéro','Copy number','نسخ الرقم')+'</button>':'')+'<div style="margin-top:8px;font-size:.9rem">'+steps+'</div></div>'}
  page(T('Soutenir le projet','Support the project','ادعم المشروع'),
  '<p>'+T("DEFTERAM est gratuite. Ton soutien aide à ajouter des livres, des poèmes et des traductions. Qu'Allah te récompense.","DEFTERAM is free. Your support helps add books, poems and translations. May Allah reward you.",'DEFTERAM مجانية. دعمك يساعد على إضافة الكتب والقصائد والترجمات. جزاك الله خيرا.')+'</p>'+
- card('#1aa8d8','Wave',CFG.wave,T("Touche « Payer avec Wave » et choisis le montant. Ou ouvre Wave → Envoyer → colle le numéro → montant.","Tap “Pay with Wave” and choose the amount. Or open Wave → Send → paste the number → amount.",'اضغط «ادفع عبر Wave» واختر المبلغ، أو افتح Wave ← إرسال ← الصق الرقم ← المبلغ.'),CFG.waveLink,T('💳 Payer avec Wave','💳 Pay with Wave','💳 ادفع عبر Wave'))+
+ card('#1aa8d8','Wave',CFG.wave,T("Ouvre Wave → Envoyer → colle le numéro → montant.","Open Wave → Send → paste the number → amount.",'افتح Wave ← إرسال ← الصق الرقم ← المبلغ.'),CFG.waveLink,T('💳 Payer avec Wave','💳 Pay with Wave','💳 ادفع عبر Wave'))+
  card('#ff7900','Orange Money',CFG.om,T("Ouvre Orange Money (ou #144#) → Transfert → numéro → montant.","Open Orange Money (or #144#) → Transfer → number → amount.",'افتح Orange Money (أو #144#) ← تحويل ← الرقم ← المبلغ.'),'tel:%23144%23',T('Ouvrir Orange Money (#144#)','Open Orange Money (#144#)','افتح Orange Money (#144#)')));
  $('pg').dataset.k='s';$('pg').querySelectorAll('[data-c]').forEach(function(b){b.onclick=function(){copy(b.dataset.c)}})}
 var stars=0;
