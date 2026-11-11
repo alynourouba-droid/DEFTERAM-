@@ -10,9 +10,25 @@ const SBU = 'https://test.supabase.co';
 let pass = 0, fail = 0;
 function ok(cond, name, extra){ if(cond){pass++;console.log('  ✓ '+name)} else {fail++;console.log('  ✗ '+name+(extra!==undefined?'  → '+JSON.stringify(extra):''))} }
 
+// Fausse base Upstash Redis en mémoire pour la fonction api/stats.js
+const REDIS = {}; let STATS_ON = true;
+const realFetch = global.fetch;
+global.fetch = async (u, o) => {
+  if (String(u).startsWith('https://fake-redis.test/')) {
+    const cmds = JSON.parse(o.body);
+    return { ok: true, json: async () => cmds.map(c => c[0]==='INCR' ? {result:(REDIS[c[1]]=(REDIS[c[1]]||0)+1)} : {result:c.slice(1).map(k=>REDIS[k]==null?null:String(REDIS[k]))}) };
+  }
+  return realFetch(u, o);
+};
+const statsFn = require(path.join(ROOT, 'api', 'stats.js'));
+
 function serve(){
   return new Promise(res=>{
     const srv = http.createServer((q,r)=>{
+      if(q.url.startsWith('/api/stats')){
+        if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; } else { delete process.env.KV_REST_API_URL; delete process.env.KV_REST_API_TOKEN; }
+        q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return statsFn(q, r);
+      }
       let p = decodeURIComponent(new URL(q.url,'http://x').pathname); if(p.endsWith('/')) p += 'index.html';
       const f = path.join(ROOT, p);
       if(!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()){
@@ -230,7 +246,26 @@ function mockSupabase(state){
     await p.goto(BASE+'privacy.html'); ok(/confidentialit/i.test(await p.title()), 'confidentialité lisible hors connexion');
     await ctx.close(); }
 
-  console.log('\n12. Page 404');
+  console.log('\n12. Compteurs de visiteurs et de partages');
+  { for(const k in REDIS) delete REDIS[k];
+    const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'stats'});
+    await p.goto(BASE); await p.waitForTimeout(1200);
+    ok(REDIS['defteram:visitors']===1 && REDIS['defteram:visits']===1, '1re ouverture : 1 visiteur, 1 visite', REDIS);
+    ok(/1/.test(await p.textContent('#hstats')) && await p.isVisible('#hstats'), 'chiffres affichés sur l’accueil');
+    await p.reload(); await p.waitForTimeout(1900); ok(REDIS['defteram:visits']===1, 'rechargement dans la même session : pas compté deux fois', REDIS);
+    const p2=await ctx.newPage(); await p2.goto(BASE); await p2.waitForTimeout(1900);
+    ok(REDIS['defteram:visitors']===1 && REDIS['defteram:visits']===2, 'nouvel onglet : +1 visite, même visiteur', REDIS); await p2.close();
+    const c2=await b.newContext({serviceWorkers:'block'}), q=await newPage(c2,{name:'stats2'}); await q.goto(BASE); await q.waitForTimeout(1200);
+    ok(REDIS['defteram:visitors']===2, 'autre appareil : +1 visiteur', REDIS);
+    await q.evaluate(()=>{ navigator.share=()=>Promise.resolve() }); await q.goto(BASE+'#/t/p2'); await q.waitForTimeout(300); await q.evaluate(()=>{navigator.share=()=>Promise.resolve()}); await q.click('#shr'); await q.waitForTimeout(500);
+    ok(REDIS['defteram:shares']===1, 'partage d’un texte compté', REDIS);
+    await q.evaluate(()=>shareApp()); await q.waitForTimeout(500); ok(REDIS['defteram:shares']===2, 'partage de l’application compté', REDIS);
+    await q.goto(BASE+'#/p/apropos'); await q.waitForTimeout(600); ok(/2/.test(await q.textContent('#astats')), 'chiffres dans « À propos »', await q.textContent('#astats'));
+    STATS_ON=false; const c3=await b.newContext({serviceWorkers:'block'}), r=await newPage(c3,{name:'stats-off',allow404:true,allowErr:true}); await r.goto(BASE); await r.waitForTimeout(1200);
+    ok(!(await r.isVisible('#hstats')), 'sans base reliée : aucun faux chiffre affiché'); STATS_ON=true;
+    await ctx.close(); await c2.close(); await c3.close(); }
+
+  console.log('\n13. Page 404');
   { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'404',allow404:true,allowErr:true}); const r=await p.goto(BASE+'nexiste-pas'); ok(r.status()===404 && /404/.test(await p.textContent('h1')), 'page 404'); await ctx.close(); }
 
   ok(!errors.length, 'aucune erreur JavaScript ni ressource manquante', errors.slice(0,20));

@@ -156,6 +156,11 @@ details.pm-in .tr{direction:ltr;font-family:Nunito,system-ui,sans-serif;font-siz
 .toc{display:flex;flex-direction:column;gap:6px;padding:4px 0 12px}
 .toc button{font:700 .78em/1.5 Amiri,serif;text-align:right;padding:9px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--accent);cursor:pointer}
 .toc button:hover{border-color:var(--sun)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 4px}
+.stats .st{text-align:center;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:10px 4px}
+.stats .st i{display:block;font-style:normal;font-size:1.2rem}.stats .st b{display:block;font:700 1.25rem Amiri,serif;color:var(--accent)}.stats .st small{color:var(--mute);font-size:.78rem}
+.card .stats{margin-bottom:0}
+@media (min-width:760px){#hstats{max-width:600px;margin-inline:auto}}
 .pm-note{text-align:center;font-size:.6em;color:var(--mute);margin:0 0 6px}
 .pm-end{text-align:center;margin:26px 0 4px;font-family:Amiri,serif;font-size:1.05em;color:var(--accent);padding:14px;border-top:3px double var(--sun);border-bottom:3px double var(--sun);background:linear-gradient(90deg,transparent,rgba(226,192,113,.2),transparent)}
 .wtabs{display:flex;gap:6px;margin:16px 0 10px}
@@ -267,6 +272,7 @@ html[dir=rtl] #prog{transform-origin:100% 50%}
 <div class="bsm ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div><div id="logoH" style="margin-bottom:6px"></div><h1>DEFTERAM</h1><p id="tag"></p>
 <button class="sb" id="sb">🔍 <span id="sbt"></span></button></div>
 <div class="quick" id="quick"></div>
+<div class="stats hide" id="hstats" aria-label="Statistiques"></div>
 <div id="groups"></div>
 </div>
 
@@ -451,7 +457,7 @@ function home(){
  var lr=lastRead();qi.push(lr?['📍',T('Reprendre','Resume','متابعة'),lr]:['🧼',T('Apprendre','Learn','تعلّم'),function(){openCat('pratique')}]);
  qi.forEach(function(x){
   var b=document.createElement('button');b.className='qk';b.innerHTML='<i>'+x[0]+'</i>'+x[1];b.onclick=x[2];q.appendChild(b)});
- var g=$('groups');g.innerHTML='';
+ showStats();var g=$('groups');g.innerHTML='';
  G.forEach(function(grp){
   var h=document.createElement('h2');h.className='gh';h.textContent=L(grp.t);g.appendChild(h);
   var d=document.createElement('div');d.className='grid';
@@ -736,7 +742,7 @@ function drawer(open){var d=$('drawer');if(!open){d.classList.add('hide');return
 function page(title,html){var e=$('pg');e.innerHTML='<div class="bar"><button class="btn" id="pgB">← '+t('back')+'</button></div><h2></h2>'+html;e.querySelector('h2').textContent=title;
  $('pgB').onclick=bk(function(){home();show('home')});show('pg');nav('')}
 function shareApp(){var u=CFG.url||location.href.split('#')[0],tx=T('Découvre DEFTERAM, ma bibliothèque islamique : Coran, douao, wird, poèmes.','Discover DEFTERAM, my Islamic library: Quran, duas, wird, poems.','اكتشف DEFTERAM مكتبتي الإسلامية: القرآن والأدعية والأوراد والقصائد.');
- function ok(){prof.shares++;sp();if(view==='pg'&&$('pg').dataset.k==='b')badges()}
+ function ok(){prof.shares++;sp();stat('share');if(view==='pg'&&$('pg').dataset.k==='b')badges()}
  if(navigator.share)navigator.share({title:'DEFTERAM',text:tx,url:u}).then(ok).catch(function(){});
  else if(navigator.clipboard)navigator.clipboard.writeText(tx+' '+u).then(function(){toast(T('Lien copié','Link copied','تم نسخ الرابط'));ok()}).catch(function(){prompt(T('Copie ce lien :','Copy this link:','انسخ هذا الرابط:'),u)});else prompt(T('Copie ce lien :','Copy this link:','انسخ هذا الرابط:'),u)}
 
@@ -788,7 +794,8 @@ function about(){page(T("À propos",'About','حول التطبيق'),'<div class
  var by=document.createElement('p');by.style.fontWeight='700';by.textContent=T('Créé par ','Created by ','من إعداد ')+CFG.by+T(' de Fass',' of Fass',' من فاس');cd.appendChild(by);
  function ln(txt,href){var a=document.createElement('a');a.textContent=txt;a.href=href;a.style.cssText='display:block;margin:8px 0;color:var(--accent);font-weight:700;direction:ltr';a.target='_blank';a.rel='noopener';cd.appendChild(a)}
  ln('✉ '+CFG.mail,'mailto:'+CFG.mail);ln('☎ '+CFG.phone,'tel:'+CFG.phone.replace(/\s/g,''));ln('💬 WhatsApp','https://wa.me/'+CFG.wa);ln('🔒 '+T('Politique de confidentialité','Privacy policy','سياسة الخصوصية'),'privacy.html');
- $('pg').appendChild(cd)}
+ $('pg').appendChild(cd);
+ var sc=document.createElement('div');sc.className='card'+(STATS?'':' hide');sc.innerHTML='<b></b><div class="stats" id="astats"></div>';sc.firstChild.textContent='📊 '+T('DEFTERAM en chiffres','DEFTERAM in numbers','DEFTERAM بالأرقام');$('pg').insertBefore(sc,cd);showStats();stat('')}
 $('mBtn').onclick=function(){drawer(true)};$('drawer').lastChild.onclick=function(){drawer(false)};
 $('gBtn').onclick=function(){grp=!grp;openCat(cat,LI,LT)};
 /* ===== Routes : liens directs + bouton Retour du téléphone ===== */
@@ -832,8 +839,8 @@ function readerExtras(b){
  var mine=custom.some(function(c){return c.id===b.id});$('del').classList.toggle('hide',!mine);
  $('fav').setAttribute('aria-pressed',favs.indexOf(b.id)>-1)}
 $('shr').onclick=function(){if(!cur)return;var u=location.href,ti='DEFTERAM · '+nm(cur);
- if(navigator.share)navigator.share({title:ti,url:u}).catch(function(){});
- else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){toast(T('Lien copié','Link copied','تم نسخ الرابط'))}).catch(function(){prompt(ti,u)});else prompt(ti,u)};
+ if(navigator.share)navigator.share({title:ti,url:u}).then(function(){stat('share')}).catch(function(){});
+ else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){toast(T('Lien copié','Link copied','تم نسخ الرابط'));stat('share')}).catch(function(){prompt(ti,u)});else prompt(ti,u)};
 $('del').onclick=function(){if(!cur)return;if(!confirm(T('Supprimer « ','Delete “','حذف « ')+nm(cur)+T(' » ?','”?',' »؟')))return;
  var id=cur.id,c=cur.cat;custom=custom.filter(function(x){return x.id!==id});favs=favs.filter(function(x){return x!==id});
  save(KEY,custom);save(FK,favs);toast(T('Texte supprimé','Text deleted','تم حذف النص'));RT.rep=true;openCat(c)};
@@ -944,7 +951,7 @@ if(AUTH.s&&sbOn())setTimeout(function(){pullData().catch(function(){})},1200);
  if(!RM&&hero&&'IntersectionObserver' in window)new IntersectionObserver(function(es){hero.classList.toggle('off',!es[0].isIntersecting)}).observe(hero);
  var tick=false;
  function frame(){tick=false;var y=window.scrollY||0;
-  if(!RM){root.style.setProperty('--bgy',(-(y*.15)%80).toFixed(1)+'px');if(view==='home'&&y<900)hero.style.setProperty('--p',Math.round(y))}
+  if(!RM){root.style.setProperty('--bgy',(-(y*.15)%80).toFixed(1)+'px');if(view==='home')hero.style.setProperty('--p',Math.round(Math.min(y,900)))}
   var long=view==='reader'||view==='pg',h=document.documentElement.scrollHeight-innerHeight;
   root.style.setProperty('--sp',long&&h>40?Math.min(1,y/h).toFixed(3):0)}
  addEventListener('scroll',function(){if(!tick){tick=true;requestAnimationFrame(frame)}},{passive:true});addEventListener('resize',frame,{passive:true});
@@ -958,6 +965,19 @@ if(AUTH.s&&sbOn())setTimeout(function(){pullData().catch(function(){})},1200);
   if(hero&&view==='home'){var hr=hero.getBoundingClientRect();if(e.clientY<hr.bottom){hero.style.setProperty('--hy',((e.clientX/innerWidth-.5)*16).toFixed(1)+'deg');hero.style.setProperty('--hx',((.5-(e.clientY-hr.top)/hr.height)*12).toFixed(1)+'deg')}}},{passive:true});
  document.addEventListener('pointerleave',function(){reset(tgt);tgt=null},{passive:true});
 })();
+
+/* ===== Compteurs : visiteurs, visites, partages (fonction /api/stats sur Vercel) ===== */
+var STATS=null;
+function fmtN(n){try{return Number(n).toLocaleString(lang==='ar'?'ar':lang==='en'?'en-US':'fr-FR')}catch(e){return String(n)}}
+function stat(e){if(!/^https?:/.test(location.protocol)||!window.fetch)return Promise.resolve(null);
+ return fetch('api/stats'+(e?'?e='+e:''),{method:e?'POST':'GET',cache:'no-store'}).then(function(r){return r.ok?r.json():null}).catch(function(){return null})
+  .then(function(j){if(j&&typeof j.visitors==='number'){STATS=j;showStats()}return j})}
+function statsHtml(big){if(!STATS)return '';var x=[['👥',STATS.visitors,T('visiteurs','visitors','زائر')],['👁️',STATS.visits,T('visites','visits','زيارة')],['📤',STATS.shares,T('partages','shares','مشاركة')]];
+ return x.map(function(i){return '<div class="st"><i aria-hidden="true">'+i[0]+'</i><b>'+fmtN(i[1])+'</b><small>'+i[2]+'</small></div>'}).join('')}
+function showStats(){var h=$('hstats');if(h){h.innerHTML=statsHtml();h.classList.toggle('hide',!STATS)}var a=$('astats');if(a){a.innerHTML=statsHtml();a.parentNode.classList.toggle('hide',!STATS)}}
+(function(){var first=false,seen=false;try{first=!localStorage.getItem('defteram_vid');seen=sessionStorage.getItem('defteram_seen')==='1'}catch(e){}
+ var ev=first?'new':seen?'':'visit';
+ setTimeout(function(){stat(ev).then(function(j){if(j){try{if(first)localStorage.setItem('defteram_vid','1');sessionStorage.setItem('defteram_seen','1')}catch(e){}}})},first?600:1500)})();
 
 $('logoS').innerHTML=logo(32);$('logoH').innerHTML=logo(76);applyTheme();
 setLang();home();nav('home');

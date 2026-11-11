@@ -14,6 +14,7 @@ Site statique sans étape de build, installable comme application (PWA) et utili
 | `b/` | Images des livres (manuscrits, Mukhtasar al-Akhdari) |
 | `icons/`, `og.jpg`, `manifest.webmanifest` | Icônes, image de partage, manifeste de l'app |
 | `privacy.html`, `404.html`, `robots.txt`, `sitemap.xml` | Pages et fichiers SEO |
+| `api/stats.js` | Compteurs anonymes (visiteurs, visites, partages) |
 | `vercel.json` | En-têtes de cache et de sécurité pour Vercel |
 | `supabase/schema.sql` | Tables Supabase (avis + comptes) |
 | `tests/e2e.js` | Tests de bout en bout |
@@ -31,6 +32,13 @@ Chaque écran a sa propre adresse, utilisable pour partager et pour le bouton Re
 3. Chaque envoi sur `main` est publié automatiquement.
 
 Le site utilise l'adresse `https://defteram.vercel.app` (balises de partage, canonical, sitemap). Si Vercel en donne une autre, remplacer cette adresse dans `index.html`, `robots.txt` et `sitemap.xml`.
+
+### Compteurs de visiteurs et de partages
+La fonction `api/stats.js` compte les visiteurs (appareils), les visites et les partages, et l'app les affiche sur l'accueil et dans « À propos ».
+1. Vercel → projet `defteram` → **Storage** → **Create Database** → **Upstash for Redis** (offre gratuite) → **Connect** au projet.
+2. Redéployer (Deployments → ⋯ → Redeploy). Les variables `KV_REST_API_URL` / `KV_REST_API_TOKEN` (ou `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`) sont ajoutées automatiquement.
+
+Tant que la base n'est pas reliée, aucun chiffre n'est affiché.
 
 ### 2. Supabase (comptes + avis)
 1. Créer un projet sur https://supabase.com.
