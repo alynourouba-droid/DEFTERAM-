@@ -241,6 +241,49 @@ html[dir=rtl] #prog{transform-origin:100% 50%}
 @media (min-width:1120px){.wrap{max-width:1140px}.grid{grid-template-columns:repeat(4,1fr)}#list{grid-template-columns:repeat(3,1fr)}}
 @media print{nav,.top,.bar,#prog,body::before{display:none!important}.rv{opacity:1!important}}
 
+/* ===== Écran de bienvenue animé ===== */
+#wel{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:24px 20px calc(24px + env(safe-area-inset-bottom,0px));text-align:center;color:#fbeec7;overflow:hidden;cursor:default;
+ background:radial-gradient(120% 90% at 50% 38%,#17937a 0%,#0f6b57 28%,#06352c 62%,#021612 100%)}
+#wel.out{animation:welOut .7s cubic-bezier(.6,0,.4,1) forwards;pointer-events:none}
+@keyframes welOut{to{opacity:0;transform:scale(1.12);filter:blur(6px)}}
+#wel .rays{position:absolute;left:50%;top:38%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;background:repeating-conic-gradient(from 0deg,rgba(255,236,170,.10) 0 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(circle,#000 0,transparent 62%);mask:radial-gradient(circle,#000 0,transparent 62%);animation:spin 60s linear infinite}
+#wel .ros{position:absolute;left:50%;top:38%;width:min(150vw,820px);aspect-ratio:1;transform:translate(-50%,-50%);opacity:.22;animation:welRos 90s linear infinite}
+@keyframes welRos{to{transform:translate(-50%,-50%) rotate(-360deg)}}
+#wel .pt{position:absolute;bottom:-12px;border-radius:50%;background:radial-gradient(circle,#fff6d0,#e2c071 45%,transparent 70%);animation:welUp var(--du) linear var(--de) infinite;opacity:0}
+@keyframes welUp{0%{transform:translate(0,0) scale(.6);opacity:0}10%{opacity:1}50%{transform:translate(var(--dx),-55vh) scale(1)}90%{opacity:.9}100%{transform:translate(calc(var(--dx)*-1),-110vh) scale(.4);opacity:0}}
+#wel .st{position:absolute;color:#ffe9a8;font-size:var(--sz);animation:welTw 2.6s ease-in-out var(--de) infinite;text-shadow:0 0 10px #ffe9a8}
+@keyframes welTw{0%,100%{opacity:.15;transform:scale(.7)}50%{opacity:1;transform:scale(1.15)}}
+#wel>*:not(.rays):not(.ros):not(.pt):not(.st):not(.bar){position:relative}
+#wel .bs{font:700 clamp(1.5rem,6.5vw,2.3rem) Amiri,serif;color:#fff3c4;direction:rtl;text-shadow:0 0 18px rgba(255,220,140,.55);animation:welBlur 1.4s cubic-bezier(.2,.8,.2,1) .15s both}
+@keyframes welBlur{from{opacity:0;filter:blur(14px);letter-spacing:.3em}to{opacity:1;filter:none;letter-spacing:0}}
+#wel .lg{margin:14px 0 6px;position:relative;animation:welPop 1.1s cubic-bezier(.2,1.4,.4,1) .55s both}
+@keyframes welPop{from{opacity:0;transform:scale(.3) rotate(-25deg)}to{opacity:1;transform:none}}
+#wel .lg svg{display:block;border-radius:26px;filter:drop-shadow(0 0 22px rgba(226,192,113,.75));animation:welFl 4s ease-in-out 1.6s infinite}
+@keyframes welFl{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+#wel .lg::before,#wel .lg::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:2px solid rgba(255,226,150,.65);animation:welRing 2.6s ease-out 1.2s infinite;opacity:0}
+#wel .lg::after{animation-delay:2.5s}
+@keyframes welRing{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+#wel .halo{position:absolute;inset:-26px;border-radius:50%;background:conic-gradient(from 0deg,transparent,rgba(255,226,150,.85),transparent 30%,transparent 50%,rgba(255,226,150,.85),transparent 80%);-webkit-mask:radial-gradient(circle,transparent 62%,#000 64%,#000 68%,transparent 70%);mask:radial-gradient(circle,transparent 62%,#000 64%,#000 68%,transparent 70%);animation:spin 5s linear infinite}
+#wel h1{margin:4px 0 0;font:700 clamp(2.3rem,11vw,3.6rem) Amiri,serif;letter-spacing:.16em;display:flex;justify-content:center;direction:ltr}
+#wel h1 span{display:inline-block;background:linear-gradient(90deg,#c9a24a,#fff3c4,#c9a24a,#fff3c4);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:welLet .8s cubic-bezier(.2,1.3,.4,1) calc(1.1s + var(--i)*.08s) both,shine 3.5s linear 2.2s infinite}
+@keyframes welLet{from{opacity:0;transform:translateY(40px) rotateX(80deg) scale(.6)}to{opacity:1;transform:none}}
+#wel .gr{height:2.6em;display:grid;place-items:center;font:700 clamp(1.25rem,5.4vw,1.7rem) Nunito,system-ui,sans-serif;color:#fff;animation:welIn .9s ease 1.9s both}
+#wel .gr span{animation:welSwap .7s cubic-bezier(.2,.9,.3,1) both;text-shadow:0 2px 14px rgba(0,0,0,.35)}
+#wel .gr .ar{font:700 1.15em Amiri,serif}
+@keyframes welSwap{from{opacity:0;transform:translateY(18px) scale(.9);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+#wel .sub{max-width:420px;opacity:.9;line-height:1.6;animation:welIn .9s ease 2.2s both}
+@keyframes welIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+#wel .orn{color:#e2c071;letter-spacing:.6em;margin:6px 0;animation:welIn .9s ease 2.4s both}
+#wel .go{margin-top:14px;position:relative;overflow:hidden;border:2px solid #f0d88f;border-radius:999px;padding:14px 38px;font:800 1.08rem Nunito,system-ui,sans-serif;color:#06352c;cursor:pointer;background:linear-gradient(135deg,#fff3c4,#e2c071 55%,#c9a24a);box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 6px rgba(226,192,113,.18);animation:welIn .9s ease 2.6s both,welBeat 2.4s ease-in-out 3.6s infinite}
+#wel .go::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);transform:skewX(-20deg);animation:welSh 2.8s ease-in-out 3s infinite}
+@keyframes welSh{0%{left:-60%}55%,100%{left:130%}}
+@keyframes welBeat{0%,100%{box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 6px rgba(226,192,113,.18)}50%{box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 0 14px rgba(226,192,113,.05)}}
+#wel .go:active{transform:scale(.95)}
+#wel .bar{position:absolute;left:0;bottom:0;height:4px;width:100%;margin:0;background:linear-gradient(90deg,#c9a24a,#fff3c4);transform-origin:0 50%;animation:welBar var(--t,3.4s) linear .3s both}
+@keyframes welBar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+#wel .tap{font-size:.8rem;opacity:.7;animation:welIn .9s ease 2.6s both}
+@media (prefers-reduced-motion:reduce){#wel *,#wel{animation:none!important}#wel .pt,#wel .st{display:none}}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.hero,.hero *,.hero::before,body::before{translate:none!important}.rv{opacity:1!important}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -1211,9 +1254,34 @@ function guideEditor(box,x){
  bar.appendChild(sv);bar.appendChild(cn);f.appendChild(bar);
  box.innerHTML='';box.appendChild(f);try{iN.focus({preventScroll:true})}catch(e){}}
 
+
+/* ===== Écran de bienvenue animé : complet à la 1re visite, court (une fois par jour) ensuite ===== */
+function welcome(){
+ var h=location.hash;if(h&&h!=='#/'&&h!=='#')return;
+ var today=new Date().toDateString(),seen=load('defteram_welcome');if(seen===today)return;
+ var first=!seen;save('defteram_welcome',today);
+ var name=(AUTH&&AUTH.s&&AUTH.s.user&&AUTH.s.user.name)||prof.name||'';
+ var w=document.createElement('div');w.id='wel';w.setAttribute('role','dialog');w.setAttribute('aria-modal','true');w.setAttribute('aria-label',T('Bienvenue sur DEFTERAM','Welcome to DEFTERAM','مرحبا بكم في دفتر'));
+ var star='<svg class="ros" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#f0d88f" stroke-width="1.1">'+[0,1,2,3,4,5].map(function(i){var r=26+i*15;return '<rect x="'+(100-r)+'" y="'+(100-r)+'" width="'+2*r+'" height="'+2*r+'"/><rect x="'+(100-r)+'" y="'+(100-r)+'" width="'+2*r+'" height="'+2*r+'" transform="rotate(45 100 100)"/>'}).join('')+'<circle cx="100" cy="100" r="20"/><circle cx="100" cy="100" r="98"/></g></svg>';
+ var parts='';for(var i=0;i<26;i++){var sz=3+Math.random()*6;parts+='<i class="pt" style="left:'+(Math.random()*100).toFixed(1)+'%;width:'+sz.toFixed(1)+'px;height:'+sz.toFixed(1)+'px;--du:'+(7+Math.random()*7).toFixed(1)+'s;--de:'+(-Math.random()*10).toFixed(1)+'s;--dx:'+(Math.random()*60-30).toFixed(0)+'px"></i>'}
+ for(i=0;i<14;i++)parts+='<i class="st" style="left:'+(Math.random()*96).toFixed(1)+'%;top:'+(Math.random()*90).toFixed(1)+'%;--sz:'+(6+Math.random()*10).toFixed(0)+'px;--de:'+(-Math.random()*3).toFixed(1)+'s">✦</i>';
+ var letters='DEFTERAM'.split('').map(function(c,i){return '<span style="--i:'+i+'">'+c+'</span>'}).join('');
+ w.innerHTML='<div class="rays" aria-hidden="true"></div>'+star+parts+
+  '<div class="bs">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div><div class="lg"><div class="halo" aria-hidden="true"></div>'+logo(104)+'</div>'+
+  '<h1 aria-label="DEFTERAM">'+letters+'</h1><div class="gr" aria-live="polite"></div><div class="orn" aria-hidden="true">✦ ❖ ✦</div><p class="sub"></p>'+
+  (first?'<button class="go"></button>':'<small class="tap"></small><div class="bar" aria-hidden="true"></div>');
+ w.querySelector('.sub').textContent=first?t('tag')+' · '+T('Coran, douaou, hadiths, poèmes et guides de prière.','Quran, duas, hadiths, poems and prayer guides.','القرآن والأدعية والأحاديث والقصائد وتعلّم الصلاة.'):T('Que la paix et la bénédiction soient sur toi.','Peace and blessings be upon you.','السلام عليكم ورحمة الله وبركاته');
+ var gr=w.querySelector('.gr'),G2=first&&!hasLang?[['Bienvenue',0],['مرحبا بكم',1],['Welcome',0],['Jaraama',0],['Dalal ak jàmm',0]]:[[(lang==='ar'?'مرحبا بك':lang==='ff'?'Jaraama':lang==='wo'?'Dalal ak jàmm':T('Bienvenue','Welcome',''))+(name?(lang==='ar'?' يا ':', ')+name:'')+' 🌙',lang==='ar'?1:0]];
+ var gi=0,tm=null;function sw(){var x=G2[gi++%G2.length],sp=document.createElement('span');sp.textContent=x[0];if(x[1])sp.className='ar';gr.innerHTML='';gr.appendChild(sp)}sw();if(G2.length>1)tm=setInterval(sw,1700);
+ var closed=false;function close(){if(closed)return;closed=true;clearInterval(tm);document.removeEventListener('keydown',kd);w.classList.add('out');setTimeout(function(){if(w.parentNode)w.parentNode.removeChild(w)},720);var f=hasLang?$('mBtn'):document.querySelector('#sheet button');if(f)try{f.focus({preventScroll:true})}catch(e){}}
+ function kd(e){if(e.key==='Escape'||e.key==='Enter')close()}document.addEventListener('keydown',kd);
+ if(first){var b=w.querySelector('.go');b.textContent=T('Entrer','Enter','ادخل')+' ✦';b.onclick=close}
+ else{w.querySelector('.tap').textContent=T('Touchez pour entrer','Tap to enter','المس للدخول');w.onclick=close;var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;setTimeout(close,RM?2500:3700)}
+ document.body.appendChild(w);var fb=w.querySelector('.go');if(fb)setTimeout(function(){try{fb.focus({preventScroll:true})}catch(e){}},2700)}
 $('logoS').innerHTML=logo(32);$('logoH').innerHTML=logo(76);applyTheme();
 setLang();home();nav('home');
 if(!hasLang)sheet();
+try{welcome()}catch(e){}
 requestAnimationFrame(function(){requestAnimationFrame(function(){document.documentElement.classList.add('ready')})});
 // Lien direct (#/…) : exécuté quand toute la page est lue (le lecteur du Mushaf est défini plus bas).
 document.addEventListener('DOMContentLoaded',function(){var h=location.hash;try{history.replaceState({d:0},'')}catch(e){}if(h&&h!=='#/'&&h!=='#'){RT.restoring=true;try{goRoute(h)}finally{setTimeout(function(){RT.restoring=false},0)}}});

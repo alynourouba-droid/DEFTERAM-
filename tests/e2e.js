@@ -116,6 +116,7 @@ function mockSupabase(state){
     p.on('console', m=>{ if(m.type()==='error' && !opts.allowErr && !/fonts\.g|ERR_INTERNET_DISCONNECTED|ERR_FAILED|ERR_NAME_NOT_RESOLVED|ERR_TUNNEL|ERR_CONNECTION/.test(m.text())) errors.push(p._name+' · console: '+m.text()) });
     p.on('response', r=>{ if(r.status()>=400 && r.url().startsWith(BASE) && !opts.allow404) errors.push(p._name+' · HTTP '+r.status()+' '+r.url()) });
     await p.addInitScript(()=>{ try{ if(!localStorage.getItem('defteram_lang')) localStorage.setItem('defteram_lang','fr') }catch(e){} });
+    if(!opts.welcome) await p.addInitScript(()=>{ try{ localStorage.setItem('defteram_welcome', JSON.stringify(new Date().toDateString())) }catch(e){} });
     return p;
   }
   async function withSB(ctx){
@@ -370,6 +371,23 @@ function mockSupabase(state){
     STATS_ON=false; const c3=await b.newContext({serviceWorkers:'block'}), r=await newPage(c3,{name:'stats-off',allow404:true,allowErr:true}); await r.goto(BASE); await r.waitForTimeout(1200);
     await r.evaluate(()=>drawer(true)); await r.waitForTimeout(300); ok(!(await r.isVisible('#dstats')), 'sans base reliée : aucun faux chiffre affiché'); STATS_ON=true;
     await ctx.close(); await c2.close(); await c3.close(); }
+
+  console.log('\n12b. Écran de bienvenue');
+  { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'bienvenue',welcome:true});
+    await p.goto(BASE); await p.waitForTimeout(400);
+    ok(await p.isVisible('#wel'), '1re visite : écran de bienvenue affiché');
+    ok((await p.textContent('#wel h1')).replace(/\s/g,'')==='DEFTERAM', 'titre DEFTERAM animé lettre par lettre');
+    await p.waitForTimeout(2800); await p.click('#wel .go'); await p.waitForTimeout(900);
+    ok(!(await p.$('#wel')), 'bouton « Entrer » : l’écran se ferme');
+    await p.reload(); await p.waitForTimeout(500);
+    ok(!(await p.$('#wel')), 'pas de nouvel écran le même jour');
+    await p.evaluate(()=>localStorage.setItem('defteram_welcome', JSON.stringify('Mon Jan 01 2001'))); await p.reload(); await p.waitForTimeout(400);
+    ok(await p.isVisible('#wel .tap'), 'jour suivant : courte bienvenue');
+    await p.waitForTimeout(4600); ok(!(await p.$('#wel')), 'courte bienvenue : se ferme toute seule');
+    await p.evaluate(()=>localStorage.removeItem('defteram_welcome')); await p.goto(BASE+'#/t/p2'); await p.waitForTimeout(500);
+    ok(!(await p.$('#wel')), 'lien direct vers un texte : pas d’écran de bienvenue');
+    await ctx.close();
+  }
 
   console.log('\n13. Page 404');
   { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'404',allow404:true,allowErr:true}); const r=await p.goto(BASE+'nexiste-pas'); ok(r.status()===404 && /404/.test(await p.textContent('h1')), 'page 404'); await ctx.close(); }
