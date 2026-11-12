@@ -31,6 +31,8 @@ global.fetch = async (u, o) => {
       if(op==='LRANGE') return {result:rng(REDIS[k]||[],a[0],a[1])};
       if(op==='RPUSH'){ const L=REDIS[k]=REDIS[k]||[]; L.push(...a); return {result:L.length}; }
       if(op==='EXISTS') return {result:REDIS[k]!=null?1:0};
+      if(op==='STRLEN') return {result:REDIS[k]==null?0:String(REDIS[k]).length};
+      if(op==='PERSIST') return {result:1};
       if(op==='HVALS') return {result:Object.values(REDIS[k]||{}).map(String)};
       if(op==='LLEN') return {result:(REDIS[k]||[]).length};
       if(op==='LSET'){ REDIS[k][+a[0]]=a[1]; return {result:'OK'}; }
@@ -54,6 +56,7 @@ const adminFn = require(path.join(ROOT, 'api', 'admin.js'));
 const guidesFn = require(path.join(ROOT, 'api', 'guides.js'));
 const uploadFn = require(path.join(ROOT, 'api', 'upload.js'));
 const coursesFn = require(path.join(ROOT, 'api', 'courses.js'));
+const audioFn = require(path.join(ROOT, 'api', 'audio.js'));
 
 function serve(){
   return new Promise(res=>{
@@ -61,6 +64,10 @@ function serve(){
       if(q.url.startsWith('/api/guides')||q.url.startsWith('/api/upload')){
         if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; }
         q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return (q.url.startsWith('/api/guides')?guidesFn:uploadFn)(q, r);
+      }
+      if(q.url.startsWith('/api/audio')){
+        if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; }
+        q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return audioFn(q, r);
       }
       if(q.url.startsWith('/api/courses')){
         if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; }
@@ -411,6 +418,40 @@ function mockSupabase(state){
     ok(/Alâ yâ dah-du/.test(await p.textContent('#rText .bayt .btl')), 'prononciation en lettres latines sous chaque vers');
     await p.goto(BASE+'#/c/parab'); await p.waitForTimeout(400); ok(!(await p.$('#cHead .mhead')), 'pas de présentation dans les autres catégories');
     await ctx.close(); }
+
+  console.log('\n7e. Audios ajoutés par l’administrateur sur les poèmes');
+  { STATS_ON=true; Object.keys(REDIS).filter(k=>k.startsWith('defteram:rl:')).forEach(k=>delete REDIS[k]);
+    const up=async(pg,id)=>{ await pg.goto(BASE+'#/p/compte'); await pg.waitForSelector('#acc .tabs2 button:nth-child(2)',{timeout:8000}); await pg.click('.tabs2 button:nth-child(2)'); await pg.fill('#aId',id); await pg.fill('#aPw','123456'); await pg.fill('#aPw2','123456'); await pg.click('#acc [type=submit]'); await pg.waitForTimeout(900); };
+    const ca=await b.newContext({serviceWorkers:'block'}), pa=await newPage(ca,{name:'audio-admin',allowErr:true,allow404:true});
+    await up(pa,'chef.audio'); const oldAdmin=REDIS['defteram:admin']; REDIS['defteram:admin']='chef.audio';
+    await pa.reload(); await pa.waitForTimeout(1500);
+    await pa.goto(BASE+'#/t/p2'); await pa.waitForTimeout(800);
+    ok(await pa.isVisible('#aud .audbtn'), 'administrateur : bouton « Ajouter un audio » sur le poème');
+    await pa.click('#aud .audbtn'); await pa.waitForTimeout(200);
+    const bytes=Buffer.alloc(1500000); for(let i=0;i<bytes.length;i++) bytes[i]=(i*7)%251; bytes.write('ID3',0);
+    await pa.setInputFiles('#aud .audm input[type=file]',{name:'taala.mp3',mimeType:'audio/mpeg',buffer:bytes});
+    await pa.fill('#aud .audm input:not([type])','Récité par Oustaz Ba'); await pa.waitForTimeout(200);
+    await pa.click('#aud .audm .btn.fill.wide'); await pa.waitForTimeout(2500);
+    const rec=JSON.parse(REDIS['defteram:audios']&&REDIS['defteram:audios'].p2||'null');
+    ok(rec && rec.done && rec.n===3 && rec.size===1500000 && rec.title==='Récité par Oustaz Ba', 'audio envoyé en 3 morceaux et enregistré sur le poème', rec);
+    ok(/Récité par Oustaz Ba/.test(await pa.textContent('#aud .at')), 'le lecteur du poème affiche le nouvel audio');
+    const g=await pa.evaluate(id=>fetch('api/audio?a=get&id='+id,{headers:{Range:'bytes=0-'}}).then(async r=>[r.status,r.headers.get('content-range'),r.headers.get('content-type'),(await r.arrayBuffer()).byteLength]),rec.id);
+    ok(g[0]===206 && g[1]==='bytes 0-1499999/1500000' && g[2]==='audio/mpeg' && g[3]===1500000, 'lecture : réponse partielle (Range) correcte', g);
+    const g2=await pa.evaluate(id=>fetch('api/audio?a=get&id='+id,{headers:{Range:'bytes=716700-716899'}}).then(async r=>{const u=new Uint8Array(await r.arrayBuffer());return [r.status,u.length,u[0]]}),rec.id);
+    ok(g2[0]===206 && g2[1]===200 && g2[2]===(716700*7)%251, 'lecture au milieu du fichier (entre deux morceaux)', g2);
+    const cv=await b.newContext({serviceWorkers:'block'}), pv=await newPage(cv,{name:'audio-visiteur',allowErr:true,allow404:true});
+    await pv.goto(BASE+'#/c/fass'); await pv.waitForTimeout(1200);
+    ok(/🎧/.test(await pv.textContent('#list')), 'liste : 🎧 sur le poème qui a un audio');
+    await pv.goto(BASE+'#/t/p2'); await pv.waitForTimeout(800);
+    ok(await pv.isVisible('#aud .aud') && !(await pv.$('#aud .audbtn')) && !(await pv.$('#aud .aud button:disabled')), 'visiteur : lecteur actif, sans outil d’administration');
+    const deny=await pv.evaluate(()=>fetch('api/audio?a=begin',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"item":"p2","size":10,"mime":"audio/mpeg"}'}).then(r=>r.status));
+    ok(deny===403, 'visiteur : ne peut pas envoyer d’audio');
+    await pa.goto(BASE+'#/t/kz1'); await pa.waitForTimeout(700);
+    ok(await pa.isVisible('#aud .audbtn') && /Pas encore d’audio/.test(await pa.textContent('#aud')), 'administrateur : outil aussi sur les poèmes sans audio');
+    await pa.goto(BASE+'#/t/p2'); await pa.waitForTimeout(700); await pa.click('#aud .audbtn'); pa.once('dialog',d=>d.accept()); await pa.click('#aud .audm .btn.danger'); await pa.waitForTimeout(1200);
+    ok(!(REDIS['defteram:audios']||{}).p2 && !REDIS['defteram:auc:'+rec.id+':0'], 'audio supprimé (et ses morceaux)');
+    REDIS['defteram:admin']=oldAdmin; await ca.close(); await cv.close();
+  }
 
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){

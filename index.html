@@ -375,6 +375,13 @@ body.inchat nav{display:none}body.inchat .wrap{padding-bottom:16px}
 .bayt .btl{direction:ltr;text-align:center;font:italic .5em/1.5 Nunito,system-ui,sans-serif;color:var(--mute);margin-top:8px;padding-top:6px;border-top:1px dashed var(--line)}
 @media (max-width:380px){.mhead{flex-direction:column;text-align:center}.mhead .mph{width:130px;height:165px}}
 
+/* Audios ajoutés par l'administrateur */
+#aud{margin:12px 0}#aud .aud{margin:0}
+.audbtn{margin-top:8px;font-size:.92rem}
+.audm{margin-top:8px;padding:12px;border:1.5px dashed var(--sun);border-radius:16px;background:rgba(226,192,113,.1)}
+.audm b{display:block;margin-bottom:8px}.audst{min-height:1.3em;font-weight:700;margin:6px 0;color:var(--accent)}
+.audm .pb{height:10px}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.hero,.hero *,.hero::before,body::before{translate:none!important}.rv{opacity:1!important}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -697,7 +704,7 @@ function openCat(id,items,title){
   var e=document.createElement('div');e.className='book';
   var m=document.createElement('button');m.className='main';
   var s=document.createElement('span'),a=document.createElement('b'),c=document.createElement('small');
-  a.textContent=nm(b);c.textContent=(b.lang==='ff'?t('ff'):'')+(b.count?' ×'+b.count:'')+(b.bayts?b.bayts.length+' '+T('vers','verses','بيتاً'):'');
+  a.textContent=nm(b);c.textContent=(b.lang==='ff'?t('ff'):'')+(b.count?' ×'+b.count:'')+(b.bayts?b.bayts.length+' '+T('vers','verses','بيتاً'):'')+(hasAud(b)?' · 🎧':'');
   if(ITEMS&&ITEMS.views[b.id])c.textContent+=(c.textContent?' · ':'')+'👁️ '+fmtN(ITEMS.views[b.id]);s.appendChild(a);if(c.textContent)s.appendChild(c);
   m.appendChild(s);
   if(b.ar&&lang!=='ar'){var r=document.createElement('span');r.className='t ar';r.textContent=b.ar;m.appendChild(r)}
@@ -872,9 +879,19 @@ function openLearn(b){
 var curAud=null;
 function stopAudio(){if(curAud){try{curAud.pause()}catch(e){}curAud=null}var o=$('aud');if(o)o.remove()}
 function fmtT(s){s=Math.floor(s||0);return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
+/* ===== Audios ajoutés par l'administrateur sur les poèmes et les textes ===== */
+var AUD={};try{AUD=JSON.parse(localStorage.getItem('defteram_aud')||'{}')||{}}catch(e){}
+function loadAud(cb){if(!/^https?:/.test(location.protocol)||!window.fetch)return;
+ fetch('api/audio?a=list',{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j)return;AUD=j.map||{};try{localStorage.setItem('defteram_aud',JSON.stringify(AUD))}catch(e){}cb&&cb()}).catch(function(){})}
+function hasAud(b){return !!(AUD[b.id]||b.audio)}
+function apiAu(a,body){var h={'Content-Type':'application/json'};if(AUTH.s&&AUTH.s.tk)h.Authorization='Bearer '+AUTH.s.tk;
+ return fetch('api/audio?a='+a,{method:'POST',headers:h,body:JSON.stringify(body||{}),cache:'no-store'}).then(function(r){return r.text().then(function(x){var j=null;try{j=x?JSON.parse(x):null}catch(e){}if(!r.ok){var er=new Error((j&&j.error)||('HTTP '+r.status));er.code=(j&&j.error)||String(r.status);throw er}return j})})}
+function refreshAudBar(){if(view==='reader'&&cur&&!(curAud&&!curAud.paused))audioBar(cur)}
 function audioBar(b){
- stopAudio();if(!b.aud)return;
- var d=document.createElement('div');d.id='aud';d.className='aud';
+ stopAudio();var ov=AUD[b.id],src=ov?'api/audio?a=get&id='+encodeURIComponent(ov.id):b.audio;
+ if(!b.aud&&!src&&!AUTH.admin)return;
+ var wrap=document.createElement('div');wrap.id='aud';
+ var d=document.createElement('div');d.className='aud';wrap.appendChild(d);
  var pb=document.createElement('button');pb.textContent='▶';pb.setAttribute('aria-label',T('Lecture','Play','تشغيل'));
  var m=document.createElement('div');m.className='am';
  var tt=document.createElement('div');tt.className='at';
@@ -883,18 +900,66 @@ function audioBar(b){
  var tm=document.createElement('div');tm.className='tm';tm.textContent='0:00';
  var lp=document.createElement('button');lp.className='lp';lp.textContent='🔁';lp.setAttribute('aria-label',T('Répéter','Repeat','تكرار'));
  d.appendChild(pb);d.appendChild(m);d.appendChild(tm);d.appendChild(lp);
- $('rText').parentNode.insertBefore(d,$('rText'));
- if(!b.audio){tt.textContent=T('Audio bientôt disponible','Audio coming soon','الصوت قريبًا');pb.disabled=true;lp.disabled=true;rg.disabled=true;return}
- tt.textContent=b.audioTitle||T('Écouter le poème','Listen to the poem','استمع إلى القصيدة');
- var a=new Audio(b.audio);a.preload='metadata';curAud=a;
- pb.onclick=function(){if(a.paused){a.play().catch(function(){})}else a.pause()};
+ $('rText').parentNode.insertBefore(wrap,$('rText'));
+ if(AUTH.admin)audAdmin(b,wrap,!!ov);
+ if(!src){tt.textContent=AUTH.admin&&!b.aud?T('Pas encore d’audio pour ce texte','No audio for this text yet','لا يوجد صوت بعد'):T('Audio bientôt disponible','Audio coming soon','الصوت قريبًا');pb.disabled=true;lp.disabled=true;rg.disabled=true;return}
+ tt.textContent=(ov&&ov.title)||b.audioTitle||T('Écouter','Listen','استمع');
+ var a=new Audio(src);a.preload='metadata';curAud=a;
+ pb.onclick=function(){if(a.paused){a.play().catch(function(){toast(T('Lecture impossible pour le moment.','Cannot play right now.','تعذّر التشغيل الآن.'))})}else a.pause()};
  a.onplay=function(){pb.textContent='⏸'};a.onpause=function(){pb.textContent='▶'};
  a.onended=function(){pb.textContent='▶';rg.value=0};
- a.ontimeupdate=function(){if(a.duration)rg.value=Math.round(a.currentTime/a.duration*1000);tm.textContent=fmtT(a.currentTime)+' / '+fmtT(a.duration)};
- a.onloadedmetadata=function(){tm.textContent='0:00 / '+fmtT(a.duration)};
- rg.oninput=function(){if(a.duration)a.currentTime=rg.value/1000*a.duration};
+ a.ontimeupdate=function(){if(a.duration&&isFinite(a.duration))rg.value=Math.round(a.currentTime/a.duration*1000);tm.textContent=fmtT(a.currentTime)+(a.duration&&isFinite(a.duration)?' / '+fmtT(a.duration):'')};
+ a.onloadedmetadata=function(){if(isFinite(a.duration))tm.textContent='0:00 / '+fmtT(a.duration)};
+ rg.oninput=function(){if(a.duration&&isFinite(a.duration))a.currentTime=rg.value/1000*a.duration};
  lp.onclick=function(){a.loop=!a.loop;lp.classList.toggle('on',a.loop)};
 }
+// Outil de l'administrateur : enregistrer ou choisir un audio, l'envoyer par morceaux, le supprimer
+function audAdmin(b,wrap,has){
+ var bt=gel('button','btn wide audbtn','🎙️ '+(has?T('Remplacer l’audio','Replace the audio','استبدال الصوت'):T('Ajouter un audio à ce texte','Add audio to this text','أضف صوتا لهذا النص'))+' · '+T('administration','admin','الإدارة'));
+ var box=gel('div','audm hide');wrap.appendChild(bt);wrap.appendChild(box);
+ bt.onclick=function(){box.classList.toggle('hide');if(!box.childNodes.length)build()};
+ function build(){
+  box.appendChild(gel('b','','🎧 '+T('Audio de « ','Audio for “','صوت «')+nm(b)+T(' »','”','»')));
+  var ti=gel('input');ti.placeholder=T('Titre (facultatif) : ex. Récité par …','Title (optional): e.g. Recited by …','العنوان (اختياري)');ti.value=(AUD[b.id]&&AUD[b.id].title)||'';ti.setAttribute('aria-label',ti.placeholder);ti.maxLength=120;box.appendChild(ti);
+  var row=gel('div','bar');row.style.flexWrap='wrap';
+  var rb=gel('button','btn fill','🎙️ '+T('Enregistrer avec le micro','Record with the microphone','سجّل بالميكروفون'));
+  var fb=gel('button','btn','📁 '+T('Choisir un fichier audio','Choose an audio file','اختر ملفا صوتيا'));
+  var fi=gel('input');fi.type='file';fi.accept='audio/*,.mp3,.m4a,.aac,.ogg,.opus,.wav,.amr,.3gp';fi.className='hide';
+  row.appendChild(rb);row.appendChild(fb);box.appendChild(row);box.appendChild(fi);
+  var st=gel('div','audst');box.appendChild(st);
+  var pv=gel('div','');box.appendChild(pv);
+  box.appendChild(gel('p','note',T('Fichiers acceptés : MP3, M4A, AAC, OGG, OPUS (vocal WhatsApp), WAV · 15 Mo maximum (environ 30 minutes enregistrées ici).','Accepted files: MP3, M4A, AAC, OGG, OPUS (WhatsApp voice), WAV · 15 MB max (about 30 minutes recorded here).','الملفات المقبولة: MP3 وM4A وAAC وOGG وOPUS وWAV · 15 ميغابايت كحد أقصى.')));
+  if(AUD[b.id]){var del=gel('button','btn danger wide','🗑️ '+T('Supprimer l’audio de ce texte','Delete this text’s audio','حذف صوت هذا النص'));del.onclick=function(){if(!confirm(T('Supprimer cet audio ?','Delete this audio?','حذف هذا الصوت؟')))return;del.disabled=true;
+   apiAu('del',{item:b.id}).then(function(){delete AUD[b.id];try{localStorage.setItem('defteram_aud',JSON.stringify(AUD))}catch(e){}toast(T('Audio supprimé','Audio deleted','تم حذف الصوت'));audioBar(b)},function(e){del.disabled=false;toast('Erreur : '+e.code)})};box.appendChild(del)}
+  var blob=null,rec=null,tick=null,t0=0;
+  function ready(bl,label){blob=bl;pv.innerHTML='';var au=document.createElement('audio');au.controls=true;au.src=URL.createObjectURL(bl);au.style.cssText='width:100%;margin:8px 0';pv.appendChild(au);
+   pv.appendChild(gel('p','note',label+' · '+(bl.size/1048576).toFixed(1)+' Mo'));
+   var sv=gel('button','btn fill wide','💾 '+T('Enregistrer cet audio sur le texte','Save this audio on the text','احفظ هذا الصوت'));sv.onclick=function(){upload(sv)};pv.appendChild(sv)}
+  fb.onclick=function(){fi.click()};
+  fi.onchange=function(){var f=fi.files&&fi.files[0];if(!f)return;if(f.size>15*1048576){st.textContent='⚠️ '+T('Fichier trop lourd (15 Mo maximum).','File too large (15 MB max).','الملف كبير جدا (15 ميغابايت كحد أقصى).');return}st.textContent='';ready(f,'📁 '+f.name)};
+  rb.onclick=function(){
+   if(rec){if(rec.state!=='inactive')rec.stop();return}
+   if(!navigator.mediaDevices||!window.MediaRecorder){st.textContent=T('Ce navigateur ne permet pas d’enregistrer : choisis un fichier.','This browser cannot record: choose a file.','هذا المتصفح لا يدعم التسجيل: اختر ملفا.');return}
+   navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:true,autoGainControl:true}}).then(function(stream){
+    var mt=['audio/webm;codecs=opus','audio/mp4','audio/ogg;codecs=opus','audio/webm'].filter(function(x){return MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(x)})[0];
+    try{rec=new MediaRecorder(stream,mt?{mimeType:mt,audioBitsPerSecond:64000}:{audioBitsPerSecond:64000})}catch(e){rec=new MediaRecorder(stream)}
+    var ch=[];rec.ondataavailable=function(e){if(e.data&&e.data.size)ch.push(e.data)};
+    rec.onstop=function(){stream.getTracks().forEach(function(t){t.stop()});clearInterval(tick);var r=rec;rec=null;rb.textContent='🎙️ '+T('Enregistrer à nouveau','Record again','سجّل من جديد');rb.classList.remove('danger');
+     var bl=new Blob(ch,{type:(r.mimeType||mt||'audio/webm').split(';')[0]});st.textContent='';if(bl.size)ready(bl,'🎙️ '+fmtT((Date.now()-t0)/1000))};
+    rec.start(1000);t0=Date.now();rb.textContent='⏹ '+T('Arrêter l’enregistrement','Stop recording','إيقاف التسجيل');rb.classList.add('danger');pv.innerHTML='';
+    tick=setInterval(function(){var s=(Date.now()-t0)/1000;st.textContent='🔴 '+T('Enregistrement… ','Recording… ','جارٍ التسجيل… ')+fmtT(s);if(s>=1800&&rec&&rec.state==='recording')rec.stop()},300);
+   },function(){st.textContent=T('Autorise le micro dans ton navigateur.','Allow the microphone in your browser.','اسمح باستخدام الميكروفون.')})};
+  function mimeOf(f){var t=(f.type||'').split(';')[0],n=(f.name||'').toLowerCase().split('.').pop();if(/^audio\//.test(t))return t;
+   return {mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',ogg:'audio/ogg',opus:'audio/ogg',oga:'audio/ogg',wav:'audio/wav',amr:'audio/amr','3gp':'audio/3gpp',webm:'audio/webm'}[n]||'audio/mpeg'}
+  function b64(buf){var s='',u=new Uint8Array(buf);for(var i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
+  function readPart(bl){return bl.arrayBuffer?bl.arrayBuffer():new Promise(function(ok,no){var r=new FileReader();r.onload=function(){ok(r.result)};r.onerror=no;r.readAsArrayBuffer(bl)})}
+  function upload(sv){if(!blob)return;sv.disabled=true;rb.disabled=fb.disabled=true;var bar=gel('div','pb');var fill=gel('i');bar.appendChild(fill);pv.appendChild(bar);
+   var fail=function(e){sv.disabled=false;rb.disabled=fb.disabled=false;st.textContent='⚠️ '+(e&&e.code==='not_admin'?T('Réservé à l’administrateur.','Admin only.','للإدارة فقط.'):e&&e.code==='too_large'?T('Fichier trop lourd (15 Mo maximum).','File too large (15 MB max).','الملف كبير جدا.'):T('Envoi interrompu. Vérifie ta connexion et réessaie.','Upload interrupted. Check your connection and try again.','انقطع الإرسال. أعد المحاولة.')+' ('+((e&&e.code)||'')+')')};
+   apiAu('begin',{item:b.id,mime:mimeOf(blob),size:blob.size,title:ti.value}).then(function(j){var i=0;
+    function next(){if(i>=j.n)return apiAu('finish',{id:j.id,item:b.id}).then(function(r){AUD[b.id]=r.audio;try{localStorage.setItem('defteram_aud',JSON.stringify(AUD))}catch(e){}toast(T('Audio enregistré ✓','Audio saved ✓','تم حفظ الصوت ✓'));audioBar(b)});
+     var part=blob.slice(i*j.chunk,(i+1)*j.chunk);return readPart(part).then(function(buf){var tries=0;function send(){return apiAu('chunk',{id:j.id,i:i,data:b64(buf)}).catch(function(e){if(++tries<3)return new Promise(function(ok){setTimeout(ok,1500)}).then(send);throw e})}return send()}).then(function(){i++;fill.style.width=Math.round(i/j.n*100)+'%';st.textContent='⬆️ '+T('Envoi… ','Uploading… ','جارٍ الإرسال… ')+Math.round(i/j.n*100)+'%';return next()})}
+    return next()}).catch(fail)}
+ }}
 
 var WF={"aud": {"ta": "الاستعاذة", "tl": "Aouzou bil lâh", "mf": "Chercher refuge auprès d'Allah contre Satan", "me": "Seeking refuge in Allah from Satan", "ar": "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ", "tr": "Aouzou bil lâhi minach chaytanir rajîm"}, "fat": {"ta": "الفاتحة", "tl": "Al Fâtiha", "mf": "La sourate Al Fâtiha", "me": "Surat Al-Fatiha", "ar": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\nالْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ\nالرَّحْمَٰنِ الرَّحِيمِ\nمَالِكِ يَوْمِ الدِّينِ\nإِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ\nاهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ\nصِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ", "tr": "Al Fâtiha", "page": 1}, "ist1": {"ta": "الاستغفار", "tl": "Astaghfiroullah", "mf": "Demander pardon à Allah", "me": "Asking forgiveness from Allah", "ar": "أَسْتَغْفِرُ اللَّهَ", "tr": "Astaghfiroulah"}, "ist2": {"ta": "الاستغفار", "tl": "Astaghfiroullah", "mf": "Demander pardon à Allah", "me": "Asking forgiveness from Allah", "ar": "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ", "tr": "Astaghfiroullaheul ‘Adhîmal lazî lâ ilâha illâ houwal hayyoul qayyoûm"}, "fatih": {"ta": "صلاة الفاتح", "tl": "Salâtoul Fâtihi", "mf": "Prière sur le Prophète ﷺ", "me": "Prayer upon the Prophet ﷺ", "ar": "اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ الْفَاتِحِ لِمَا أُغْلِقَ وَالْخَاتِمِ لِمَا سَبَقَ نَاصِرِ الْحَقِّ بِالْحَقِّ وَالْهَادِي إِلَى صِرَاطِكَ الْمُسْتَقِيمِ وَعَلَى آلِهِ حَقَّ قَدْرِهِ وَمِقْدَارِهِ الْعَظِيمِ", "tr": "Allâhoumma çalli ’alâ Sayyidinâ Mouhammadinil fâtihi limâ oughliqa wal khâtimi limâ sabaqa nâçiril haq bil haq. Wal heudî ilâ çirâtikal moustaqîm wa ’alâ âlihi haqqa qadrihî wa miqdârihil ’azîme"}, "lail": {"ta": "لا إله إلا الله", "tl": "Lâ ilâha illallah", "mf": "L'attestation d'unicité (Hailala)", "me": "The declaration of oneness (Hailala)", "ar": "لَا إِلَٰهَ إِلَّا اللَّهُ", "tr": "Lâ ilâha illallah"}, "sayy": {"ta": "سيدنا محمد رسول الله", "tl": "Seyyidounâ Mouhammadour Rassouloul lâh", "mf": "Salut sur le Prophète ﷺ", "me": "Salutation upon the Prophet ﷺ", "ar": "سَيِّدُنَا مُحَمَّدٌ رَسُولُ اللَّهِ عَلَيْهِ سَلَامُ اللَّهِ", "tr": "Seyyidounâ Mouhammadour Rassouloul lâhi ’alayhi salâmoul lâhi"}, "jaw": {"ta": "جوهرة الكمال", "tl": "Jawharatoul Kamâl", "mf": "La Perle de la Perfection", "me": "The Pearl of Perfection", "ar": "اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى عَيْنِ الرَّحْمَةِ الرَّبَّانِيَّةِ، وَالْيَاقُوتَةِ الْمُتَحَقِّقَةِ الْحَائِطَةِ بِمَرْكَزِ الْفُهُومِ وَالْمَعَانِي، وَنُورِ الْأَكْوَانِ الْمُتَكَوِّنَةِ الْآدَمِيِّ صَاحِبِ الْحَقِّ الرَّبَّانِيِّ، الْبَرْقِ الْأَسْطَعِ بِمُزُونِ الْأَرْبَاحِ الْمَالِئَةِ لِكُلِّ مُتَعَرِّضٍ مِنَ الْبُحُورِ وَالْأَوَانِي، وَنُورِكَ اللَّامِعِ الَّذِي مَلَأْتَ بِهِ كَوْنَكَ الْحَائِطَ بِأَمْكِنَةِ الْمَكَانِ.\nاللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى عَيْنِ الْحَقِّ الَّتِي تَتَجَلَّى مِنْهَا عُرُوشُ الْحَقَائِقِ، عَيْنِ الْمَعَارِفِ الْأَقْوَمِ، صِرَاطِكَ التَّامِّ الْأَسْقَمِ.\nاللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى طَلْعَةِ الْحَقِّ بِالْحَقِّ الْكَنْزِ الْأَعْظَمِ، إِفَاضَتِكَ مِنْكَ إِلَيْكَ إِحَاطَةِ نُورِ الْمُطَلْسَمِ.\nصَلَّى اللَّهُ عَلَيْهِ وَعَلَى آلِهِ صَلَاةً تُعَرِّفُنَا بِهَا إِيَّاهُ", "tr": "Allâhouma çalli wa salim ´alâ ´aynir rahmatir rabbâniyyati wal yâqôutatil Moutahaqqiqatil hâ’itati bimarkazil fouhôumi wal ma ´âni. Wa nôuril Akwânil moutakawwinatil âdamiyyi çâhibil haqqir rabbâni. Albarqil asta’i Bimouzôunil arbâhil mâli’ati likoulli mouta ´aridine minal bouhôuri wal Awâni . Wa nôuri kal lâmi ´il lezî mala-e-ta bihî kawnakal hâ’ita biamkinatil Makâni. Allâhouma çalli wa salim ´alâ ´aynil haqqil latî tatajallâ minheu ’ourôuchoul haqâ iqi. ´aynil ma ´ârifil aqwam çirâtikat tâmmil asqam. Allâhouma çalli wa salim ´alâ tal ´atil haq bil haqil kanzil a’ zam. Ifâdatika Minka ileyka ihâtati nôuril moutalsam. Çallal lâhou ´aleyhi wa ´alâ, Alihi çalâtane tou ´arrifounâ bihâ iy yâhou"}, "inna": {"ta": "إن الله وملائكته", "tl": "Innallâha wa malâ'ikatahou", "mf": "Prière sur le Prophète ﷺ (Coran 33:56) et conclusion (37:180-182)", "me": "Prayer upon the Prophet ﷺ (Quran 33:56) and closing (37:180-182)", "ar": "إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ ۚ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا\nصَلَّى اللَّهُ تَعَالَى عَلَيْهِ وَعَلَى آلِهِ وَصَحْبِهِ وَسَلَّمَ تَسْلِيمًا\nسُبْحَانَ رَبِّكَ رَبِّ الْعِزَّةِ عَمَّا يَصِفُونَ\nوَسَلَامٌ عَلَى الْمُرْسَلِينَ\nوَالْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ", "tr": "Innallâha wa malâ ikatahou youçalloûna ‘alan nabî .yâ ayyouhal lazîna âmanoû çalloû ‘aleyhi wa sallimoû taslîmân. çallallâhou ta ‘âlâ ‘alayhi wa ‘alâ âlihi wa çahbihi wa sallama taslîman. Soubhâna rabbika rabbil ‘izzati ‘ammâ yaçifoûna wa salâmoun ‘alal moursalîna wal hamdou lillahi rabil ‘âlamîna."}, "sub": {"ta": "سبحان ربك", "tl": "Soubhâna rabbika", "mf": "Coran 37:180-182", "me": "Quran 37:180-182", "ar": "سُبْحَانَ رَبِّكَ رَبِّ الْعِزَّةِ عَمَّا يَصِفُونَ\nوَسَلَامٌ عَلَى الْمُرْسَلِينَ\nوَالْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ", "tr": "Soubhâna rabbika rabbil ‘izzati ‘ammâ yaçifoûna wa salâmoun ‘alal moursalîna wal hamdou lillahi rabil ‘âlamîna"}, "allah": {"ta": "الله", "tl": "Allah", "mf": "Le nom « Allah »", "me": "The name “Allah”", "ar": "اللَّهُ", "tr": "Allah"}},WS={"title": {"ar": "الورد اللازم · التجانية", "fr": "Wird Lazim · At-Tijaniyya", "en": "Wird Lazim · At-Tijaniyya", "ff": "Wird Laazim · Tijaaniyya", "wo": "Wird Lazim · Tijaan"}, "c1t": {"ar": "الفئة الأولى: الورد اللازم", "fr": "Première catégorie : le Wird Lazim", "en": "First category: the Wird Lazim", "ff": "Fannu artungo: Wird Laazim", "wo": "Xeet bu njëkk: Wird Lazim"}, "c1d": {"ar": "الورد اللازم يتكوّن من: الورد (صباحًا ومساءً)، والوظيفة (صباحًا و/أو مساءً)، وحضرة الجمعة (كل جمعة بعد صلاة العصر).", "fr": "Le wird dit al Lazim est constitué du Wird (matin et soir), de la Wazifa (matin et/ou soir) et de la Hadratul Jumua (chaque vendredi après la prière de Asr).", "en": "The wird known as al Lazim consists of the Wird (morning and evening), the Wazifa (morning and/or evening) and the Hadratul Jumua (every Friday after the Asr prayer).", "ff": "Wird Laazim woni: Wird (subaka e kikiiɗe), Wazifa (subaka e/malla kikiiɗe) e Hadaratul Jumaa (Jumaa kala, ɓaawo juulde Asar).", "wo": "Wird Lazim mi: Wird (suba ak ngoon), Wazifa (suba ak/walla ngoon) ak Hadaratul Àjjuma (Àjjuma bu nekk, ginnaaw julli timis)."}, "c2t": {"ar": "الفئة الثانية: أوراد الاختيار", "fr": "Seconde catégorie : les wirds Ikhtiyâriya", "en": "Second category: the Ikhtiyâriya wirds", "ff": "Fannu ɗiɗaɓo: wird Ikhtiyaariya", "wo": "Xeet bu ñaareel: wird Ikhtiyariya"}, "c2d": {"ar": "هي الأذكار غير الواجبة، وبعضها يتطلب إذنًا خاصًا، مثل حزب السيفي وحزب البحر والمسبَّعات العشر.", "fr": "Ce sont les zikr non obligatoires. Certains demandent parfois une autorisation spéciale, comme le Hizb Sayfi, le Hizb al-Bahr ou le Musabbahatul ‘Ashr.", "en": "These are the non-obligatory zikr. Some require a special authorization, such as the Hizb Sayfi, the Hizb al-Bahr or the Musabbahatul ‘Ashr.", "ff": "Jikruuji ɗi laazimaaki. Seɗɗa e maaji ngiɗi ijaaza feere, no Hizb Sayfi, Hizb al-Bahr malla Musabbahatul ‘Ashr.", "wo": "Dikr yu amul warugar la. Yenn yi laaj nañu ijaaza, ni Hizb Sayfi, Hizb al-Bahr ak Musabbahatul ‘Ashr."}, "ordre": {"ar": "يُؤدَّى بهذا الترتيب:", "fr": "Il s’effectue dans cet ordre :", "en": "It is performed in this order:", "ff": "Ngaɗetee e tartiibu nii:", "wo": "Ñu koy def ci tartiib bii:"}, "wazI": {"ar": "الوظيفة من لوازم المريد التجاني. تُؤدّى مرة في اليوم، صباحًا أو مساءً، وقد تُؤدّى مرتين في اليوم بحسب السند الذي أخذ به.", "fr": "La wazifa est l’une des obligations du fidèle tidjane. Elle se pratique une fois par jour, le matin ou le soir. Selon sa chaîne initiatique, elle peut aussi se faire deux fois par jour.", "en": "The wazifa is one of the obligations of the Tijani disciple. It is done once a day, in the morning or in the evening. Depending on one’s initiatic chain, it may also be done twice a day.", "ff": "Wazifa woni farilla e Tijaaniijo. Ngaɗetee marde gooto ñalnde kala, subaka malla kikiiɗe; hoore silsila maaɗa, ɗum waawi ngaɗeede marde ɗiɗi.", "wo": "Wasifa mooy benn ci warugar yi Tijaan bi war. Ñu koy def benn yoon ci bés bu nekk, suba walla ngoon. Su ñu ko defee ci sanad bi ñu ko jëlee, mën na nekk ñaari yoon ci bés bi."}, "wazNB": {"ar": "تنبيه: من أخذ الورد عن طريق القطب الشيخ سيدي الحاج مالك سي فعليه أن يؤدي الوظيفة مرتين وجوبًا.", "fr": "À noter : celui qui prend le wird selon la chaîne initiatique du grand Pôle Cheikh Seydil Hadj Malick Sy doit impérativement faire la wazifa 2 fois.", "en": "Note: whoever takes the wird through the chain of the great Pole Cheikh Seydil Hadj Malick Sy must perform the wazifa twice.", "ff": "Ɗum ko nde: ko lomtii wird e silsila Seydil Hadj Malick Sy, haani mo ngaɗa wazifa marde ɗiɗi.", "wo": "Bu ñu la jox wird bi ci sanad bu Sëriñ Sidi Haaji Maalig Si, war nga def wasifa bi ñaari yoon."}, "hadI": {"ar": "على التجاني أن يقرأ يوم الجمعة، زيادة على ما سبق من لوازمه، الأذكار الآتية:", "fr": "Le musulman tidjane doit réciter le vendredi, en plus de ses obligations précédentes, les litanies suivantes :", "en": "On Fridays, in addition to the obligations above, the Tijani Muslim must recite the following litanies:", "ff": "Juulɗo Tijaaniijo haani tokkitaago Jumaa, ɓaawo farillaaji ɗi ɓaawo, jikruuji ɗii:", "wo": "Jullit Tijaan bi war na jàng, ci Àjjuma, ak li nu wax ci kaw, dikr yii:"}, "hadNB": {"ar": "تنبيه: ينبغي أن ينتهي هذا الذكر مع دخول وقت صلاة المغرب.", "fr": "À noter : la fin de cette séance de zikr doit coïncider avec le début de la prière du Maghrib.", "en": "Note: the end of this zikr session must coincide with the start of the Maghrib prayer.", "ff": "Ɗum ko nde: gaɗal jikru nguu haani timmina e fuɗɗoode juulde Maghrib.", "wo": "Xaar na tëj dikr bi ci ni julli tisbaar di tàmbalee."}, "nb": {"ar": "تنبيه", "fr": "À noter", "en": "Note", "ff": "Ɗum ko nde", "wo": "Xamal"}, "tr": {"ar": "النطق", "fr": "Transcription", "en": "Transliteration", "ff": "Transcription", "wo": "Transcription"}, "tap1": {"ar": "اضغط", "fr": "Toucher", "en": "Tap", "ff": "Dobbu", "wo": "Bësal"}, "chk": {"ar": "", "fr": "⚠ Pulaar : firo ngoo ina ndaarama. Traduction en cours de relecture.", "en": "", "ff": "⚠ Pulaar : firo ngoo ina ndaarama. Traduction en cours de relecture.", "wo": "⚠ Wolof : tekki bi dafay seetlu. Traduction en cours de relecture."}},WPARTS=[{"k": "wird", "t": {"ar": "الورد", "fr": "Le Wird (matin et soir)", "en": "The Wird (morning & evening)", "ff": "Wird", "wo": "Wird"}, "intro": "ordre", "nb": null, "steps": [["aud", 1], ["fat", 1], ["ist1", 100], ["fatih", 100], ["lail", 100], ["sayy", 1], ["inna", 1]]}, {"k": "waz", "t": {"ar": "الوظيفة", "fr": "La Wazifa", "en": "The Wazifa", "ff": "Wazifa", "wo": "Wasifa"}, "intro": "wazI", "nb": "wazNB", "steps": [["aud", 1], ["fat", 1], ["ist2", 30], ["fatih", 50], ["sub", 1], ["lail", 100], ["sayy", 1], ["jaw", 12], ["inna", 1]]}, {"k": "had", "t": {"ar": "حضرة الجمعة", "fr": "La Hadratoul Jumua", "en": "The Friday Hadra", "ff": "Hadaratul Jumaa", "wo": "Hadaratul Àjjuma"}, "intro": "hadI", "nb": "hadNB", "steps": [["aud", 1], ["fat", 1], ["ist2", 3], ["fatih", 3], ["sub", 1], ["lail", 1000], ["allah", 600], ["aud", 1], ["fat", 1], ["fatih", 3], ["inna", 1]]}],wst={},wtab='wird';
 function W(k){var o=WS[k];return o[lang]||o.fr}
@@ -1235,7 +1300,7 @@ function installer(){
 function apiAdmin(a,o){o=o||{};var h={'Content-Type':'application/json'};if(AUTH.s&&AUTH.s.tk)h.Authorization='Bearer '+AUTH.s.tk;
  return fetch('api/admin?a='+a,{method:o.method||(o.body?'POST':'GET'),headers:h,body:o.body?JSON.stringify(o.body):undefined,cache:'no-store'}).then(function(r){
   return r.text().then(function(x){var j=null;try{j=x?JSON.parse(x):null}catch(e){}if(!r.ok){var er=new Error((j&&j.error)||('HTTP '+r.status));er.code=(j&&j.error)||String(r.status);throw er}return j})})}
-function checkAdmin(){if(!AUTH.s||!AUTH.on)return;cMe();apiAuth('me').then(function(j){AUTH.admin=!!(j&&j.admin);if(AUTH.admin)apiAdmin('overview').then(function(o){AUTH.unread=o.unread||0}).catch(function(){})}).catch(function(){})}
+function checkAdmin(){if(!AUTH.s||!AUTH.on)return;cMe();apiAuth('me').then(function(j){var wa=AUTH.admin;AUTH.admin=!!(j&&j.admin);if(AUTH.admin!==wa)refreshAudBar();if(AUTH.admin)apiAdmin('overview').then(function(o){AUTH.unread=o.unread||0}).catch(function(){})}).catch(function(){})}
 var ADM={tab:'ov'};
 function admin(){
  page('🛠️ Administration','<div id="adm"></div>');$('pg').dataset.k='adm';
@@ -1660,6 +1725,7 @@ $('logoS').innerHTML=logo(32);$('logoH').innerHTML=logo(76);applyTheme();
 setLang();home();nav('home');
 if(!hasLang)sheet();
 try{welcome()}catch(e){}
+loadAud(refreshAudBar);
 requestAnimationFrame(function(){requestAnimationFrame(function(){document.documentElement.classList.add('ready')})});
 // Lien direct (#/…) : exécuté quand toute la page est lue (le lecteur du Mushaf est défini plus bas).
 document.addEventListener('DOMContentLoaded',function(){var h=location.hash;try{history.replaceState({d:0},'')}catch(e){}if(h&&h!=='#/'&&h!=='#'){RT.restoring=true;try{goRoute(h)}finally{setTimeout(function(){RT.restoring=false},0)}}});

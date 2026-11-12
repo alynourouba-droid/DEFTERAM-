@@ -17,6 +17,7 @@ Site statique sans étape de build, installable comme application (PWA) et utili
 | `api/admin.js` | Espace administrateur (comptes, messages, vues) + réception des messages |
 | `api/auth.js` | Comptes utilisateurs (connexion sans e-mail) |
 | `api/stats.js` | Compteurs anonymes (visiteurs, visites, partages, installations) |
+| `api/audio.js` | Audios des poèmes ajoutés par l'administrateur (enregistrés ou envoyés depuis l'app, gardés dans Upstash par morceaux de 700 Ko, 15 Mo max) |
 | `api/courses.js` | Cours en ligne : programmes, inscriptions payantes (Wave / Orange Money, validées par l'enseignant), 5 enseignants max, discussion texte + vocale |
 | `api/guides.js` | Liste publique « Nos guides » (photos, audios, histoires) |
 | `api/upload.js` | Jetons d'envoi de photos/audios vers Vercel Blob (administrateur uniquement) |
