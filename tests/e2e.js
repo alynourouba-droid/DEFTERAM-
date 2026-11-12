@@ -31,6 +31,8 @@ global.fetch = async (u, o) => {
       if(op==='LLEN') return {result:(REDIS[k]||[]).length};
       if(op==='LSET'){ REDIS[k][+a[0]]=a[1]; return {result:'OK'}; }
       if(op==='LREM'){ const L=REDIS[k]||[]; const i=L.indexOf(a[1]); if(i>-1) L.splice(i,1); return {result:i>-1?1:0}; }
+      if(op==='HSET'){ const H=REDIS[k]=REDIS[k]||{}; H[a[0]]=a[1]; return {result:1}; }
+      if(op==='HLEN') return {result:Object.keys(REDIS[k]||{}).length};
       if(op==='HDEL'){ const H=REDIS[k]; if(H&&typeof H==='object') a.forEach(x=>delete H[x]); return {result:1}; }
       if(op==='SCAN'){ const pre=a[1].replace(/\*$/,''); return {result:['0',Object.keys(REDIS).filter(x=>x.startsWith(pre))]}; }
       if(op==='MGET') return {result:[k,...a].map(x=>REDIS[x]==null?null:String(REDIS[x]))};
@@ -45,10 +47,16 @@ global.fetch = async (u, o) => {
 const statsFn = require(path.join(ROOT, 'api', 'stats.js'));
 const authFn = require(path.join(ROOT, 'api', 'auth.js'));
 const adminFn = require(path.join(ROOT, 'api', 'admin.js'));
+const guidesFn = require(path.join(ROOT, 'api', 'guides.js'));
+const uploadFn = require(path.join(ROOT, 'api', 'upload.js'));
 
 function serve(){
   return new Promise(res=>{
     const srv = http.createServer((q,r)=>{
+      if(q.url.startsWith('/api/guides')||q.url.startsWith('/api/upload')){
+        if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; }
+        q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return (q.url.startsWith('/api/guides')?guidesFn:uploadFn)(q, r);
+      }
       if(q.url.startsWith('/api/admin')){
         if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; }
         q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return adminFn(q, r);
@@ -266,6 +274,26 @@ function mockSupabase(state){
       ok(/déjà administrateur/.test(await pi.textContent('#adm')) && REDIS['defteram:admin']==='proprio', 'le code ne marche qu’une fois');
       const st=await pi.evaluate(()=>fetch('api/admin?a=users',{headers:{Authorization:'Bearer '+AUTH.s.tk}}).then(r=>r.status)); ok(st===403, 'un autre compte ne peut pas lire l’administration');
       await ci.close();
+      // ---- Nos guides ----
+      await clickTab(pa,5); ok(/Ajouter un guide/.test(await pa.textContent('#adm')) && /pas encore activé/.test(await pa.textContent('#adm')), 'guides : bouton Ajouter + avertissement stockage');
+      await pa.click('#adm .btn.fill'); await pa.waitForTimeout(200);
+      await pa.fill('#adm input[aria-label="Nom"]','Cheikh Test'); await pa.fill('#adm input[aria-label="Titre / rôle (facultatif)"]','Guide de Fass');
+      await pa.fill('#adm textarea','Il est né à Fass.\nHistoire sur deux lignes.');
+      await pa.click('#adm .btn.fill'); await pa.waitForTimeout(800);
+      const gk=Object.keys(REDIS['defteram:guides']||{}); ok(gk.length===1 && /Cheikh Test/.test(REDIS['defteram:guides'][gk[0]]), 'guide enregistré (nom, rôle, histoire)');
+      const up=await pa.evaluate(()=>fetch('api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(r=>r.status)); ok(up===503, 'envoi de fichiers : refusé tant que le stockage Blob n’est pas relié');
+      const gv=await b.newContext({serviceWorkers:'block'}); const pg=await newPage(gv,{name:'guides-public',allowErr:true,allow404:true});
+      await pg.goto(BASE); await pg.waitForTimeout(1500); ok(/Nos guides1/.test((await pg.$$eval('.tile',x=>x.map(e=>e.textContent))).join('|')), 'accueil : tuile « Nos guides » avec 1 guide');
+      await pg.goto(BASE+'#/p/guides'); await pg.waitForTimeout(400); await pg.click('.gcard'); await pg.waitForTimeout(400);
+      ok(/Il est né à Fass/.test(await pg.textContent('#gd1')) && /#\/g\//.test(pg.url()), 'page du guide : histoire + lien direct');
+      await pg.goto(pg.url()); await pg.waitForTimeout(900); ok(/Cheikh Test/.test(await pg.textContent('#pg h2')), 'lien direct vers un guide');
+      await gv.close();
+      await clickTab(pa,5); await pa.waitForTimeout(500); pa.once('dialog',d=>d.accept()); await pa.click('#adm .card .danger'); await pa.waitForTimeout(700);
+      ok(!Object.keys(REDIS['defteram:guides']||{}).length, 'guide supprimé');
+      // ---- installations ----
+      const before=+REDIS['defteram:installs']||0; await pv.evaluate(()=>window.dispatchEvent(new Event('appinstalled'))); await pv.waitForTimeout(400); await pv.evaluate(()=>window.dispatchEvent(new Event('appinstalled'))); await pv.waitForTimeout(400);
+      ok((+REDIS['defteram:installs']||0)===before+1, 'installation comptée une seule fois par appareil');
+      await clickTab(pa,1); ok(/installations/.test(await pa.textContent('#adm')), 'résumé : nombre d’installations');
     } else console.log('  (code admin non fourni : tests du code sautés)');
     await v.close(); await ca.close(); }
 

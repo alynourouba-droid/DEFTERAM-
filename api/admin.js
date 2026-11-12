@@ -15,6 +15,7 @@
 //   POST /api/admin?a=del_msg { i } / ?a=read_msgs
 const crypto = require('crypto');
 const P = 'defteram:';
+const { blobToken } = require('./_lib');
 // Empreinte SHA-256 du code secret d'administration (le code lui-même n'est pas dans le code source).
 const CLAIM_HASH = '75fb5d14b1fb4fc24d8fc2286c868f3edc5fdff3c6d2a02cd68b7e30bee3c628';
 
@@ -113,9 +114,9 @@ module.exports = async (req, res) => {
 
     if (a === 'overview') {
       const users = await scanKeys(c, P + 'user:*');
-      const r = await redis(c, [['MGET', P + 'visitors', P + 'visits', P + 'shares'], ['LLEN', P + 'msgs'], ['GET', P + 'msgs_unread']]);
+      const r = await redis(c, [['MGET', P + 'visitors', P + 'visits', P + 'shares', P + 'installs'], ['LLEN', P + 'msgs'], ['GET', P + 'msgs_unread'], ['HLEN', P + 'guides']]);
       const v = r[0] || [];
-      return send(200, { visitors: +v[0] || 0, visits: +v[1] || 0, shares: +v[2] || 0, users: users.length, msgs: +r[1] || 0, unread: +r[2] || 0, admin: me });
+      return send(200, { visitors: +v[0] || 0, visits: +v[1] || 0, shares: +v[2] || 0, installs: +v[3] || 0, users: users.length, msgs: +r[1] || 0, unread: +r[2] || 0, guides: +r[3] || 0, blob: !!blobToken(), admin: me });
     }
     if (a === 'items') {
       const [views, sh] = await redis(c, [['HGETALL', P + 'views'], ['HGETALL', P + 'ishares']]);
@@ -149,7 +150,40 @@ module.exports = async (req, res) => {
       return send(200, { ok: true });
     }
     if (a === 'reset_all') {
-      await redis(c, [['DEL', P + 'views', P + 'ishares', P + 'visitors', P + 'visits', P + 'shares']]);
+      await redis(c, [['DEL', P + 'views', P + 'ishares', P + 'visitors', P + 'visits', P + 'shares', P + 'installs']]);
+      return send(200, { ok: true });
+    }
+    if (a === 'guide_save') {
+      const g = b.guide || {};
+      const isUrl = u => typeof u === 'string' && /^https:\/\/[a-z0-9.-]+\.public\.blob\.vercel-storage\.com\/[^\s"'<>]{1,300}$/.test(u);
+      const gid = /^[a-z0-9]{6,24}$/.test(g.id || '') ? g.id : 'g' + Date.now().toString(36) + crypto.randomBytes(3).toString('hex');
+      const name = String(g.name || '').trim().slice(0, 120);
+      if (!name) return send(400, { error: 'name_required' });
+      const clean = {
+        id: gid, name, role: String(g.role || '').trim().slice(0, 200), story: String(g.story || '').slice(0, 30000),
+        photos: (Array.isArray(g.photos) ? g.photos : []).filter(isUrl).slice(0, 40),
+        audios: (Array.isArray(g.audios) ? g.audios : []).filter(x => x && isUrl(x.url)).map(x => ({ url: x.url, title: String(x.title || '').slice(0, 120) })).slice(0, 30),
+        order: Number.isFinite(+g.order) ? +g.order : 0, t: +g.t || Date.now(), u: Date.now(),
+      };
+      const [old] = await redis(c, [['HGET', P + 'guides', gid]]);
+      await redis(c, [['HSET', P + 'guides', gid, JSON.stringify(clean)]]);
+      if (old && blobToken()) {   // supprime du stockage les fichiers retirés de la fiche
+        try {
+          const o = JSON.parse(old), keep = new Set(clean.photos.concat(clean.audios.map(x => x.url)));
+          const gone = (o.photos || []).concat((o.audios || []).map(x => x.url)).filter(u => !keep.has(u));
+          if (gone.length) await require('@vercel/blob').del(gone, { token: blobToken() });
+        } catch (e) {}
+      }
+      return send(200, { ok: true, guide: clean });
+    }
+    if (a === 'guide_del') {
+      const gid = String(b.id || '');
+      if (!/^[a-z0-9]{6,24}$/.test(gid)) return send(400, { error: 'bad_id' });
+      const [old] = await redis(c, [['HGET', P + 'guides', gid]]);
+      await redis(c, [['HDEL', P + 'guides', gid]]);
+      if (old && blobToken()) {
+        try { const o = JSON.parse(old); const urls = (o.photos || []).concat((o.audios || []).map(x => x.url)); if (urls.length) await require('@vercel/blob').del(urls, { token: blobToken() }); } catch (e) {}
+      }
       return send(200, { ok: true });
     }
     const id = String(b.id || '').toLowerCase();

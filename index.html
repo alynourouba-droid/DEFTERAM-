@@ -162,8 +162,17 @@ details.pm-in .tr{direction:ltr;font-family:Nunito,system-ui,sans-serif;font-siz
 .stats .st{text-align:center;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:10px 4px}
 .stats .st i{display:block;font-style:normal;font-size:1.2rem}.stats .st b{display:block;font:700 1.25rem Amiri,serif;color:var(--accent)}.stats .st small{color:var(--mute);font-size:.78rem}
 .card .stats{margin-bottom:0}
-#drawer .dst{margin:12px 12px 4px;gap:6px}#drawer .dst .st{padding:8px 2px}#drawer .dst .st b{font-size:1.05rem}#drawer .dst .st small{font-size:.7rem}
+#drawer .dst{margin:12px 12px 4px;gap:6px;grid-template-columns:repeat(2,1fr)}#drawer .dst .st{padding:8px 2px}#drawer .dst .st b{font-size:1.05rem}#drawer .dst .st small{font-size:.7rem}
 @media (min-width:760px){#hstats{max-width:600px;margin-inline:auto}}
+.gcard{display:flex;gap:14px;align-items:center;width:100%;text-align:start;background:linear-gradient(90deg,var(--surface),var(--bg));border:1.5px solid var(--sun);border-radius:18px;padding:10px;margin-bottom:12px;color:var(--ink);font:inherit;cursor:pointer}
+.gph{flex:none;width:84px;height:84px;border-radius:14px;overflow:hidden;display:grid;place-items:center;font-size:2rem;background:var(--line)}.gph img{width:100%;height:100%;object-fit:cover}
+.gtx b{display:block;font-size:1.05rem}.gtx small{display:block;color:var(--mute)}.gtx .gm{margin-top:4px;color:var(--sunInk)}
+.gro{color:var(--mute);margin:0 0 10px}
+.ggal{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:12px}.ggal a{display:block;border-radius:14px;overflow:hidden;border:1.5px solid var(--sun);aspect-ratio:1}.ggal img{width:100%;height:100%;object-fit:cover;display:block}
+.ggal a:first-child{grid-column:1/-1;aspect-ratio:4/3}
+.gau{margin:10px 0}.gau audio{width:100%}
+.gstory{white-space:pre-wrap;line-height:1.8;margin-top:8px}
+.gthumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}.gth{position:relative;width:76px;height:76px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}.gth img{width:100%;height:100%;object-fit:cover}.gth button{position:absolute;top:2px;right:2px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
 .pm-note{text-align:center;font-size:.6em;color:var(--mute);margin:0 0 6px}
 .pm-end{text-align:center;margin:26px 0 4px;font-family:Amiri,serif;font-size:1.05em;color:var(--accent);padding:14px;border-top:3px double var(--sun);border-bottom:3px double var(--sun);background:linear-gradient(90deg,transparent,rgba(226,192,113,.2),transparent)}
 .wtabs{display:flex;gap:6px;margin:16px 0 10px}
@@ -464,6 +473,7 @@ var G=[
   ['wird','🌙',{ar:'التجانية · الورد اللازم',fr:'At-Tijaniyya · Wird Lawol',en:'At-Tijaniyya · Wird Lazim',ff:'Tijaaniyya · Wird Lawol',wo:'Tijaan · Wird Lawol'}],
   ['parab','🖋️',{ar:'قصائد عربية',fr:'Poèmes arabes',en:'Arabic poems',ff:'Jimɗi Arabiya',wo:'Woy yu Araab'}],
   ['fass','✨',{ar:'قصائد فاس غناس',fr:'Poèmes de Fass Gounass',en:'Poems of Fass Gounass',ff:'Jimɗi Fass Gounass',wo:'Woy yu Fass Gounass'}],
+  ['guides','🧭',{ar:'مشايخنا',fr:'Nos guides',en:'Our guides',ff:'Ceerno’en amen',wo:'Sunu Sëriñ yi'}],
   ['jimdi','🪶',{ar:'قصائد بولارية (جِمدي)',fr:'Poèmes en Pulaar · Djimdi',en:'Pulaar poems · Djimdi',ff:'Jimɗi Pulaar',wo:'Woy yu Pulaar'}],
   ['wolofal','✒️',{ar:'وولوفال',fr:'Wolofal',en:'Wolofal',ff:'Wolofal',wo:'Wolofal'}]]}
 ];
@@ -509,7 +519,7 @@ function setLang(){var h=document.documentElement;if($('back4'))$('back4').textC
  ['q','fTitle','fAu','fBody'].forEach(function(i){$(i).setAttribute('aria-label',$(i).placeholder)});$('fCat').setAttribute('aria-label',T('Catégorie','Category','الفئة'));$('fLang').setAttribute('aria-label',t('lang'));
  $('shr').setAttribute('aria-label',T('Partager','Share','مشاركة'));$('del').setAttribute('aria-label',T('Supprimer','Delete','حذف'));$('minus').setAttribute('aria-label',T('Texte plus petit','Smaller text','خط أصغر'));$('plus').setAttribute('aria-label',T('Texte plus grand','Larger text','خط أكبر'));$('fav').setAttribute('aria-label',t('favs'));$('tap').setAttribute('aria-label',T('Compter','Count','عدّ'))}
 var HAY={};function hay(b){if(HAY[b.id]!==undefined&&b.id.charAt(0)!=='c')return HAY[b.id];var tt=TT[b.id]||{},x=[b.title,b.ar,b.au];Object.keys(tt).forEach(function(k){x.push(tt[k])});(b.lines||[]).forEach(function(l){x.push(l)});(b.items||[]).forEach(function(i){x.push(i.a,i.fr,i.en)});(b.bayts||[]).concat(b.pre||[],b.chorus?[b.chorus]:[],b.post?b.post.v:[]).forEach(function(v){x.push(v.join(' '))});(b.secs||[]).forEach(function(z){x.push(z[1])});var h=x.filter(Boolean).join(' ');h=(h+' '+noTash(h)).toLowerCase();HAY[b.id]=h;return h}
-function cnt(id){return all().filter(function(b){return b.cat===id}).length}
+function cnt(id){if(id==='guides')return GUIDES.length;return all().filter(function(b){return b.cat===id}).length}
 function home(){
  var q=$('quick');q.innerHTML='';
  var qi=[['⭐',t('favs'),function(){openCat('fav')}],['📖',t('mush'),function(){openCat('quran')}],['📿',t('zikr'),function(){zk();show('zikr')}]];
@@ -526,6 +536,7 @@ function home(){
   g.appendChild(d)})
 }
 function openCat(id,items,title){
+ if(id==='guides'&&!items){guidesPage();return}
  if(!(ITEMS&&Date.now()-ITEMS_AT<300000))loadItems(function(){if(view==='cat'&&cat===id&&!LI)openCat(id)});
  cat=id;var isFav=id==='fav';
  $('cTitle').textContent=title||(isFav?'⭐ '+t('favs'):L(NAME[id]));
@@ -649,7 +660,7 @@ $('save').onclick=function(){
  if(!ti||!body.length){toast(t('need'));return}
  custom.push({id:'c'+Date.now(),cat:$('fCat').value,lang:$('fLang').value,title:ti,au:$('fAu').value.trim(),lines:body});
  save(KEY,custom);$('fTitle').value='';$('fAu').value='';$('fBody').value='';openCat($('fCat').value)};
-function render(){nav(view==='home'?'home':'');if(view==='home')home();else if(view==='cat'){if(cat==='search'){home();show('home')}else openCat(cat)}else if(view==='reader')openBook(cur);else if(view==='mushaf')openMushaf(mp);else if(view==='zikr')zk();else if(view==='pg'&&$('pg').dataset.k==='w'&&cur&&cur.guide)openGuide(cur);else if(view==='pg'&&$('pg').dataset.k==='l'&&cur&&cur.learn)openLearn(cur);else if(view==='pg'){var F={adm:admin,i:installer,b:badges,a:authors,r:rate,s:support,t:settings,x:about,acc:account}[$('pg').dataset.k];if(F){RT.restoring=true;F();setTimeout(function(){RT.restoring=false},0)}}}
+function render(){nav(view==='home'?'home':'');if(view==='home')home();else if(view==='cat'){if(cat==='search'){home();show('home')}else openCat(cat)}else if(view==='reader')openBook(cur);else if(view==='mushaf')openMushaf(mp);else if(view==='zikr')zk();else if(view==='pg'&&$('pg').dataset.k==='w'&&cur&&cur.guide)openGuide(cur);else if(view==='pg'&&$('pg').dataset.k==='l'&&cur&&cur.learn)openLearn(cur);else if(view==='pg'&&$('pg').dataset.k==='g1'&&GCUR){RT.restoring=true;guidePage(GCUR.id);setTimeout(function(){RT.restoring=false},0)}else if(view==='pg'){var F={gd:guidesPage,adm:admin,i:installer,b:badges,a:authors,r:rate,s:support,t:settings,x:about,acc:account}[$('pg').dataset.k];if(F){RT.restoring=true;F();setTimeout(function(){RT.restoring=false},0)}}}
 
 function surOf(p){var r=SUR[0];SUR.forEach(function(s){if(s.page<=p)r=s});return r}
 function openMushaf(p){mp=Math.max(1,Math.min(604,Math.round(p)||1));
@@ -875,7 +886,8 @@ function routeNow(){
  if(view==='mushaf')return '#/m/'+mp;
  if(view==='zikr')return '#/zikr';
  if(view==='form')return '#/add/'+cat;
- if(view==='pg'){var k=$('pg').dataset.k;if((k==='w'||k==='l')&&cur)return '#/t/'+cur.id;var P={adm:'admin',i:'installer',b:'badges',a:'auteurs',r:'note',s:'soutien',t:'parametres',x:'apropos',acc:'compte'};if(P[k])return '#/p/'+P[k]}
+ if(view==='pg'&&$('pg').dataset.k==='g1'&&GCUR)return '#/g/'+GCUR.id;
+ if(view==='pg'){var k=$('pg').dataset.k;if((k==='w'||k==='l')&&cur)return '#/t/'+cur.id;var P={gd:'guides',adm:'admin',i:'installer',b:'badges',a:'auteurs',r:'note',s:'soutien',t:'parametres',x:'apropos',acc:'compte'};if(P[k])return '#/p/'+P[k]}
  return '#/'}
 function setRoute(h,rep){if(RT.restoring)return;var now=location.hash||'#/';if(now===h)return;
  var d=(history.state&&history.state.d)||0,u=h==='#/'?location.pathname+location.search:h;
@@ -893,7 +905,8 @@ function goRoute(h){
  if(a==='s'){$('sb').click();if(x){var q=$('q');q.value=x;q.oninput.call(q)}return}
  if(a==='au'&&x){grp=false;return openCat('search',authorsOf(x),x)}
  if(a==='add'){openCat(NAME[x]?x:'daara');return $('addBtn').click()}
- if(a==='p'){var F={admin:admin,installer:installer,badges:badges,auteurs:authors,note:rate,soutien:support,parametres:settings,apropos:about,compte:account}[x];if(F)return F()}
+ if(a==='g'&&x)return guidePage(x);
+ if(a==='p'){var F={guides:guidesPage,admin:admin,installer:installer,badges:badges,auteurs:authors,note:rate,soutien:support,parametres:settings,apropos:about,compte:account}[x];if(F)return F()}
  home();show('home')}
 window.addEventListener('popstate',function(){RT.restoring=true;try{goRoute(location.hash)}finally{setTimeout(function(){RT.restoring=false},0)}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!$('drawer').classList.contains('hide')){drawer(false);$('mBtn').focus()}else if(!$('sheet').classList.contains('hide'))$('sheet').classList.add('hide')}});
@@ -1037,7 +1050,7 @@ function showItem(id,it){var e=$('rStat');if(!e||!cur||cur.id!==id)return;if(!it
 function countView(b){if(!b||!b.id||/^c\d/.test(b.id)||b.page)return;var k='defteram_v_'+b.id,seen=false;try{seen=sessionStorage.getItem(k)==='1'}catch(e){}
  $('rStat')&&$('rStat').classList.add('hide');
  stat(seen?'':'view',b.id).then(function(j){if(j&&j.item){try{sessionStorage.setItem(k,'1')}catch(e){}showItem(b.id,j.item)}})}
-function statsHtml(big){if(!STATS)return '';var x=[['👥',STATS.visitors,T('visiteurs','visitors','زائر')],['👁️',STATS.visits,T('visites','visits','زيارة')],['📤',STATS.shares,T('partages','shares','مشاركة')]];
+function statsHtml(big){if(!STATS)return '';var x=[['👥',STATS.visitors,T('visiteurs','visitors','زائر')],['👁️',STATS.visits,T('visites','visits','زيارة')],['📤',STATS.shares,T('partages','shares','مشاركة')],['📲',STATS.installs||0,T('installations','installs','تثبيت')]];
  return x.map(function(i){return '<div class="st"><i aria-hidden="true">'+i[0]+'</i><b>'+fmtN(i[1])+'</b><small>'+i[2]+'</small></div>'}).join('')}
 function showStats(){var h=$('hstats');if(h)h.classList.add('hide');var d=$('dstats');if(d){d.innerHTML=statsHtml();d.classList.toggle('hide',!STATS)}var a=$('astats');if(a){a.innerHTML=statsHtml();a.parentNode.classList.toggle('hide',!STATS)}}
 (function(){var first=false,seen=false;try{first=!localStorage.getItem('defteram_vid');seen=sessionStorage.getItem('defteram_seen')==='1'}catch(e){}
@@ -1091,12 +1104,13 @@ function admin(){
   var go=el('button','btn fill wide','Valider');go.onclick=function(){go.disabled=true;er.textContent='';apiAdmin('claim',{body:{code:inp.value}}).then(function(){AUTH.admin=true;toast('Tu es administrateur ✓');admin()},function(e){go.disabled=false;er.textContent=err(e).textContent})};cc.appendChild(go);
   g.appendChild(cc);return}
  var tb=el('div','tabs2');tb.style.flexWrap='wrap';
- [['ov','📊 Résumé'],['tx','👁️ Vues'],['us','👥 Comptes'],['ms','✉️ Messages'+(AUTH.unread?' ('+AUTH.unread+')':'')]].forEach(function(x){var b=el('button',x[0]===ADM.tab?'on':'',x[1]);b.onclick=function(){ADM.tab=x[0];admin()};tb.appendChild(b)});
+ [['ov','📊 Résumé'],['tx','👁️ Vues'],['us','👥 Comptes'],['ms','✉️ Messages'+(AUTH.unread?' ('+AUTH.unread+')':'')],['gd','🧭 Guides']].forEach(function(x){var b=el('button',x[0]===ADM.tab?'on':'',x[1]);b.onclick=function(){ADM.tab=x[0];admin()};tb.appendChild(b)});
  g.appendChild(tb);var box=el('div');box.appendChild(el('p','note','Chargement…'));g.appendChild(box);
  function fill(n){box.innerHTML='';box.appendChild(n)}
  function date(t){try{return new Date(t).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
- if(ADM.tab==='ov')apiAdmin('overview').then(function(o){AUTH.unread=o.unread||0;var d=el('div');var st=el('div','stats');
-  [['👥',o.visitors,'visiteurs'],['👁️',o.visits,'visites'],['📤',o.shares,'partages'],['🔐',o.users,'comptes'],['✉️',o.msgs,'messages'],['🔔',o.unread,'non lus']].forEach(function(x){st.innerHTML+='<div class="st"><i>'+x[0]+'</i><b>'+fmtN(x[1])+'</b><small>'+x[2]+'</small></div>'});
+ if(ADM.tab==='gd'){adminGuides(box);return}
+ if(ADM.tab==='ov')apiAdmin('overview').then(function(o){AUTH.unread=o.unread||0;ADM.blob=o.blob;var d=el('div');var st=el('div','stats');
+  [['👥',o.visitors,'visiteurs'],['👁️',o.visits,'visites'],['📤',o.shares,'partages'],['📲',o.installs,'installations'],['🔐',o.users,'comptes'],['✉️',o.msgs,'messages'],['🔔',o.unread,'non lus'],['🧭',o.guides,'guides'],['💾',o.blob?'✓':'—','photos/audios']].forEach(function(x){st.innerHTML+='<div class="st"><i>'+x[0]+'</i><b>'+(typeof x[1]==='string'?x[1]:fmtN(x[1]))+'</b><small>'+x[2]+'</small></div>'});
   st.style.gridTemplateColumns='repeat(3,1fr)';d.appendChild(st);d.appendChild(el('p','note','Administrateur : '+o.admin+'. Les vues et partages de chaque texte sont dans l’onglet « Vues ».'));fill(d)},function(e){fill(err(e))});
  if(ADM.tab==='tx')apiAdmin('items').then(function(o){var d=el('div'),ids={};Object.keys(o.views).concat(Object.keys(o.ishares)).forEach(function(k){ids[k]=1});
   var rows=Object.keys(ids).map(function(k){var b=all().filter(function(x){return x.id===k})[0];return {id:k,n:b?nm(b):k,v:o.views[k]||0,s:o.ishares[k]||0}}).sort(function(a,b){return b.v-a.v||b.s-a.s});
@@ -1115,6 +1129,87 @@ function admin(){
    var dl=el('button','btn danger','🗑 Supprimer');dl.style.marginTop='8px';dl.onclick=function(){if(confirm('Supprimer ce message ?'))apiAdmin('del_msg',{body:{i:i}}).then(admin,function(){toast('Erreur')})};c.appendChild(dl);d.appendChild(c)});
   fill(d);if(AUTH.unread)apiAdmin('read_msgs',{body:{}}).then(function(){AUTH.unread=0})},function(e){fill(err(e))});
 }
+
+/* ===== Installations sur l'écran d'accueil (compté une fois par appareil) ===== */
+function countInstall(){var k='defteram_inst';try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){return}stat('install')}
+window.addEventListener('appinstalled',countInstall);
+if(isStandalone())setTimeout(countInstall,1500);
+
+/* ===== Nos guides : photos, audios et histoires (ajoutés par l'administrateur) ===== */
+var GUIDES=load('defteram_guides')||[];
+function loadGuides(cb){if(!/^https?:/.test(location.protocol)||!window.fetch)return;
+ fetch('api/guides',{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!j.guides)return;GUIDES=j.guides;save('defteram_guides',GUIDES);
+  if(cb)cb();else if(view==='home')home();else if(view==='pg'&&$('pg').dataset.k==='gd'){if(GPEND)guidePage(GPEND);else guidesPage()}else if(view==='pg'&&$('pg').dataset.k==='g1'&&GCUR)guidePage(GCUR.id)}).catch(function(){})}
+setTimeout(function(){loadGuides()},700);
+var GCUR=null,GPEND=null;
+function gel(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e}
+function guidesPage(){
+ page(T('Nos guides','Our guides','مشايخنا'),'<div id="gds"></div>');$('pg').dataset.k='gd';
+ var g=$('gds');
+ if(!GUIDES.length){g.appendChild(gel('p','empty',T('Aucun guide pour le moment.','No guides yet.','لا يوجد مشايخ بعد.')));return}
+ GUIDES.forEach(function(x){var c=gel('button','gcard');c.type='button';
+  var ph=gel('div','gph');if(x.photos&&x.photos[0]){var im=gel('img');im.src=x.photos[0];im.alt=x.name;im.loading='lazy';im.decoding='async';ph.appendChild(im)}else ph.textContent='🧭';c.appendChild(ph);
+  var tx=gel('div','gtx');tx.appendChild(gel('b','',x.name));if(x.role)tx.appendChild(gel('small','',x.role));
+  var meta=[];if(x.photos&&x.photos.length)meta.push('📷 '+x.photos.length);if(x.audios&&x.audios.length)meta.push('🎧 '+x.audios.length);if(x.story)meta.push('📖');
+  if(meta.length)tx.appendChild(gel('small','gm',meta.join('  ')));c.appendChild(tx);
+  c.onclick=function(){guidePage(x.id)};g.appendChild(c)})}
+function guidePage(id){
+ var x=GUIDES.filter(function(y){return y.id===id})[0];
+ if(!x){GPEND=id;guidesPage();return}
+ GPEND=null;GCUR=x;page(x.name,'<div id="gd1"></div>');$('pg').dataset.k='g1';$('pgB').onclick=bk(function(){guidesPage()});
+ var g=$('gd1');if(x.role)g.appendChild(gel('p','gro',x.role));
+ if(x.photos&&x.photos.length){var gal=gel('div','ggal');x.photos.forEach(function(u,i){var a=gel('a');a.href=u;a.target='_blank';a.rel='noopener';var im=gel('img');im.src=u;im.alt=x.name+' '+(i+1);im.loading=i?'lazy':'eager';im.decoding='async';a.appendChild(im);gal.appendChild(a)});g.appendChild(gal)}
+ if(x.audios&&x.audios.length){var ab=gel('div','card');ab.appendChild(gel('b','','🎧 '+T('Audios','Audio','تسجيلات صوتية')));x.audios.forEach(function(au){var w=gel('div','gau');if(au.title)w.appendChild(gel('div','note',au.title));var el=gel('audio');el.controls=true;el.preload='none';el.src=au.url;w.appendChild(el);ab.appendChild(w)});g.appendChild(ab)}
+ if(x.story){var st=gel('div','card');st.appendChild(gel('b','','📖 '+T('Histoire','Story','السيرة')));var p=gel('div','gstory',x.story);st.appendChild(p);g.appendChild(st)}
+ var sh=gel('button','btn wide','📤 '+T('Partager','Share','مشاركة'));sh.onclick=function(){var u=location.href;if(navigator.share)navigator.share({title:'DEFTERAM · '+x.name,url:u}).then(function(){stat('share')}).catch(function(){});else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){toast(T('Lien copié','Link copied','تم نسخ الرابط'))})};g.appendChild(sh)}
+
+/* ===== Administration : gestion des guides ===== */
+var BLOBJS=null;
+function blobLib(){if(window.VercelBlob)return Promise.resolve(window.VercelBlob);if(BLOBJS)return BLOBJS;
+ BLOBJS=new Promise(function(ok,no){var s=document.createElement('script');s.src='b/blob-upload.js';s.onload=function(){ok(window.VercelBlob)};s.onerror=function(){BLOBJS=null;no(new Error('load'))};document.head.appendChild(s)});return BLOBJS}
+function shrinkImage(file){return new Promise(function(ok){if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size<350000)return ok(file);
+ var u=URL.createObjectURL(file),im=new Image();im.onload=function(){var m=1600,w=im.naturalWidth,h=im.naturalHeight,k=Math.min(1,m/Math.max(w,h));
+  var c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);
+  c.toBlob(function(b){ok(b&&b.size<file.size?new File([b],file.name.replace(/\.\w+$/,'')+'.jpg',{type:'image/jpeg'}):file)},'image/jpeg',.85)};im.onerror=function(){URL.revokeObjectURL(u);ok(file)};im.src=u})}
+function upFile(file,onp){return blobLib().then(function(VB){return shrinkImage(file).then(function(f){var safe=(f.name||'fichier').normalize('NFD').replace(/[^A-Za-z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(-80)||'fichier';
+  return VB.upload('guides/'+safe,f,{access:'public',handleUploadUrl:'api/upload',clientPayload:AUTH.s.tk,multipart:f.size>8*1024*1024,onUploadProgress:function(e){onp&&onp(e.percentage)}})})}).then(function(r){return r.url})}
+function adminGuides(box){
+ var d=gel('div');
+ if(ADM.blob===false){var w=gel('div','wnote');w.textContent='⚠ Le stockage des photos et audios (Vercel Blob) n’est pas encore activé. Tu peux déjà enregistrer les noms et les histoires. Pour les photos et audios : Vercel → Storage → Create Database → Blob → Connect.';d.appendChild(w)}
+ var add=gel('button','btn fill wide','➕ Ajouter un guide');add.onclick=function(){guideEditor(box,null)};d.appendChild(add);
+ apiAdmin('overview').then(function(o){ADM.blob=o.blob});
+ fetch('api/guides',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){GUIDES=j.guides||[];save('defteram_guides',GUIDES);
+  if(!GUIDES.length)d.appendChild(gel('p','note','Aucun guide pour le moment.'));
+  GUIDES.forEach(function(x){var c=gel('div','card');c.style.padding='12px 14px';c.appendChild(gel('b','',x.name));c.appendChild(gel('div','note',(x.role?x.role+' · ':'')+'📷 '+(x.photos||[]).length+' · 🎧 '+(x.audios||[]).length+(x.story?' · 📖':'')));
+   var bar=gel('div','bar');var ed=gel('button','btn','✏️ Modifier');ed.onclick=function(){guideEditor(box,x)};var dl=gel('button','btn danger','🗑 Supprimer');
+   dl.onclick=function(){if(confirm('Supprimer « '+x.name+' » avec ses photos et audios ?'))apiAdmin('guide_del',{body:{id:x.id}}).then(function(){loadGuides(function(){admin()})},function(){toast('Erreur')})};
+   bar.appendChild(ed);bar.appendChild(dl);c.appendChild(bar);d.appendChild(c)})}).catch(function(){d.appendChild(gel('p','err','Impossible de charger les guides.'))});
+ box.innerHTML='';box.appendChild(d)}
+function guideEditor(box,x){
+ var g=x?JSON.parse(JSON.stringify(x)):{name:'',role:'',story:'',photos:[],audios:[],order:GUIDES.length};
+ var f=gel('div','card');f.appendChild(gel('b','',x?'Modifier le guide':'Nouveau guide'));
+ function field(lbl,tag,val,ph){f.appendChild(gel('label','fld',lbl));var i=gel(tag);i.value=val||'';if(ph)i.placeholder=ph;i.setAttribute('aria-label',lbl);f.appendChild(i);return i}
+ var iN=field('Nom','input',g.name,'Ex. Cheikh …');var iR=field('Titre / rôle (facultatif)','input',g.role,'Ex. Khalife de Fass Gounass');
+ var iS=field('Histoire','textarea',g.story,'Écris ou colle l’histoire ici…');iS.style.minHeight='220px';
+ var iO=field('Ordre d’affichage (1 = en premier)','input',String((g.order||0)+1));iO.type='number';iO.min='1';
+ var st=gel('div','note');
+ f.appendChild(gel('label','fld','📷 Photos'));var ph=gel('div','gthumbs');f.appendChild(ph);
+ function drawP(){ph.innerHTML='';g.photos.forEach(function(u,i){var w=gel('div','gth');var im=gel('img');im.src=u;im.alt='';w.appendChild(im);var r=gel('button','','✕');r.type='button';r.setAttribute('aria-label','Retirer la photo');r.onclick=function(){g.photos.splice(i,1);drawP()};w.appendChild(r);ph.appendChild(w)})}
+ drawP();var fp=gel('input');fp.type='file';fp.accept='image/*';fp.multiple=true;fp.setAttribute('aria-label','Ajouter des photos');f.appendChild(fp);
+ f.appendChild(gel('label','fld','🎧 Audios'));var al=gel('div');f.appendChild(al);
+ function drawA(){al.innerHTML='';g.audios.forEach(function(a,i){var w=gel('div','gau');var t=gel('input');t.value=a.title||'';t.placeholder='Titre de l’audio';t.setAttribute('aria-label','Titre de l’audio');t.oninput=function(){a.title=t.value};w.appendChild(t);var au=gel('audio');au.controls=true;au.preload='none';au.src=a.url;w.appendChild(au);var r=gel('button','btn danger','Retirer');r.type='button';r.onclick=function(){g.audios.splice(i,1);drawA()};w.appendChild(r);al.appendChild(w)})}
+ drawA();var fa=gel('input');fa.type='file';fa.accept='audio/*';fa.multiple=true;fa.setAttribute('aria-label','Ajouter des audios');f.appendChild(fa);
+ f.appendChild(st);
+ var busy=0;function upAll(files,kind){Array.prototype.forEach.call(files,function(file){busy++;st.textContent='Envoi de « '+file.name+' »…';
+  upFile(file,function(p){st.textContent='Envoi de « '+file.name+' » : '+Math.round(p||0)+' %'}).then(function(url){if(kind==='p'){g.photos.push(url);drawP()}else{g.audios.push({url:url,title:file.name.replace(/\.\w+$/,'')});drawA()}busy--;st.textContent=busy?st.textContent:'✓ Fichier(s) envoyé(s). N’oublie pas d’enregistrer.'},
+   function(e){busy--;st.textContent='⚠ Échec de l’envoi de « '+file.name+' »'+(String(e&&e.message).indexOf('not_configured')>-1||ADM.blob===false?' : le stockage Vercel Blob n’est pas activé.':'.')})})}
+ fp.onchange=function(){upAll(fp.files,'p');fp.value=''};fa.onchange=function(){upAll(fa.files,'a');fa.value=''};
+ var bar=gel('div','bar');var sv=gel('button','btn fill','💾 Enregistrer');var cn=gel('button','btn','Annuler');cn.onclick=function(){admin()};
+ sv.onclick=function(){if(busy){toast('Attends la fin des envois…');return}g.name=iN.value.trim();g.role=iR.value.trim();g.story=iS.value;g.order=Math.max(0,(parseInt(iO.value,10)||1)-1);
+  if(!g.name){toast('Le nom est obligatoire');iN.focus();return}sv.disabled=true;
+  apiAdmin('guide_save',{body:{guide:g}}).then(function(){toast('Guide enregistré ✓');loadGuides(function(){admin()})},function(e){sv.disabled=false;toast('Erreur : '+e.code)})};
+ bar.appendChild(sv);bar.appendChild(cn);f.appendChild(bar);
+ box.innerHTML='';box.appendChild(f);try{iN.focus({preventScroll:true})}catch(e){}}
 
 $('logoS').innerHTML=logo(32);$('logoH').innerHTML=logo(76);applyTheme();
 setLang();home();nav('home');

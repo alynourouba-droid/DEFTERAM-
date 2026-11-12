@@ -7,7 +7,7 @@
 //   POST /api/stats?e=new|visit     → nouveau visiteur / nouvelle visite
 //   POST /api/stats?e=share[&id=p2] → +1 partage (et +1 pour ce texte)
 //   POST /api/stats?e=view&id=p2    → +1 vue pour ce texte
-const K = { visitors: 'defteram:visitors', visits: 'defteram:visits', shares: 'defteram:shares', views: 'defteram:views', ishares: 'defteram:ishares' };
+const K = { visitors: 'defteram:visitors', visits: 'defteram:visits', shares: 'defteram:shares', installs: 'defteram:installs', views: 'defteram:views', ishares: 'defteram:ishares' };
 
 function cfg() {
   // Variables ajoutées par l'intégration Upstash de Vercel : KV_REST_API_*, UPSTASH_REDIS_REST_*,
@@ -49,17 +49,18 @@ module.exports = async (req, res) => {
       const e = q.e;
       if (e === 'new') cmds.push(['INCR', K.visitors], ['INCR', K.visits]);
       else if (e === 'visit') cmds.push(['INCR', K.visits]);
+      else if (e === 'install') cmds.push(['INCR', K.installs]);
       else if (e === 'share') { cmds.push(['INCR', K.shares]); if (id) cmds.push(['HINCRBY', K.ishares, id, 1]); }
       else if (e === 'view' && id) cmds.push(['HINCRBY', K.views, id, 1]);
       else { res.statusCode = 400; return res.end(JSON.stringify({ error: 'bad_event' })); }
     } else if (req.method !== 'GET') { res.statusCode = 405; return res.end(JSON.stringify({ error: 'method' })); }
     const base = cmds.length;
-    cmds.push(['MGET', K.visitors, K.visits, K.shares]);
+    cmds.push(['MGET', K.visitors, K.visits, K.shares, K.installs]);
     if (id) cmds.push(['HGET', K.views, id], ['HGET', K.ishares, id]);
     if (q.items) cmds.push(['HGETALL', K.views], ['HGETALL', K.ishares]);
     const out = await redis(c, cmds);
     const v = out[base].result || [];
-    const body = { visitors: +v[0] || 0, visits: +v[1] || 0, shares: +v[2] || 0 };
+    const body = { visitors: +v[0] || 0, visits: +v[1] || 0, shares: +v[2] || 0, installs: +v[3] || 0 };
     let k = base + 1;
     if (id) { body.item = { views: +out[k].result || 0, shares: +out[k + 1].result || 0 }; k += 2; }
     if (q.items) { body.views = toMap(out[k].result); body.ishares = toMap(out[k + 1].result); }

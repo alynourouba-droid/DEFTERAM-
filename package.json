@@ -1,0 +1,8 @@
+{
+  "name": "defteram",
+  "private": true,
+  "description": "DEFTERAM – bibliothèque islamique (site statique + fonctions Vercel)",
+  "dependencies": {
+    "@vercel/blob": "2.8.2"
+  }
+}

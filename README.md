@@ -16,7 +16,11 @@ Site statique sans étape de build, installable comme application (PWA) et utili
 | `privacy.html`, `404.html`, `robots.txt`, `sitemap.xml` | Pages et fichiers SEO |
 | `api/admin.js` | Espace administrateur (comptes, messages, vues) + réception des messages |
 | `api/auth.js` | Comptes utilisateurs (connexion sans e-mail) |
-| `api/stats.js` | Compteurs anonymes (visiteurs, visites, partages) |
+| `api/stats.js` | Compteurs anonymes (visiteurs, visites, partages, installations) |
+| `api/guides.js` | Liste publique « Nos guides » (photos, audios, histoires) |
+| `api/upload.js` | Jetons d'envoi de photos/audios vers Vercel Blob (administrateur uniquement) |
+| `api/_lib.js` | Outils partagés (Redis, sessions, Blob) |
+| `b/blob-upload.js` | Bibliothèque d'envoi Vercel Blob pour le navigateur (chargée seulement dans l'administration) |
 | `vercel.json` | En-têtes de cache et de sécurité pour Vercel |
 | `supabase/schema.sql` | Tables Supabase (avis + comptes) |
 | `tests/e2e.js` | Tests de bout en bout |
@@ -45,6 +49,13 @@ La fonction `api/stats.js` compte les visiteurs (appareils), les visites et les 
 2. Redéployer (Deployments → ⋯ → Redeploy). Les variables `KV_REST_API_URL` / `KV_REST_API_TOKEN` (ou `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`) sont ajoutées automatiquement.
 
 Tant que la base n'est pas reliée, aucun chiffre n'est affiché.
+
+### Photos et audios « Nos guides » (Vercel Blob)
+1. Vercel → projet `defteram-` → **Storage** → **Create Database** → **Blob** → **Connect** au projet.
+2. La variable `BLOB_READ_WRITE_TOKEN` est ajoutée automatiquement ; redéployer.
+3. Dans l'app : ☰ → Administration → 🧭 Guides → « Ajouter un guide ». Les photos sont réduites à 1600 px avant l'envoi.
+
+Sans Blob, les noms et histoires des guides fonctionnent déjà ; seuls les fichiers sont refusés.
 
 ### Statistiques de fréquentation (Vercel Web Analytics)
 Activé dans Vercel → projet `defteram` → **Analytics** (offre Hobby, gratuite). Le site charge `/_vercel/insights/script.js` (voir `index.html`) : rien à installer. Les chiffres (visiteurs, pages vues, pays, appareils, sources) sont visibles dans l'onglet Analytics de Vercel.
