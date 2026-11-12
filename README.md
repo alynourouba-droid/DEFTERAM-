@@ -17,6 +17,7 @@ Site statique sans étape de build, installable comme application (PWA) et utili
 | `api/admin.js` | Espace administrateur (comptes, messages, vues) + réception des messages |
 | `api/auth.js` | Comptes utilisateurs (connexion sans e-mail) |
 | `api/stats.js` | Compteurs anonymes (visiteurs, visites, partages, installations) |
+| `api/courses.js` | Cours en ligne : programmes, inscriptions payantes (Wave / Orange Money, validées par l'enseignant), 5 enseignants max, discussion texte + vocale |
 | `api/guides.js` | Liste publique « Nos guides » (photos, audios, histoires) |
 | `api/upload.js` | Jetons d'envoi de photos/audios vers Vercel Blob (administrateur uniquement) |
 | `api/_lib.js` | Outils partagés (Redis, sessions, Blob) |
@@ -81,3 +82,9 @@ node tests/e2e.js
 ```
 
 Ils utilisent Playwright et Chromium. Le site est servi localement et Supabase est simulé, sans aucun appel réseau réel. Ils couvrent tous les textes dans les 5 langues, les routes et le bouton Retour, la recherche, les formulaires, la connexion et la synchronisation, l'affichage mobile, tablette et ordinateur, les animations, l'accessibilité de base, le mode hors connexion et la page 404.
+
+### Cours en ligne
+- Élève : ☰ → Cours en ligne → choisir un cours → payer par Wave ou Orange Money → « J'ai payé, envoyer ma demande ».
+- Enseignant (5 au maximum, créés par l'administrateur) : ☰ → Espace enseignant → vérifier le paiement → « Valider 1 mois / 3 mois » → discuter (texte et messages vocaux de 2 min max).
+- Administrateur : ☰ → Administration → onglet « Cours » (enseignants, prix, numéros de paiement).
+- Les messages vocaux sont gardés 180 jours dans la base Upstash (aucun service en plus).

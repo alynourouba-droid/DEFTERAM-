@@ -26,8 +26,12 @@ global.fetch = async (u, o) => {
       if(op==='SREM'){ const S=REDIS[k]; if(S) a.forEach(x=>S.delete(x)); return {result:1}; }
       if(op==='SMEMBERS') return {result:REDIS[k]?[...REDIS[k]]:[]};
       if(op==='LPUSH'){ const L=REDIS[k]=REDIS[k]||[]; L.unshift(...a); return {result:L.length}; }
-      if(op==='LTRIM'){ if(REDIS[k]) REDIS[k]=REDIS[k].slice(+a[0], +a[1]+1); return {result:'OK'}; }
-      if(op==='LRANGE') return {result:(REDIS[k]||[]).slice(+a[0], +a[1]+1)};
+      const rng=(L,x,y)=>{ x=+x; y=+y; if(x<0) x=Math.max(0,L.length+x); if(y<0) y=L.length+y; return L.slice(x,y+1); };
+      if(op==='LTRIM'){ if(REDIS[k]) REDIS[k]=rng(REDIS[k],a[0],a[1]); return {result:'OK'}; }
+      if(op==='LRANGE') return {result:rng(REDIS[k]||[],a[0],a[1])};
+      if(op==='RPUSH'){ const L=REDIS[k]=REDIS[k]||[]; L.push(...a); return {result:L.length}; }
+      if(op==='EXISTS') return {result:REDIS[k]!=null?1:0};
+      if(op==='HVALS') return {result:Object.values(REDIS[k]||{}).map(String)};
       if(op==='LLEN') return {result:(REDIS[k]||[]).length};
       if(op==='LSET'){ REDIS[k][+a[0]]=a[1]; return {result:'OK'}; }
       if(op==='LREM'){ const L=REDIS[k]||[]; const i=L.indexOf(a[1]); if(i>-1) L.splice(i,1); return {result:i>-1?1:0}; }
@@ -49,6 +53,7 @@ const authFn = require(path.join(ROOT, 'api', 'auth.js'));
 const adminFn = require(path.join(ROOT, 'api', 'admin.js'));
 const guidesFn = require(path.join(ROOT, 'api', 'guides.js'));
 const uploadFn = require(path.join(ROOT, 'api', 'upload.js'));
+const coursesFn = require(path.join(ROOT, 'api', 'courses.js'));
 
 function serve(){
   return new Promise(res=>{
@@ -56,6 +61,10 @@ function serve(){
       if(q.url.startsWith('/api/guides')||q.url.startsWith('/api/upload')){
         if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; }
         q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return (q.url.startsWith('/api/guides')?guidesFn:uploadFn)(q, r);
+      }
+      if(q.url.startsWith('/api/courses')){
+        if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; }
+        q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return coursesFn(q, r);
       }
       if(q.url.startsWith('/api/admin')){
         if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; }
@@ -297,6 +306,73 @@ function mockSupabase(state){
       await clickTab(pa,1); ok(/installations/.test(await pa.textContent('#adm')), 'résumé : nombre d’installations');
     } else console.log('  (code admin non fourni : tests du code sautés)');
     await v.close(); await ca.close(); }
+
+  console.log('\n7c. Cours en ligne : inscription, enseignants, discussion texte et vocale');
+  { STATS_ON=true; Object.keys(REDIS).filter(k=>k.startsWith('defteram:rl:')).forEach(k=>delete REDIS[k]);
+    const up=async(pg,id)=>{ await pg.goto(BASE+'#/p/compte'); await pg.waitForSelector('#acc .tabs2 button:nth-child(2)',{timeout:8000}); await pg.click('.tabs2 button:nth-child(2)'); await pg.fill('#aId',id); await pg.fill('#aPw','123456'); await pg.fill('#aPw2','123456'); await pg.click('#acc [type=submit]'); await pg.waitForTimeout(900); };
+    const login=async(pg,id,pw)=>{ await pg.goto(BASE+'#/p/compte'); await pg.waitForTimeout(900); await pg.fill('#aId',id); await pg.fill('#aPw',pw); await pg.click('#acc [type=submit]'); await pg.waitForTimeout(900); };
+    const C=(pg,a,body)=>pg.evaluate(([a,body])=>apiC(a,body?{body}:{}).then(j=>({ok:1,j}),e=>({err:e.code})),[a,body]);
+    const ca=await b.newContext({serviceWorkers:'block'}), pa=await newPage(ca,{name:'cours-admin',allowErr:true,allow404:true});
+    await up(pa,'direction'); REDIS['defteram:admin']='direction';
+    let r=await C(pa,'teacher_set',{user:'oustaz.ba',password:'secret1',courses:['quran','arabe']}); ok(r.ok&&r.j.created, 'admin : crée le compte enseignant « oustaz.ba » (Coran + arabe)');
+    for(const u of ['prof.fr','prof.en','prof4','prof5']) await C(pa,'teacher_set',{user:u,password:'secret1',courses:['francais']});
+    r=await C(pa,'teacher_set',{user:'prof6',password:'secret1',courses:['anglais']}); ok(r.err==='max_teachers', '6e enseignant refusé (5 au maximum)');
+    r=await C(pa,'teacher_set',{user:'inconnu',courses:['anglais']}); ok(r.err==='no_user'||r.err==='max_teachers', 'compte inexistant sans mot de passe : refusé');
+    r=await C(pa,'course_save',{id:'quran',price:1500,per:'mois',active:true}); ok(r.ok, 'admin : prix du cours de Coran modifié');
+    await pa.reload(); await pa.waitForTimeout(1500); await pa.evaluate(()=>admin()); await pa.waitForTimeout(600); await pa.click('.tabs2 button:has-text("Cours")'); await pa.waitForTimeout(800);
+    ok(/Enseignants \(5 \/ 5\)/.test(await pa.textContent('#adm')), 'onglet admin « Cours » : 5 enseignants affichés');
+
+    const cs=await b.newContext({serviceWorkers:'block'}), ps=await newPage(cs,{name:'eleve',allowErr:true,allow404:true});
+    await up(ps,'eleve.diallo');
+    await ps.goto(BASE); await ps.waitForTimeout(600); await ps.click('.tile >> text=Cours en ligne'); await ps.waitForTimeout(900);
+    ok((await ps.$$('.crs-card')).length===4, 'page Cours en ligne : 4 cours (Coran, arabe, français, anglais)');
+    ok(/1 500 FCFA/.test(await ps.textContent('#crs')), 'prix affiché (1 500 FCFA / mois)');
+    await ps.click('.crs-card >> text=Cours de Coran'); await ps.waitForTimeout(500);
+    ok((await ps.$$('.crs-prog li')).length===4 && /tajwid/i.test(await ps.textContent('.crs-prog')), 'programme du cours de Coran (4 niveaux)');
+    ok(ps.url().endsWith('#/p/cours/quran'), 'lien direct du cours : #/p/cours/quran');
+    await ps.click('#crd .btn.fill'); await ps.waitForTimeout(400); ok(/numéro/i.test(await ps.textContent('#crd .err')), 'numéro de téléphone obligatoire');
+    await ps.fill('#crPh','77 123 45 67'); await ps.fill('#crRef','TX-998'); await ps.click('#crd .btn.fill.wide'); await ps.waitForTimeout(900);
+    ok(/En attente de validation/.test(await ps.textContent('#crd')), 'demande envoyée : « En attente de validation »');
+    r=await C(ps,'thread',{course:'quran'}); ok(r.err==='not_enrolled', 'pas de discussion avant la validation');
+    r=await C(ps,'teach'); ok(r.err==='not_teacher', 'un élève n’a pas accès à l’Espace enseignant');
+    r=await C(ps,'teacher_set',{user:'x',courses:['quran']}); ok(r.err==='not_admin', 'un élève ne peut pas nommer d’enseignant');
+
+    const ct=await b.newContext({serviceWorkers:'block'}), pt=await newPage(ct,{name:'enseignant',allowErr:true,allow404:true});
+    await login(pt,'oustaz.ba','secret1'); await pt.waitForTimeout(600);
+    await pt.click('#mBtn'); await pt.waitForTimeout(400); ok(/Espace enseignant \(1\)/.test(await pt.textContent('#drawer')), 'enseignant : menu « Espace enseignant (1) »');
+    ok(!/Administration/.test(await pt.textContent('#drawer')), 'enseignant : pas d’accès à l’administration');
+    await pt.click('#drawer .mi:has-text("Espace enseignant")'); await pt.waitForTimeout(800);
+    ok(/eleve\.diallo/.test(await pt.textContent('#tsp')) && /TX-998/.test(await pt.textContent('#tsp')), 'demande visible : élève, numéro, référence');
+    ok(!/Cours de français/.test(await pt.textContent('#tsp')), 'enseignant : seulement ses cours (pas le français)');
+    r=await C(pt,'teach'); ok(r.ok&&r.j.courses.map(x=>x.id).join()==='quran,arabe', 'enseignant : cours Coran et arabe');
+    await pt.click('#tsp .btn.fill:has-text("1 mois")'); await pt.waitForTimeout(900);
+    ok(JSON.parse(REDIS['defteram:enr:quran']['eleve.diallo']).s==='a', 'inscription validée pour 1 mois');
+
+    await ps.goto(BASE+'#/p/cours/quran'); await ps.waitForTimeout(1200);
+    ok(/Actif jusqu/.test(await ps.textContent('#crd')), 'élève : cours actif');
+    await ps.click('#crd .btn.fill.wide'); await ps.waitForTimeout(900);
+    ok(/Inscription validée/.test(await ps.textContent('#cmsgs')), 'discussion : message « Inscription validée »');
+    await ps.fill('.ccomp textarea','Assalamou alaykoum Oustaz, je suis débutant.'); await ps.click('.cbtn.send'); await ps.waitForTimeout(700);
+    ok(/débutant/.test(await ps.textContent('#cmsgs .cm.me')), 'élève : message texte envoyé');
+    const fake='GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQRChYECGFOAZwH/////////'; // en-tête WebM factice
+    r=await C(ps,'send',{course:'quran',audio:{data:fake,mime:'audio/webm;codecs=opus',dur:7}}); ok(r.ok&&r.j.msg.a, 'élève : message vocal envoyé');
+    const vr=await ps.evaluate(id=>fetch('api/courses?a=voice&id='+id).then(x=>[x.status,x.headers.get('content-type')]),r.j.msg.a); ok(vr[0]===200&&/audio\/webm/.test(vr[1]), 'message vocal lisible (audio/webm)');
+    r=await C(ps,'send',{course:'quran',audio:{data:'x'.repeat(1200000),mime:'audio/webm',dur:9}}); ok(r.err==='audio_too_large', 'message vocal trop long refusé', r);
+    r=await C(ps,'thread',{course:'quran',student:'autre.eleve'}); ok(r.err==='not_teacher', 'un élève ne lit pas la discussion d’un autre');
+
+    await pt.goto(BASE+'#/p/enseignant'); await pt.waitForTimeout(900);
+    ok(/eleve\.diallo/.test(await pt.textContent('#tsp .tsp-th')) && /2/.test(await pt.textContent('#tsp .tsp-th .ub')), 'enseignant : discussion avec 2 messages non lus');
+    await pt.click('#tsp .tsp-th'); await pt.waitForTimeout(900);
+    ok(/débutant/.test(await pt.textContent('#cmsgs')) && (await pt.$$('#cmsgs audio')).length===1, 'enseignant : voit le texte et le vocal de l’élève');
+    await pt.fill('.ccomp textarea','Wa alaykoum salam ! Commençons par les lettres.'); await pt.click('.cbtn.send'); await pt.waitForTimeout(700);
+    r=await C(ps,'me'); ok(r.ok&&r.j.unread===1&&r.j.enr.quran.unread===1, 'élève : 1 nouveau message de l’enseignant');
+    await ps.waitForTimeout(6600); ok(/Commençons/.test(await ps.textContent('#cmsgs')), 'élève : la réponse arrive toute seule (actualisation)');
+    Object.keys(REDIS).filter(k=>k.startsWith('defteram:rl:')).forEach(k=>delete REDIS[k]);
+    const ci=await b.newContext({serviceWorkers:'block'}), pi=await newPage(ci,{name:'intrus',allowErr:true,allow404:true}); await up(pi,'curieux');
+    r=await C(pi,'thread',{course:'quran',student:'eleve.diallo'}); ok(r.err==='not_teacher', 'intrus : pas d’accès aux discussions', r);
+    r=await C(pi,'send',{course:'quran',text:'spam'}); ok(r.err==='not_enrolled', 'intrus : ne peut pas écrire sans inscription', r);
+    await ca.close(); await cs.close(); await ct.close(); await ci.close();
+  }
 
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){

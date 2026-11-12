@@ -284,6 +284,45 @@ html[dir=rtl] #prog{transform-origin:100% 50%}
 #wel .tap{font-size:.8rem;opacity:.7;animation:welIn .9s ease 2.6s both}
 @media (prefers-reduced-motion:reduce){#wel *,#wel{animation:none!important}#wel .pt,#wel .st{display:none}}
 
+/* Cours en ligne */
+body.inchat nav{display:none}body.inchat .wrap{padding-bottom:16px}
+.crs-intro b{font-size:1.05rem}.crs-steps{margin:8px 0 0;padding-inline-start:22px;line-height:1.7}.crs-steps li{margin:4px 0}
+.crs-card{display:flex;gap:14px;align-items:flex-start;width:100%;text-align:start;background:linear-gradient(90deg,var(--surface),var(--bg));border:1.5px solid var(--sun);border-radius:20px;padding:14px;margin-bottom:12px;color:var(--ink);font:inherit;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.06);transition:transform .2s}
+.crs-card:active{transform:scale(.98)}
+.crs-card .ci{flex:none;width:58px;height:58px;border-radius:18px;display:grid;place-items:center;font-size:1.9rem;background:radial-gradient(circle,var(--surface),var(--bg));border:1.5px solid var(--gold2);box-shadow:0 4px 10px rgba(0,0,0,.1)}
+.crs-card .cb{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.crs-card b{font-size:1.08rem}.crs-card .cd{color:var(--mute);line-height:1.45}
+.crs-card .cp{font-weight:800;color:var(--accent)}.crs-card .ct{font-size:.85rem;color:var(--mute)}
+.cst{display:inline-block;align-self:flex-start;border-radius:999px;padding:3px 10px;font-size:.8rem;font-weight:700;margin-top:4px;background:rgba(226,192,113,.25);color:var(--sunInk)}
+.cst.ok{background:rgba(23,147,122,.16);color:var(--accent)}.cst.off{background:rgba(179,38,30,.12);color:#b3261e}.cst.big{display:block;text-align:center;font-size:.95rem;padding:10px;margin:0 0 12px;border-radius:14px}
+.crs-price{font:800 1.3rem Nunito,system-ui,sans-serif;color:var(--accent);margin:6px 0}
+.crs-prog{margin:8px 0;padding-inline-start:22px;line-height:1.65}.crs-prog li{margin:6px 0}
+.crs-pay .crs-num{display:flex;align-items:center;gap:8px;margin:6px 0}.crs-pay .crs-num .btn{padding:4px 10px}
+.crs-renew{margin-top:12px}.crs-renew summary{cursor:pointer;color:var(--accent);font-weight:700;margin-bottom:8px}
+.crs-cks{display:flex;flex-direction:column;gap:6px;margin:4px 0 8px}.crs-cks label{display:flex;align-items:center;gap:6px}.crs-cks input{width:auto;margin:0}
+.crs-prow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}.crs-prow>span{flex:1 1 100%;font-weight:700}.crs-prow input[type=number]{width:110px;margin:0}.crs-prow select{width:auto;margin:0}.crs-prow label{display:flex;align-items:center;gap:4px}.crs-prow label input{width:auto;margin:0}
+.tsp-req{border:1.5px dashed var(--sun);border-radius:14px;padding:10px 12px;margin:8px 0 12px;background:rgba(226,192,113,.08)}.tsp-req p{margin:4px 0}
+.tsp-th{display:flex;align-items:center;gap:12px;width:100%;text-align:start;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 2px;color:var(--ink);font:inherit;cursor:pointer}
+.tsp-th .av{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,var(--hero),var(--hero2));color:var(--onhero)}
+.tsp-th .tx{flex:1;min-width:0}.tsp-th small{display:block;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tsp-th .ub{flex:none;min-width:24px;height:24px;border-radius:12px;background:#d93025;color:#fff;font-size:.8rem;font-weight:800;display:grid;place-items:center;padding:0 6px}
+.chat{display:flex;flex-direction:column;height:calc(100dvh - 200px);min-height:340px;border:1.5px solid var(--sun);border-radius:20px;overflow:hidden;background:var(--surface)}
+.cmsgs{flex:1;overflow-y:auto;padding:14px 10px;display:flex;flex-direction:column;gap:8px;background:linear-gradient(180deg,rgba(226,192,113,.08),transparent)}
+.cm{max-width:84%;padding:8px 12px 6px;border-radius:18px;position:relative;box-shadow:0 2px 6px rgba(0,0,0,.08);line-height:1.5;word-wrap:break-word}
+.cm.me{align-self:flex-end;background:linear-gradient(135deg,var(--hero),var(--hero2));color:var(--onhero);border-end-end-radius:6px}
+.cm.them{align-self:flex-start;background:var(--bg);border:1px solid var(--line);border-end-start-radius:6px}
+.cm.sys{align-self:center;max-width:92%;background:rgba(226,192,113,.22);color:var(--ink);font-size:.88rem;text-align:center;border-radius:12px}
+.cm .cn{display:block;font-weight:800;font-size:.75rem;color:var(--accent)}.cm .cx{margin:2px 0;white-space:pre-wrap}
+.cm time{display:block;text-align:end;font-size:.68rem;opacity:.7}.cm.sys time{text-align:center}
+.cm audio{display:block;width:230px;max-width:100%;height:40px;margin:4px 0}.cm .cv{font-size:.8rem;opacity:.85}
+.ccomp{display:flex;align-items:flex-end;gap:6px;padding:8px;border-top:1px solid var(--line);background:var(--bg)}
+.ccomp textarea{flex:1;min-height:44px;max-height:120px;margin:0;resize:none;border-radius:22px;padding:10px 14px;line-height:1.4}
+.cbtn{flex:none;width:46px;height:46px;border-radius:50%;border:0;font-size:1.2rem;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--hero),var(--hero2));box-shadow:0 3px 8px rgba(0,0,0,.2)}
+.cbtn.mic{background:linear-gradient(135deg,#e2c071,#b8892e)}.cbtn:disabled{opacity:.5}
+.ccomp.rec{display:none}
+.crec{display:flex;align-items:center;gap:8px;padding:10px;border-top:1px solid var(--line);background:var(--bg)}.crec .sp{flex:1}
+.rdot{width:12px;height:12px;border-radius:50%;background:#d93025;animation:recP 1s ease-in-out infinite}
+@keyframes recP{50%{opacity:.25;transform:scale(.8)}}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.hero,.hero *,.hero::before,body::before{translate:none!important}.rv{opacity:1!important}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -501,6 +540,7 @@ var I={
 };
 var G=[
  {t:{ar:'كتب التعلم والأدب',fr:"Livres d'apprentissage et littérature",en:'Learning books and literature',ff:'Deftere ekkitaago e winndannde',wo:'Téere yu jàng ak mbind'},i:[
+  ['cours','🧑🏾‍🏫',{ar:'دروس عن بعد',fr:'Cours en ligne',en:'Online courses',ff:'Janngirde e enternet',wo:'Njàng ci internet'}],
   ['daara','📜',{ar:'كتب المحضرة',fr:'Livres Daara',en:'Daara books',ff:'Deftere Daara',wo:'Téereji Daara'}],
   ['islam','🕌',{ar:'الكتب الإسلامية',fr:'Livres islamiques',en:'Islamic books',ff:'Deftere Islaam',wo:'Téere yu Islaam'}],
   ['afri','✍️',{ar:'الأدب الإفريقي',fr:'Littérature africaine',en:'African literature',ff:'Winndannde Afirik',wo:'Mbind mu Afrik'}],
@@ -539,7 +579,7 @@ function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}if(SY
 function load(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
 var SYNCK=['defteram_custom','defteram_fav','defteram_prof','defteram_page','defteram_lang','defteram_tash'];
 function toast(x){var e=$('toast');e.textContent=x;e.classList.remove('hide');setTimeout(function(){e.classList.add('hide')},1800)}
-function show(v){view=v;if(v!=='reader'&&typeof stopAudio==='function')stopAudio();['home','cat','reader','zikr','form','mushaf','pg'].forEach(function(x){$(x).classList.toggle('hide',x!==v)});
+function show(v){view=v;document.body.classList.remove('inchat');if(v!=='reader'&&typeof stopAudio==='function')stopAudio();['home','cat','reader','zikr','form','mushaf','pg'].forEach(function(x){$(x).classList.toggle('hide',x!==v)});
  var m=v==='cat'&&cat==='fav'?'fav':v==='zikr'?'zikr':v==='home'?'home':(v==='pg'&&$('pg').dataset.k==='acc')?'acc':'';
  nav(m);window.scrollTo(0,0);Promise.resolve().then(syncRoute)}
 function nav(on){
@@ -562,7 +602,7 @@ function setLang(){var h=document.documentElement;if($('back4'))$('back4').textC
  ['q','fTitle','fAu','fBody'].forEach(function(i){$(i).setAttribute('aria-label',$(i).placeholder)});$('fCat').setAttribute('aria-label',T('Catégorie','Category','الفئة'));$('fLang').setAttribute('aria-label',t('lang'));
  $('shr').setAttribute('aria-label',T('Partager','Share','مشاركة'));$('del').setAttribute('aria-label',T('Supprimer','Delete','حذف'));$('minus').setAttribute('aria-label',T('Texte plus petit','Smaller text','خط أصغر'));$('plus').setAttribute('aria-label',T('Texte plus grand','Larger text','خط أكبر'));$('fav').setAttribute('aria-label',t('favs'));$('tap').setAttribute('aria-label',T('Compter','Count','عدّ'))}
 var HAY={};function hay(b){if(HAY[b.id]!==undefined&&b.id.charAt(0)!=='c')return HAY[b.id];var tt=TT[b.id]||{},x=[b.title,b.ar,b.au];Object.keys(tt).forEach(function(k){x.push(tt[k])});(b.lines||[]).forEach(function(l){x.push(l)});(b.items||[]).forEach(function(i){x.push(i.a,i.fr,i.en)});(b.bayts||[]).concat(b.pre||[],b.chorus?[b.chorus]:[],b.post?b.post.v:[]).forEach(function(v){x.push(v.join(' '))});(b.secs||[]).forEach(function(z){x.push(z[1])});var h=x.filter(Boolean).join(' ');h=(h+' '+noTash(h)).toLowerCase();HAY[b.id]=h;return h}
-function cnt(id){if(id==='guides')return GUIDES.length;return all().filter(function(b){return b.cat===id}).length}
+function cnt(id){if(id==='guides')return GUIDES.length;if(id==='cours')return CRS.list?CRS.list.length:4;return all().filter(function(b){return b.cat===id}).length}
 function home(){
  var q=$('quick');q.innerHTML='';
  var qi=[['⭐',t('favs'),function(){openCat('fav')}],['📖',t('mush'),function(){openCat('quran')}],['📿',t('zikr'),function(){zk();show('zikr')}]];
@@ -580,6 +620,7 @@ function home(){
 }
 function openCat(id,items,title){
  if(id==='guides'&&!items){guidesPage();return}
+ if(id==='cours'&&!items){coursesPage();return}
  if(!(ITEMS&&Date.now()-ITEMS_AT<300000))loadItems(function(){if(view==='cat'&&cat===id&&!LI)openCat(id)});
  cat=id;var isFav=id==='fav';
  $('cTitle').textContent=title||(isFav?'⭐ '+t('favs'):L(NAME[id]));
@@ -696,7 +737,7 @@ $('q').oninput=function(){var v=this.value.trim().toLowerCase();
  var keep=this.value;openCat('search',r,t('res'));$('q').classList.remove('hide');$('q').value=keep;$('q').focus();if(v&&!r.length){var e=$('list').querySelector('.empty');if(e)e.textContent=T('Aucun résultat pour « ','No results for “','لا نتائج لـ « ')+keep+T(' ».','”.',' ».')}};
 $('back1').addEventListener('click',function(){$('q').classList.add('hide')});
 $('addBtn').onclick=function(){var s=$('fCat');s.innerHTML='';
- Object.keys(NAME).forEach(function(k){if(k==='fav')return;var o=document.createElement('option');o.value=k;o.textContent=L(NAME[k]);if(k===cat)o.selected=true;s.appendChild(o)});
+ Object.keys(NAME).forEach(function(k){if(k==='fav'||k==='guides'||k==='cours')return;var o=document.createElement('option');o.value=k;o.textContent=L(NAME[k]);if(k===cat)o.selected=true;s.appendChild(o)});
  $('fLang').value=cat==='jimdi'?'ff':'ar';show('form');nav('')};
 $('save').onclick=function(){
  var ti=$('fTitle').value.trim(),body=$('fBody').value.split('\n').filter(function(x){return x.trim()});
@@ -844,7 +885,8 @@ function applyTheme(){var r=document.documentElement;if(prof.theme==='auto')r.re
 var LGN=0;function logo(s){var k=++LGN;return ('<svg width="'+s+'" height="'+s+'" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lgr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#17937a"/><stop offset="1" stop-color="#06352c"/></linearGradient><mask id="mk"><rect width="64" height="64" fill="#fff"/><circle cx="35" cy="11.5" r="6" fill="#000"/></mask></defs><rect width="64" height="64" rx="16" fill="url(#lgr)"/><path d="M32 24c-5-3-12-3-19-1v23c7-2 14-2 19 1z" fill="#fff6e0"/><path d="M32 24c5-3 12-3 19-1v23c-7-2-14-2-19 1z" fill="#f1d9a2"/><path d="M32 24v23" stroke="#d98a2b" stroke-width="1.6"/><path d="M17 30h10M17 34h10M37 30h10M37 34h10" stroke="#0e5a49" stroke-width="1.2" opacity=".45"/><circle cx="32" cy="14" r="7" fill="#f0a94c" mask="url(#mk)"/><path d="M42 10l1.2 2.6 2.8.3-2.1 1.9.6 2.8-2.5-1.4-2.5 1.4.6-2.8-2.1-1.9 2.8-.3z" fill="#f0a94c"/></svg>').replace(/lgr/g,'lgr'+k).replace(/"mk"/g,'"mk'+k+'"').replace(/#mk\)/g,'#mk'+k+')')}
 function drawer(open){var d=$('drawer');if(!open){d.classList.add('hide');return}
  var p=d.firstChild;p.innerHTML='<div class="dh">'+logo(64)+'<b>DEFTERAM</b><span>'+t('tag')+'</span></div><div class="stats dst hide" id="dstats" aria-label="Statistiques"></div>';showStats();if(!STATS)stat('');
- (AUTH.admin?[['🛠️','Administration'+(AUTH.unread?' ('+AUTH.unread+')':''),admin]]:[]).concat(sbOn()?[['👤',AUTH.s?T('Mon compte','My account','حسابي')+' · '+AUTH.s.user.name:T('Connexion','Sign in','تسجيل الدخول'),account]]:[]).concat([
+ var cm=CRS.me,cu=cm?(cm.unread||0):0,tu=cm&&cm.teacher?(cm.pending||0)+(cm.tunread||0):0;
+ (AUTH.admin?[['🛠️','Administration'+(AUTH.unread?' ('+AUTH.unread+')':''),admin]]:[]).concat(sbOn()?[['👤',AUTH.s?T('Mon compte','My account','حسابي')+' · '+AUTH.s.user.name:T('Connexion','Sign in','تسجيل الدخول'),account]]:[]).concat([['🧑🏾‍🏫',T('Cours en ligne','Online courses','دروس عن بعد')+(cu?' ('+cu+')':''),coursesPage]]).concat(cm&&cm.teacher?[['👩‍🏫',T('Espace enseignant','Teacher space','فضاء المعلّم')+(tu?' ('+tu+')':''),teacherSpace]]:[]).concat([
   ['📲',T("Installer l'application",'Install the app','تثبيت التطبيق'),installer],
   ['🏅',T('Badges et partage','Badges and sharing','الأوسمة والمشاركة'),badges],
   ['✍️',T('Auteurs','Authors','الشعراء والمؤلفون'),authors],
@@ -930,7 +972,7 @@ function routeNow(){
  if(view==='zikr')return '#/zikr';
  if(view==='form')return '#/add/'+cat;
  if(view==='pg'&&$('pg').dataset.k==='g1'&&GCUR)return '#/g/'+GCUR.id;
- if(view==='pg'){var k=$('pg').dataset.k;if((k==='w'||k==='l')&&cur)return '#/t/'+cur.id;var P={gd:'guides',adm:'admin',i:'installer',b:'badges',a:'auteurs',r:'note',s:'soutien',t:'parametres',x:'apropos',acc:'compte'};if(P[k])return '#/p/'+P[k]}
+ if(view==='pg'){var k=$('pg').dataset.k;if((k==='w'||k==='l')&&cur)return '#/t/'+cur.id;var P={gd:'guides',adm:'admin',i:'installer',b:'badges',a:'auteurs',r:'note',s:'soutien',t:'parametres',x:'apropos',acc:'compte',co:'cours',ens:'enseignant'};if((k==='c1'||k==='ch')&&CRS.cur)return '#/p/cours/'+CRS.cur;if(k==='ch'&&CRS.chat)return '#/p/cours/'+CRS.chat.course;if(P[k])return '#/p/'+P[k]}
  return '#/'}
 function setRoute(h,rep){if(RT.restoring)return;var now=location.hash||'#/';if(now===h)return;
  var d=(history.state&&history.state.d)||0,u=h==='#/'?location.pathname+location.search:h;
@@ -949,7 +991,8 @@ function goRoute(h){
  if(a==='au'&&x){grp=false;return openCat('search',authorsOf(x),x)}
  if(a==='add'){openCat(NAME[x]?x:'daara');return $('addBtn').click()}
  if(a==='g'&&x)return guidePage(x);
- if(a==='p'){var F={guides:guidesPage,admin:admin,installer:installer,badges:badges,auteurs:authors,note:rate,soutien:support,parametres:settings,apropos:about,compte:account}[x];if(F)return F()}
+ if(a==='p'&&/^cours\/[a-z]+$/.test(x))return courseDetail(x.slice(6));
+ if(a==='p'){var F={cours:coursesPage,enseignant:teacherSpace,guides:guidesPage,admin:admin,installer:installer,badges:badges,auteurs:authors,note:rate,soutien:support,parametres:settings,apropos:about,compte:account}[x];if(F)return F()}
  home();show('home')}
 window.addEventListener('popstate',function(){RT.restoring=true;try{goRoute(location.hash)}finally{setTimeout(function(){RT.restoring=false},0)}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!$('drawer').classList.contains('hide')){drawer(false);$('mBtn').focus()}else if(!$('sheet').classList.contains('hide'))$('sheet').classList.add('hide')}});
@@ -995,7 +1038,7 @@ function authErr(e){var c=String(e.code||'');
 function signIn(id,pw){return apiAuth('login',{method:'POST',body:{id:id,password:pw}}).then(keepSession)}
 function signUp(id,pw){return apiAuth('signup',{method:'POST',body:{id:id,password:pw}}).then(keepSession)}
 function curNav(){return view==='home'?'home':view==='cat'&&cat==='fav'?'fav':view==='zikr'?'zikr':(view==='pg'&&$('pg').dataset.k==='acc')?'acc':''}
-function logoutLocal(){AUTH.admin=false;AUTH.s=null;AUTH.sync=null;try{localStorage.removeItem('defteram_auth');localStorage.removeItem('defteram_synced')}catch(e){}nav(curNav())}
+function logoutLocal(){CRS.me=null;AUTH.admin=false;AUTH.s=null;AUTH.sync=null;try{localStorage.removeItem('defteram_auth');localStorage.removeItem('defteram_synced')}catch(e){}nav(curNav())}
 function signOut(){clearTimeout(AUTH.tm);var p=AUTH.s?apiAuth('logout',{method:'POST'}).catch(function(){}):Promise.resolve();return p.then(function(){logoutLocal()})}
 
 /* Synchronisation des favoris, textes ajoutés et préférences */
@@ -1131,7 +1174,7 @@ function installer(){
 function apiAdmin(a,o){o=o||{};var h={'Content-Type':'application/json'};if(AUTH.s&&AUTH.s.tk)h.Authorization='Bearer '+AUTH.s.tk;
  return fetch('api/admin?a='+a,{method:o.method||(o.body?'POST':'GET'),headers:h,body:o.body?JSON.stringify(o.body):undefined,cache:'no-store'}).then(function(r){
   return r.text().then(function(x){var j=null;try{j=x?JSON.parse(x):null}catch(e){}if(!r.ok){var er=new Error((j&&j.error)||('HTTP '+r.status));er.code=(j&&j.error)||String(r.status);throw er}return j})})}
-function checkAdmin(){if(!AUTH.s||!AUTH.on)return;apiAuth('me').then(function(j){AUTH.admin=!!(j&&j.admin);if(AUTH.admin)apiAdmin('overview').then(function(o){AUTH.unread=o.unread||0}).catch(function(){})}).catch(function(){})}
+function checkAdmin(){if(!AUTH.s||!AUTH.on)return;cMe();apiAuth('me').then(function(j){AUTH.admin=!!(j&&j.admin);if(AUTH.admin)apiAdmin('overview').then(function(o){AUTH.unread=o.unread||0}).catch(function(){})}).catch(function(){})}
 var ADM={tab:'ov'};
 function admin(){
  page('🛠️ Administration','<div id="adm"></div>');$('pg').dataset.k='adm';
@@ -1147,11 +1190,12 @@ function admin(){
   var go=el('button','btn fill wide','Valider');go.onclick=function(){go.disabled=true;er.textContent='';apiAdmin('claim',{body:{code:inp.value}}).then(function(){AUTH.admin=true;toast('Tu es administrateur ✓');admin()},function(e){go.disabled=false;er.textContent=err(e).textContent})};cc.appendChild(go);
   g.appendChild(cc);return}
  var tb=el('div','tabs2');tb.style.flexWrap='wrap';
- [['ov','📊 Résumé'],['tx','👁️ Vues'],['us','👥 Comptes'],['ms','✉️ Messages'+(AUTH.unread?' ('+AUTH.unread+')':'')],['gd','🧭 Guides']].forEach(function(x){var b=el('button',x[0]===ADM.tab?'on':'',x[1]);b.onclick=function(){ADM.tab=x[0];admin()};tb.appendChild(b)});
+ [['ov','📊 Résumé'],['tx','👁️ Vues'],['us','👥 Comptes'],['ms','✉️ Messages'+(AUTH.unread?' ('+AUTH.unread+')':'')],['gd','🧭 Guides'],['co','🧑🏾‍🏫 Cours']].forEach(function(x){var b=el('button',x[0]===ADM.tab?'on':'',x[1]);b.onclick=function(){ADM.tab=x[0];admin()};tb.appendChild(b)});
  g.appendChild(tb);var box=el('div');box.appendChild(el('p','note','Chargement…'));g.appendChild(box);
  function fill(n){box.innerHTML='';box.appendChild(n)}
  function date(t){try{return new Date(t).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
  if(ADM.tab==='gd'){adminGuides(box);return}
+ if(ADM.tab==='co'){adminCourses(box);return}
  if(ADM.tab==='ov')apiAdmin('overview').then(function(o){AUTH.unread=o.unread||0;ADM.blob=o.blob;var d=el('div');var st=el('div','stats');
   [['👥',o.visitors,'visiteurs'],['👁️',o.visits,'visites'],['📤',o.shares,'partages'],['📲',o.installs,'installations'],['🔐',o.users,'comptes'],['✉️',o.msgs,'messages'],['🔔',o.unread,'non lus'],['🧭',o.guides,'guides'],['💾',o.blob?'✓':'—','photos/audios']].forEach(function(x){st.innerHTML+='<div class="st"><i>'+x[0]+'</i><b>'+(typeof x[1]==='string'?x[1]:fmtN(x[1]))+'</b><small>'+x[2]+'</small></div>'});
   st.style.gridTemplateColumns='repeat(3,1fr)';d.appendChild(st);d.appendChild(el('p','note','Administrateur : '+o.admin+'. Les vues et partages de chaque texte sont dans l’onglet « Vues ».'));fill(d)},function(e){fill(err(e))});
@@ -1186,6 +1230,200 @@ function loadGuides(cb){if(!/^https?:/.test(location.protocol)||!window.fetch)re
 setTimeout(function(){loadGuides()},700);
 var GCUR=null,GPEND=null;
 function gel(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e}
+
+/* ===== Cours en ligne : programmes, inscription payante, discussion texte + vocal avec l'enseignant ===== */
+var CRS={list:null,pay:null,me:null,cur:null,chat:null,timer:null};
+function apiC(a,o){o=o||{};var h={'Content-Type':'application/json'};if(AUTH.s&&AUTH.s.tk)h.Authorization='Bearer '+AUTH.s.tk;
+ return fetch('api/courses?a='+a,{method:o.method||(o.body?'POST':'GET'),headers:h,body:o.body?JSON.stringify(o.body):undefined,cache:'no-store'}).then(function(r){
+  return r.text().then(function(x){var j=null;try{j=x?JSON.parse(x):null}catch(e){}if(!r.ok){var er=new Error((j&&j.error)||('HTTP '+r.status));er.code=(j&&j.error)||String(r.status);throw er}return j})})}
+function cErr(e){var k=e&&e.code;return k==='not_configured'||k==='404'||k==='502'?T('Le serveur des cours n’est pas joignable pour le moment.','The courses server is not reachable right now.','خادم الدروس غير متاح حاليا.'):
+ k==='bad_phone'?T('Écris le numéro de téléphone qui a payé.','Enter the phone number used to pay.','اكتب رقم الهاتف الذي دفعت به.'):k==='already_pending'?T('Ta demande est déjà envoyée, attends la validation.','Your request is already sent, please wait.','طلبك مرسل بالفعل، انتظر التأكيد.'):
+ k==='rate_limit'?T('Trop d’envois, réessaie dans une minute.','Too many attempts, try again in a minute.','محاولات كثيرة، أعد المحاولة بعد دقيقة.'):k==='audio_too_large'?T('Message vocal trop long (2 minutes au maximum).','Voice message too long (2 minutes max).','الرسالة الصوتية طويلة جدا (دقيقتان كحد أقصى).'):
+ k==='not_enrolled'?T('Ton inscription n’est pas encore active.','Your enrolment is not active yet.','اشتراكك غير مفعّل بعد.'):k==='max_teachers'?'5 enseignants au maximum : retire d’abord un enseignant.':k==='no_user'?'Ce compte n’existe pas : écris aussi un mot de passe (6 caractères min.) pour le créer.':
+ k==='no_course'?'Coche au moins un cours.':k==='bad_id'?'Identifiant invalide (lettres, chiffres, . _ -).':T('Erreur : ','Error: ','خطأ: ')+(k||(e&&e.message)||'')}
+function cMe(cb){if(!AUTH.s||!AUTH.on){CRS.me=null;cb&&cb();return}apiC('me').then(function(j){CRS.me=j;cb&&cb()},function(){cb&&cb()})}
+function cList(cb){apiC('list').then(function(j){CRS.list=j.courses;CRS.pay=j.pay;cb()},function(e){cb(e)})}
+function fcfa(n){return String(Math.round(n||0)).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' FCFA'}
+function cPer(p){return p==='an'?T('an','year','سنة'):p==='trimestre'?T('trimestre','quarter','ثلاثة أشهر'):T('mois','month','شهر')}
+function cDate(ms){try{return new Date(ms).toLocaleDateString(lang==='ar'?'ar':lang==='en'?'en-GB':'fr-FR',{day:'numeric',month:'long',year:'numeric'})}catch(e){return new Date(ms).toISOString().slice(0,10)}}
+function cTime(ms){var d=new Date(ms),n=new Date();var hm=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);return d.toDateString()===n.toDateString()?hm:d.getDate()+'/'+(d.getMonth()+1)+' '+hm}
+function cById(id){return (CRS.list||[]).filter(function(c){return c.id===id})[0]}
+function cBadge(e){if(!e)return null;var s=e.s;return s==='a'?['ok','✅ '+T('Actif jusqu’au ','Active until ','مفعّل حتى ')+cDate(e.until)]:s==='p'?['wait','⏳ '+T('En attente de validation','Waiting for validation','في انتظار التأكيد')]:s==='x'?['off','⌛ '+T('Expiré : renouvelle ton inscription','Expired: renew your enrolment','انتهى: جدّد اشتراكك')]:s==='r'?['off','⛔ '+T('Paiement non confirmé','Payment not confirmed','لم يتم تأكيد الدفع')]:null}
+
+function coursesPage(){
+ page('🎓 '+T('Cours en ligne','Online courses','دروس عن بعد'),'<div id="crs"><p class="note">…</p></div>');$('pg').dataset.k='co';CRS.cur=null;
+ var g=$('crs');
+ cList(function(e){if(!$('crs'))return;g.innerHTML='';if(e){g.appendChild(gel('p','note',cErr(e)));return}
+  cMe(function(){if(!$('crs')||$('pg').dataset.k!=='co')return;g.innerHTML='';
+   var me=CRS.me,intro=gel('div','card crs-intro');
+   intro.appendChild(gel('b','',T('Apprends avec un enseignant, depuis ton téléphone','Learn with a teacher, from your phone','تعلّم مع معلّم من هاتفك')));
+   intro.appendChild(gel('p','wp',T('Cours en ligne par messages écrits et vocaux, à ton rythme. Prix accessible, payé par Wave ou Orange Money.','Online lessons by text and voice messages, at your own pace. Affordable price, paid by Wave or Orange Money.','دروس عن بعد بالرسائل المكتوبة والصوتية حسب وقتك. سعر مناسب يُدفع عبر Wave أو Orange Money.')));
+   var st=gel('ol','crs-steps');[T('Choisis ton cours et lis le programme','Choose your course and read the programme','اختر درسك واقرأ البرنامج'),T('Paie par Wave ou Orange Money','Pay with Wave or Orange Money','ادفع عبر Wave أو Orange Money'),T('L’enseignant vérifie et active ton cours','The teacher checks and activates your course','يتحقق المعلّم ويفعّل درسك'),T('Discute avec ton enseignant : texte et vocal 🎤','Chat with your teacher: text and voice 🎤','تحدّث مع معلّمك: كتابة وصوت 🎤')].forEach(function(x){st.appendChild(gel('li','',x))});
+   intro.appendChild(st);g.appendChild(intro);
+   if(me&&me.teacher){var tb=gel('button','btn fill wide','👩‍🏫 '+T('Espace enseignant','Teacher space','فضاء المعلّم')+((me.pending+me.tunread)?' ('+(me.pending+me.tunread)+')':''));tb.onclick=teacherSpace;tb.style.marginBottom='12px';g.appendChild(tb)}
+   CRS.list.forEach(function(c){var b=gel('button','crs-card'),e=me&&me.enr[c.id],bd=cBadge(e);
+    b.innerHTML='<span class="ci"></span><span class="cb"><b></b><small class="cd"></small><span class="cp"></span><span class="ct"></span></span>';
+    b.querySelector('.ci').textContent=c.icon;b.querySelector('b').textContent=L(c.title);b.querySelector('.cd').textContent=L(c.desc);
+    b.querySelector('.cp').textContent=c.active?fcfa(c.price)+' / '+cPer(c.per):T('Bientôt disponible','Coming soon','قريبا');
+    b.querySelector('.ct').textContent=c.teachers.length?'👩‍🏫 '+c.teachers.join(', '):'';
+    if(bd){var s=gel('span','cst '+bd[0],bd[1]+(e.unread?' · 💬 '+e.unread:''));b.querySelector('.cb').appendChild(s)}
+    b.onclick=function(){courseDetail(c.id)};g.appendChild(b)});
+   if(!AUTH.s){var n=gel('p','note',T('Pour t’inscrire, crée d’abord ton compte (menu ☰ → Connexion).','To enrol, first create your account (menu ☰ → Sign in).','للتسجيل، أنشئ حسابك أولا (القائمة ☰ ← تسجيل الدخول).'));g.appendChild(n)}
+  })})}
+
+function courseDetail(id,again){
+ if(!CRS.list){cList(function(e){if(!e&&cById(id))courseDetail(id);else coursesPage()});return}
+ var c=cById(id);if(!c)return coursesPage();CRS.cur=id;
+ if(!again&&AUTH.s)cMe(function(){if(view==='pg'&&$('pg').dataset.k==='c1'&&CRS.cur===id)courseDetail(id,true)});
+ page(c.icon+' '+L(c.title),'<div id="crd"></div>');$('pg').dataset.k='c1';$('pgB').onclick=bk(coursesPage);
+ var g=$('crd'),me=CRS.me,e=me&&me.enr[id];
+ var top=gel('div','card');top.appendChild(gel('p','wp',L(c.desc)));
+ var pr=gel('div','crs-price');pr.textContent=c.active?fcfa(c.price)+' / '+cPer(c.per):T('Bientôt disponible','Coming soon','قريبا');top.appendChild(pr);
+ if(c.teachers.length)top.appendChild(gel('p','note','👩‍🏫 '+T('Enseignant : ','Teacher: ','المعلّم: ')+c.teachers.join(', ')));
+ g.appendChild(top);
+ var pg=gel('div','card');pg.appendChild(gel('b','','📋 '+T('Programme du cours','Course programme','برنامج الدرس')));
+ var ol=gel('ol','crs-prog');(c.program||[]).forEach(function(x){ol.appendChild(gel('li','',L(x)))});pg.appendChild(ol);
+ pg.appendChild(gel('p','note',T('Les leçons se font par messages vocaux et écrits avec ton enseignant : il t’explique, tu récites ou tu réponds, il te corrige.','Lessons happen by voice and text messages with your teacher: they explain, you recite or answer, they correct you.','تتم الدروس بالرسائل الصوتية والمكتوبة مع معلّمك: يشرح لك، وتقرأ أو تجيب، ثم يصحّح لك.')));
+ g.appendChild(pg);
+ var bd=cBadge(e);if(bd){var sb=gel('div','cst big '+bd[0],bd[1]);g.appendChild(sb)}
+ if(e&&e.s==='a'){var ch=gel('button','btn fill wide','💬 '+T('Discuter avec l’enseignant','Chat with the teacher','تحدّث مع المعلّم')+(e.unread?' ('+e.unread+')':''));ch.onclick=function(){chatPage(id,null)};g.appendChild(ch);
+  var rn=gel('details','crs-renew');rn.appendChild(gel('summary','',T('Renouveler à l’avance','Renew in advance','التجديد مسبقا')));g.appendChild(rn);enrollForm(rn,c);return}
+ if(e&&e.s==='p'){g.appendChild(gel('p','note',T('Ta demande est envoyée. L’enseignant vérifie ton paiement puis active ton cours (en général dans la journée). Reviens ici pour commencer.','Your request is sent. The teacher checks your payment then activates your course (usually the same day). Come back here to start.','تم إرسال طلبك. يتحقق المعلّم من الدفع ثم يفعّل درسك (عادة في اليوم نفسه). ارجع هنا للبدء.')));return}
+ if(!c.active)return;
+ if(!AUTH.s){var lg=gel('button','btn fill wide','👤 '+T('Connexion pour s’inscrire','Sign in to enrol','سجّل الدخول للاشتراك'));lg.onclick=account;g.appendChild(lg);return}
+ enrollForm(g,c)}
+
+function enrollForm(g,c){var p=CRS.pay||{},f=gel('div','card crs-pay');
+ f.appendChild(gel('b','','💳 '+T('S’inscrire','Enrol','الاشتراك')+' · '+fcfa(c.price)+' / '+cPer(c.per)));
+ var ins=gel('ol','crs-steps');
+ ins.appendChild(gel('li','',T('Envoie ','Send ','أرسل ')+fcfa(c.price)+T(' à ce numéro :',' to this number:',' إلى هذا الرقم:')));ins.firstChild.appendChild(document.createElement('br'));
+ [['wave','🌊 Wave',p.wave],['om','🟠 Orange Money',p.om]].forEach(function(x){if(!x[2])return;var r=gel('span','crs-num');r.appendChild(gel('span','',x[1]+' : '));r.appendChild(gel('b','',x[2]));var cp=gel('button','btn','📋');cp.setAttribute('aria-label',T('Copier','Copy','نسخ'));cp.onclick=function(){if(navigator.clipboard)navigator.clipboard.writeText(x[2].replace(/\s/g,'')).then(function(){toast(T('Numéro copié','Number copied','تم نسخ الرقم'))})};r.appendChild(cp);ins.firstChild.appendChild(r)});
+ ins.appendChild(gel('li','',T('Puis remplis ce formulaire et appuie sur « J’ai payé ».','Then fill in this form and tap “I have paid”.','ثم املأ هذا النموذج واضغط «لقد دفعت».')));
+ f.appendChild(ins);if(p.note)f.appendChild(gel('p','note',p.note));
+ var ms=gel('div','tabs2'),method='wave';[['wave','🌊 Wave'],['om','🟠 Orange Money']].forEach(function(x){var b=gel('button',x[0]===method?'on':'',x[1]);b.type='button';b.onclick=function(){method=x[0];[].forEach.call(ms.children,function(z){z.classList.toggle('on',z===b)})};ms.appendChild(b)});f.appendChild(ms);
+ var l1=gel('label','fld',T('Numéro qui a payé','Phone number used to pay','رقم الهاتف الذي دفعت به'));var ph=gel('input');ph.type='tel';ph.inputMode='tel';ph.placeholder='77 123 45 67';ph.id='crPh';l1.htmlFor='crPh';f.appendChild(l1);f.appendChild(ph);
+ var l2=gel('label','fld',T('Référence de la transaction (facultatif)','Transaction reference (optional)','رقم العملية (اختياري)'));var rf=gel('input');rf.id='crRef';l2.htmlFor='crRef';f.appendChild(l2);f.appendChild(rf);
+ var er=gel('div','err');f.appendChild(er);
+ var go=gel('button','btn fill wide','✅ '+T('J’ai payé, envoyer ma demande','I have paid, send my request','لقد دفعت، أرسل طلبي'));
+ go.onclick=function(){go.disabled=true;er.textContent='';apiC('enroll',{body:{course:c.id,method:method,phone:ph.value,ref:rf.value}}).then(function(){toast(T('Demande envoyée ✓','Request sent ✓','تم إرسال الطلب ✓'));courseDetail(c.id)},function(e){go.disabled=false;er.textContent=cErr(e)})};
+ f.appendChild(go);g.appendChild(f)}
+
+/* Discussion (élève ↔ enseignant) : texte et messages vocaux */
+function chatPage(course,student,sname){
+ var c=cById(course),asT=!!student;
+ page((asT?'💬 '+(sname||student):'💬 '+(c?L(c.title):''))+'','<div class="chat"><div class="cmsgs" id="cmsgs" aria-live="polite"><p class="note">…</p></div><div class="ccomp" id="ccomp"></div></div>');
+ $('pg').dataset.k='ch';document.body.classList.add('inchat');$('pgB').onclick=bk(function(){asT?teacherSpace():courseDetail(course)});
+ if(asT){var sub=gel('p','note','🎓 '+(c?L(c.title):course));$('pg').insertBefore(sub,$('pg').querySelector('.chat'))}
+ var box=$('cmsgs'),seen={},ch={course:course,student:student};CRS.chat=ch;
+ function sysText(x){if(x==='refused')return '⛔ '+T('Paiement non confirmé. Vérifie ton paiement ou contacte-nous.','Payment not confirmed. Check your payment or contact us.','لم يتم تأكيد الدفع. تحقق من الدفع أو تواصل معنا.');var m=/^ok:(\d+):(\d+)$/.exec(x||'');return m?'✅ '+T('Inscription validée pour ','Enrolment validated for ','تم تفعيل الاشتراك لمدة ')+m[1]+' '+T('mois, jusqu’au ','month(s), until ','شهر، حتى ')+cDate(+m[2]):x}
+ function add(m){if(seen[m.i])return;seen[m.i]=1;var mine=asT?m.f==='t':m.f==='s',d;
+  if(m.f==='sys'){d=gel('div','cm sys',sysText(m.x))}
+  else{d=gel('div','cm '+(mine?'me':'them'));if(!mine)d.appendChild(gel('small','cn',(m.f==='t'?'👩‍🏫 ':'🧑‍🎓 ')+m.n));
+   if(m.a){var au=document.createElement('audio');au.controls=true;au.preload='none';au.src='api/courses?a=voice&id='+encodeURIComponent(m.a);d.appendChild(gel('span','cv','🎤 '+(m.d?Math.floor(m.d/60)+':'+('0'+m.d%60).slice(-2):'')));d.appendChild(au)}
+   if(m.x){d.appendChild(gel('p','cx',m.x))}}
+  d.appendChild(gel('time','',cTime(m.t)));box.appendChild(d)}
+ function load(first){if(CRS.chat!==ch||!$('cmsgs'))return stop();
+  apiC('thread',{body:{course:course,student:student||undefined}}).then(function(j){if(CRS.chat!==ch||!$('cmsgs'))return;if(first)box.innerHTML='';
+   var near=box.scrollHeight-box.scrollTop-box.clientHeight<80,n=Object.keys(seen).length;
+   if(first&&!j.msgs.length)box.appendChild(gel('p','note cempty',asT?T('Aucun message. Écris le premier message à ton élève.','No messages. Write the first message to your student.','لا توجد رسائل. اكتب أول رسالة لطالبك.'):T('Salue ton enseignant et présente-toi : ton niveau, ce que tu veux apprendre. Tu peux écrire ou envoyer un message vocal 🎤.','Greet your teacher and introduce yourself: your level, what you want to learn. You can write or send a voice message 🎤.','سلّم على معلّمك وعرّف بنفسك: مستواك وما تريد تعلّمه. يمكنك الكتابة أو إرسال رسالة صوتية 🎤.')));
+   j.msgs.forEach(add);if(Object.keys(seen).length>n){var ce=box.querySelector('.cempty');if(ce)ce.remove()}
+   if(first||near||Object.keys(seen).length>n&&first)box.scrollTop=box.scrollHeight;else if(Object.keys(seen).length>n&&near)box.scrollTop=box.scrollHeight},
+   function(e){if(first){box.innerHTML='';box.appendChild(gel('p','note',cErr(e)))}})}
+ function stop(){if(CRS.timer){clearInterval(CRS.timer);CRS.timer=null}}
+ stop();load(true);CRS.timer=setInterval(function(){if(document.hidden)return;load(false)},6000);
+ // Zone d'écriture
+ var cp=$('ccomp'),ta=gel('textarea');ta.rows=1;ta.placeholder=T('Écris ton message…','Write your message…','اكتب رسالتك…');ta.setAttribute('aria-label',ta.placeholder);ta.maxLength=4000;
+ var mic=gel('button','cbtn mic','🎤'),sd=gel('button','cbtn send','➤');mic.setAttribute('aria-label',T('Message vocal','Voice message','رسالة صوتية'));sd.setAttribute('aria-label',T('Envoyer','Send','إرسال'));
+ cp.appendChild(ta);cp.appendChild(mic);cp.appendChild(sd);
+ ta.oninput=function(){ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,120)+'px'};
+ function post(body,done){body.course=course;if(student)body.student=student;sd.disabled=mic.disabled=true;
+  apiC('send',{body:body}).then(function(j){sd.disabled=mic.disabled=false;add(j.msg);var ce=box.querySelector('.cempty');if(ce)ce.remove();box.scrollTop=box.scrollHeight;done&&done()},function(e){sd.disabled=mic.disabled=false;toast(cErr(e))})}
+ sd.onclick=function(){var x=ta.value.trim();if(!x)return;post({text:x},function(){ta.value='';ta.oninput()})};
+ ta.onkeydown=function(e){if(e.key==='Enter'&&!e.shiftKey&&matchMedia('(hover: hover)').matches){e.preventDefault();sd.click()}};
+ // Enregistrement vocal (2 minutes au maximum)
+ var rec=null,chunks=[],t0=0,tick=null,rb=null;
+ mic.onclick=function(){if(rec)return;
+  if(!navigator.mediaDevices||!window.MediaRecorder){toast(T('Ton navigateur ne permet pas d’enregistrer.','Your browser cannot record audio.','متصفحك لا يدعم التسجيل.'));return}
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+   var mt=['audio/webm;codecs=opus','audio/mp4','audio/ogg;codecs=opus','audio/webm'].filter(function(m){return MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m)})[0];
+   try{rec=new MediaRecorder(stream,mt?{mimeType:mt,audioBitsPerSecond:24000}:{audioBitsPerSecond:24000})}catch(e){rec=new MediaRecorder(stream)}
+   chunks=[];var cancel=false;rec.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data)};
+   rec.onstop=function(){stream.getTracks().forEach(function(t){t.stop()});clearInterval(tick);if(rb){rb.remove();rb=null}cp.classList.remove('rec');var r=rec;rec=null;if(cancel)return;
+    var dur=Math.round((Date.now()-t0)/1000),blob=new Blob(chunks,{type:(r.mimeType||mt||'audio/webm')});if(dur<1||!blob.size)return;
+    if(blob.size>800000){toast(cErr({code:'audio_too_large'}));return}
+    var fr=new FileReader();fr.onload=function(){var s=String(fr.result),i=s.indexOf(',');post({audio:{data:s.slice(i+1),mime:blob.type||'audio/webm',dur:dur}})};fr.readAsDataURL(blob)};
+   rec.start(1000);t0=Date.now();cp.classList.add('rec');
+   rb=gel('div','crec');var dot=gel('span','rdot'),tm=gel('b','','0:00'),cn=gel('button','btn','✕ '+T('Annuler','Cancel','إلغاء')),ok=gel('button','btn fill','➤ '+T('Envoyer','Send','إرسال'));
+   rb.appendChild(dot);rb.appendChild(tm);rb.appendChild(gel('span','sp'));rb.appendChild(cn);rb.appendChild(ok);cp.parentNode.insertBefore(rb,cp);
+   tick=setInterval(function(){var s=Math.floor((Date.now()-t0)/1000);tm.textContent=Math.floor(s/60)+':'+('0'+s%60).slice(-2);if(s>=120&&rec&&rec.state==='recording')rec.stop()},250);
+   cn.onclick=function(){cancel=true;if(rec&&rec.state!=='inactive')rec.stop()};ok.onclick=function(){if(rec&&rec.state!=='inactive')rec.stop()};
+  },function(){toast(T('Autorise le micro pour envoyer un message vocal.','Allow the microphone to send a voice message.','اسمح باستخدام الميكروفون لإرسال رسالة صوتية.'))})}}
+
+/* Espace enseignant : demandes d'inscription, élèves, discussions */
+function teacherSpace(){
+ page('👩‍🏫 '+T('Espace enseignant','Teacher space','فضاء المعلّم'),'<div id="tsp"><p class="note">…</p></div>');$('pg').dataset.k='ens';$('pgB').onclick=bk(coursesPage);
+ var g=$('tsp');
+ (CRS.list?Promise.resolve():new Promise(function(ok){cList(function(){ok()})})).then(function(){return apiC('teach')}).then(function(j){if(!$('tsp'))return;g.innerHTML='';
+  if(!j.courses.length){g.appendChild(gel('p','note','Aucun cours ne t’est attribué.'));return}
+  j.courses.forEach(function(cc){var c=cById(cc.id)||{icon:'🎓',title:{fr:cc.id}},card=gel('div','card');
+   card.appendChild(gel('h3','',c.icon+' '+L(c.title)));
+   var pend=cc.students.filter(function(s){return s.s==='p'}),act=cc.students.filter(function(s){return s.s==='a'});
+   card.appendChild(gel('b','','⏳ '+T('Demandes à vérifier','Requests to check','طلبات للتحقق')+' ('+pend.length+')'));
+   if(!pend.length)card.appendChild(gel('p','note',T('Aucune demande en attente.','No pending request.','لا توجد طلبات.')));
+   pend.forEach(function(s){var r=gel('div','tsp-req');r.appendChild(gel('b','','🧑‍🎓 '+s.n));
+    r.appendChild(gel('p','note',(s.m==='om'?'🟠 Orange Money':'🌊 Wave')+' · 📞 '+(s.ph||'—')+(s.ref?' · Réf. '+s.ref:'')+' · '+cTime(s.t)));
+    r.appendChild(gel('p','note',T('Vérifie dans ton application Wave / Orange Money que le paiement est bien arrivé, puis valide.','Check in your Wave / Orange Money app that the payment arrived, then validate.','تحقق في تطبيق Wave / Orange Money من وصول الدفع ثم فعّل.')));
+    var br=gel('div','bar');br.style.flexWrap='wrap';
+    [[1,'✅ 1 '+T('mois','month','شهر')],[3,'✅ 3 '+T('mois','months','أشهر')]].forEach(function(x){var b=gel('button','btn fill',x[1]);b.onclick=function(){b.disabled=true;apiC('validate',{body:{course:cc.id,student:s.u,months:x[0]}}).then(function(){toast('✓');teacherSpace()},function(e){b.disabled=false;toast(cErr(e))})};br.appendChild(b)});
+    var rf=gel('button','btn danger','⛔ '+T('Refuser','Refuse','رفض'));rf.onclick=function(){if(!confirm(T('Refuser cette demande ?','Refuse this request?','رفض هذا الطلب؟')))return;apiC('refuse',{body:{course:cc.id,student:s.u}}).then(function(){teacherSpace()},function(e){toast(cErr(e))})};br.appendChild(rf);
+    r.appendChild(br);card.appendChild(r)});
+   card.appendChild(gel('b','','💬 '+T('Discussions','Chats','المحادثات')));
+   var tl=cc.threads.slice();act.forEach(function(s){if(!tl.some(function(t){return t.u===s.u}))tl.push({u:s.u,n:s.n,t:0,x:'',ut:0})});
+   if(!tl.length)card.appendChild(gel('p','note',T('Pas encore d’élève actif.','No active student yet.','لا يوجد طلاب بعد.')));
+   tl.forEach(function(t){var st=cc.students.filter(function(s){return s.u===t.u})[0],b=gel('button','tsp-th');
+    b.innerHTML='<span class="av"></span><span class="tx"><b></b><small></small></span><span class="ub"></span>';b.querySelector('.av').textContent=(t.n||'?').charAt(0).toUpperCase();
+    b.querySelector('b').textContent=t.n;b.querySelector('small').textContent=(t.x||'')+(st&&st.s==='a'?' · '+T('jusqu’au ','until ','حتى ')+cDate(st.until):st&&st.s==='x'?' · ⌛ '+T('expiré','expired','منتهٍ'):'');
+    if(t.ut)b.querySelector('.ub').textContent=t.ut;else b.querySelector('.ub').remove();
+    b.onclick=function(){chatPage(cc.id,t.u,t.n)};card.appendChild(b)});
+   g.appendChild(card)})
+ }).catch(function(e){if(!$('tsp'))return;g.innerHTML='';g.appendChild(gel('p','err',e&&e.code==='not_teacher'?'Ce compte n’est pas enseignant.':cErr(e)))})}
+
+/* Administration : enseignants (5 max), prix, numéros de paiement */
+function adminCourses(box){box.innerHTML='<p class="note">…</p>';
+ Promise.all([new Promise(function(ok){cList(function(){ok()})}),apiC('teachers')]).then(function(r){var j=r[1];box.innerHTML='';
+  var tc=gel('div','card');tc.appendChild(gel('b','','👩‍🏫 Enseignants ('+j.teachers.length+' / '+j.max+')'));
+  tc.appendChild(gel('p','note','Les enseignants ont accès seulement à l’Espace enseignant de leurs cours (pas à l’administration).'));
+  j.teachers.forEach(function(t){var r=gel('div','tsp-req');r.appendChild(gel('b','','👤 '+t.u));r.appendChild(gel('p','note','Cours : '+t.courses.map(function(id){var c=cById(id);return c?L(c.title):id}).join(', ')));
+   var br=gel('div','bar'),ed=gel('button','btn','✏️ Modifier'),dl=gel('button','btn danger','🗑️ Retirer');
+   ed.onclick=function(){u.value=t.u;pw.value='';[].forEach.call(cks.querySelectorAll('input'),function(i){i.checked=t.courses.indexOf(i.value)>-1});u.focus()};
+   dl.onclick=function(){if(!confirm('Retirer '+t.u+' des enseignants ? (son compte reste)'))return;apiC('teacher_del',{body:{user:t.u}}).then(function(){adminCourses(box)},function(e){toast(cErr(e))})};
+   br.appendChild(ed);br.appendChild(dl);r.appendChild(br);tc.appendChild(r)});
+  tc.appendChild(gel('b','','➕ Ajouter / modifier un enseignant'));
+  var u=gel('input');u.placeholder='Identifiant (ex. oustaz.ba)';u.autocapitalize='none';u.setAttribute('aria-label','Identifiant');tc.appendChild(u);
+  var pw=gel('input');pw.placeholder='Mot de passe (seulement pour créer un nouveau compte)';pw.type='text';pw.setAttribute('aria-label','Mot de passe');tc.appendChild(pw);
+  var cks=gel('div','crs-cks');CRS.list.forEach(function(c){var l=gel('label'),i=gel('input');i.type='checkbox';i.value=c.id;l.appendChild(i);l.appendChild(document.createTextNode(' '+c.icon+' '+L(c.title)));cks.appendChild(l)});tc.appendChild(cks);
+  var er=gel('div','err');tc.appendChild(er);
+  var sv=gel('button','btn fill wide','💾 Enregistrer l’enseignant');sv.onclick=function(){er.textContent='';sv.disabled=true;
+   var cs=[].filter.call(cks.querySelectorAll('input'),function(i){return i.checked}).map(function(i){return i.value});
+   apiC('teacher_set',{body:{user:u.value,password:pw.value,courses:cs}}).then(function(x){toast(x.created?'Compte enseignant créé ✓':'Enseignant enregistré ✓');adminCourses(box)},function(e){sv.disabled=false;er.textContent=cErr(e)})};
+  tc.appendChild(sv);tc.appendChild(gel('p','note','L’enseignant se connecte avec cet identifiant et ce mot de passe (menu ☰ → Connexion), puis ouvre ☰ → Cours en ligne → Espace enseignant.'));
+  box.appendChild(tc);
+  var pc=gel('div','card');pc.appendChild(gel('b','','💰 Prix des cours'));
+  CRS.list.forEach(function(c){var r=gel('div','crs-prow');r.appendChild(gel('span','',c.icon+' '+L(c.title)));
+   var p=gel('input');p.type='number';p.min=0;p.step=100;p.value=c.price;p.setAttribute('aria-label','Prix '+L(c.title));
+   var per=gel('select');[['mois','/ mois'],['trimestre','/ trimestre'],['an','/ an']].forEach(function(x){var o=gel('option','',x[1]);o.value=x[0];if(c.per===x[0])o.selected=true;per.appendChild(o)});
+   var ac=gel('label'),ai=gel('input');ai.type='checkbox';ai.checked=c.active;ac.appendChild(ai);ac.appendChild(document.createTextNode(' ouvert'));
+   var b=gel('button','btn','💾');b.setAttribute('aria-label','Enregistrer');b.onclick=function(){apiC('course_save',{body:{id:c.id,price:+p.value,per:per.value,active:ai.checked}}).then(function(){toast('Prix enregistré ✓');CRS.list=null},function(e){toast(cErr(e))})};
+   r.appendChild(p);r.appendChild(per);r.appendChild(ac);r.appendChild(b);pc.appendChild(r)});
+  box.appendChild(pc);
+  var py=gel('div','card'),pay=CRS.pay||{};py.appendChild(gel('b','','📲 Numéros pour recevoir les paiements'));
+  var w=gel('input');w.value=pay.wave||'';w.placeholder='Numéro Wave';w.setAttribute('aria-label','Numéro Wave');var om=gel('input');om.value=pay.om||'';om.placeholder='Numéro Orange Money';om.setAttribute('aria-label','Numéro Orange Money');
+  var nt=gel('input');nt.value=pay.note||'';nt.placeholder='Note pour les élèves (facultatif), ex. au nom de …';nt.setAttribute('aria-label','Note');
+  py.appendChild(gel('label','fld','🌊 Wave'));py.appendChild(w);py.appendChild(gel('label','fld','🟠 Orange Money'));py.appendChild(om);py.appendChild(gel('label','fld','Note'));py.appendChild(nt);
+  var ps=gel('button','btn fill wide','💾 Enregistrer les numéros');ps.onclick=function(){apiC('pay_save',{body:{wave:w.value,om:om.value,note:nt.value}}).then(function(){toast('Numéros enregistrés ✓');CRS.list=null},function(e){toast(cErr(e))})};py.appendChild(ps);
+  box.appendChild(py);
+  var go=gel('button','btn wide','👩‍🏫 Ouvrir l’Espace enseignant (tous les cours)');go.onclick=teacherSpace;box.appendChild(go);
+ }).catch(function(e){box.innerHTML='';box.appendChild(gel('p','err',cErr(e)))})}
 function guidesPage(){
  page(T('Nos guides','Our guides','مشايخنا'),'<div id="gds"></div>');$('pg').dataset.k='gd';
  var g=$('gds');
