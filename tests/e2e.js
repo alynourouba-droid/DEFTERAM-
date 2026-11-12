@@ -399,6 +399,19 @@ function mockSupabase(state){
     await ca.close(); await cs.close(); await ct.close(); await ci.close();
   }
 
+  console.log('\n7d. Bibliothèque Seydi El Hadji Malick Sy');
+  { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'malick'});
+    await p.goto(BASE); await p.waitForTimeout(500);
+    ok(await p.isVisible('.tile .e.ph img[src="img/malick-sy-face.jpg"]'), 'accueil : case de la bibliothèque avec la photo');
+    await p.click('.tile >> text=Malick Sy'); await p.waitForTimeout(500);
+    ok(await p.isVisible('#cHead .mhead img') && /Tivaouane/.test(await p.textContent('#cHead')), 'bibliothèque : photo et présentation');
+    const t=await p.textContent('#list'); ok(/Khilass Zahab/.test(t) && /Riyy az-Zam/.test(t), 'bibliothèque : Khilass Zahab et la Nûniyya');
+    await p.goto(BASE+'#/t/rz1'); await p.waitForTimeout(600);
+    ok((await p.$$('#rText .bayt')).length===121, 'Nûniyya : 121 vers');
+    ok(/Alâ yâ dah-du/.test(await p.textContent('#rText .bayt .btl')), 'prononciation en lettres latines sous chaque vers');
+    await p.goto(BASE+'#/c/parab'); await p.waitForTimeout(400); ok(!(await p.$('#cHead .mhead')), 'pas de présentation dans les autres catégories');
+    await ctx.close(); }
+
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){
     const ctx=await b.newContext({viewport:vp,serviceWorkers:'block'}), p=await newPage(ctx,{name:n});
