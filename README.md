@@ -35,6 +35,7 @@ Chaque écran a sa propre adresse, utilisable pour partager et pour le bouton Re
 Le site utilise l'adresse `https://defteram.vercel.app` (balises de partage, canonical, sitemap). Si Vercel en donne une autre, remplacer cette adresse dans `index.html`, `robots.txt` et `sitemap.xml`.
 
 ### Base Upstash : compteurs + comptes utilisateurs
+Base reliée au projet Vercel `defteram-` (Upstash for Redis, offre Free).
 `api/auth.js` (comptes : identifiant ou e-mail + mot de passe haché scrypt, sans e-mail de confirmation, sessions de 90 jours, synchronisation des favoris) et `api/stats.js` utilisent la même base.
 
 ### Compteurs de visiteurs et de partages
