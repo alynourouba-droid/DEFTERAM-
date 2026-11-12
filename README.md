@@ -40,6 +40,9 @@ La fonction `api/stats.js` compte les visiteurs (appareils), les visites et les 
 
 Tant que la base n'est pas reliée, aucun chiffre n'est affiché.
 
+### Statistiques de fréquentation (Vercel Web Analytics)
+Activé dans Vercel → projet `defteram` → **Analytics** (offre Hobby, gratuite). Le site charge `/_vercel/insights/script.js` (voir `index.html`) : rien à installer. Les chiffres (visiteurs, pages vues, pays, appareils, sources) sont visibles dans l'onglet Analytics de Vercel.
+
 ### 2. Supabase (comptes + avis)
 1. Créer un projet sur https://supabase.com.
 2. **SQL Editor** → coller `supabase/schema.sql` → **Run**.
