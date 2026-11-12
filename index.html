@@ -1359,7 +1359,14 @@ function coursesPage(){
   g.appendChild(gr);
   var hw=gel('div','card sch-how');hw.appendChild(gel('b','',T('Comment s’inscrire ?','How to enrol?','كيف تسجّل؟')));
   var st=gel('div','sch-steps');[['1','📚',T('Choisis ton cours','Choose your course','اختر درسك')],['2','📲',T('Paie par Wave ou Orange Money','Pay with Wave or Orange Money','ادفع عبر Wave أو Orange Money')],['3','✅',T('La direction confirme','The direction confirms','الإدارة تؤكّد')],['4','🎤',T('Tu suis le cours aux heures de classe','Attend at class times','تابع الدرس في أوقاته')]].forEach(function(x){var d=gel('div','');d.innerHTML='<i></i><span></span>';d.firstChild.textContent=x[1];d.lastChild.textContent=x[2];st.appendChild(d)});
-  hw.appendChild(st);g.appendChild(hw)}
+  hw.appendChild(st);
+  var vd=gel('video');vd.controls=true;vd.playsInline=true;vd.preload='none';vd.poster='videos/ecole-poster.jpg';vd.src='videos/ecole-en-ligne.mp4';
+  vd.setAttribute('aria-label',T('Vidéo : comment s’inscrire à l’École en ligne','Video: how to enrol in the online school','فيديو: كيف تسجّل في المدرسة'));
+  vd.style.cssText='width:100%;max-width:380px;display:block;margin:14px auto 10px;border-radius:18px;border:2px solid var(--sun);background:#06352c;aspect-ratio:9/16';
+  hw.appendChild(gel('p','note','🎬 '+T('Regarde la vidéo pas à pas (avec la voix) :','Watch the step-by-step video (with voice):','شاهد الفيديو خطوة بخطوة (بالصوت):')));hw.appendChild(vd);
+  var vs=gel('button','btn wide','📤 '+T('Partager cette vidéo','Share this video','مشاركة الفيديو'));
+  vs.onclick=function(){var u=location.origin+'/videos/ecole-en-ligne.mp4';if(navigator.share)navigator.share({title:'DEFTERAM · École en ligne',url:u}).then(function(){stat('share')}).catch(function(){});else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){toast(T('Lien copié','Link copied','تم نسخ الرابط'))}).catch(function(){prompt('',u)});else prompt('',u)};
+  hw.appendChild(vs);g.appendChild(hw)}
  draw();cList(function(e){if(e&&!CRS.list){var g=$('crs');if(g){g.innerHTML='';g.appendChild(gel('p','note',cErr(e)))}return}draw();cMe(draw)})}
 
 function courseDetail(id,again){
