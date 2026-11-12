@@ -417,6 +417,11 @@ function mockSupabase(state){
     ok((await p.$$('#rText .bayt')).length===121, 'Nûniyya : 121 vers');
     ok(/Alâ yâ dah-du/.test(await p.textContent('#rText .bayt .btl')), 'prononciation en lettres latines sous chaque vers');
     await p.goto(BASE+'#/c/parab'); await p.waitForTimeout(400); ok(!(await p.$('#cHead .mhead')), 'pas de présentation dans les autres catégories');
+    await p.goto(BASE); await p.waitForTimeout(500); await p.click('.tile >> text=Habibou Ba'); await p.waitForTimeout(500);
+    ok(/Thierno Mouhammad Habibou Ba/.test(await p.textContent('#cHead')) && await p.isVisible('#cHead img[src="img/habib-ba.jpg"]'), 'Poèmes de Thierno M. Habibou Ba : photo et présentation');
+    const th=await p.textContent('#list'); ok(/Sahi imtati/.test(th) && /Wa la-tala/.test(th) && !/Taala ishtiyaqi/.test(th), 'ses 2 poèmes (sans ceux d’un autre auteur)');
+    await p.goto(BASE+'#/t/p6'); await p.waitForTimeout(500); ok(await p.isVisible('#rAv[src="img/habib-ba-face.jpg"]'), 'sa photo en haut de son poème');
+    await p.goto(BASE+'#/t/p2'); await p.waitForTimeout(500); ok(!(await p.isVisible('#rAv')), 'pas de photo sur le poème d’un autre auteur');
     await ctx.close(); }
 
   console.log('\n7e. Audios ajoutés par l’administrateur sur les poèmes');

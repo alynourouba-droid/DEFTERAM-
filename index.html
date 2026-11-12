@@ -382,6 +382,8 @@ body.inchat nav{display:none}body.inchat .wrap{padding-bottom:16px}
 .audm b{display:block;margin-bottom:8px}.audst{min-height:1.3em;font-weight:700;margin:6px 0;color:var(--accent)}
 .audm .pb{height:10px}
 
+.rav{display:block;width:92px;height:92px;border-radius:50%;object-fit:cover;margin:10px auto 2px;border:3px solid var(--sun);box-shadow:0 0 0 4px var(--surface),0 0 0 5px var(--gold2),0 8px 18px rgba(0,0,0,.25)}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.hero,.hero *,.hero::before,body::before{translate:none!important}.rv{opacity:1!important}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -613,6 +615,7 @@ var G=[
   ['sariha','🕋',{ar:'الصريحة',fr:'Sariha',en:'Sariha',ff:'Sariha',wo:'Sariha'}]]},
  {t:{ar:'القصائد والأناشيد',fr:'Poèmes et Anashid',en:'Poems and Anashid',ff:'Jimɗi e Anashid',wo:'Woy ak Anashid'},i:[
   ['malick','img:img/malick-sy-face.jpg',{ar:'مكتبة السيد الحاج مالك سي',fr:'Bibliothèque Seydi El Hadji Malick Sy',en:'Seydi El Hadji Malick Sy library',ff:'Defterdu Seydi El Hadji Malick Sy',wo:'Bibliotek Seydi El Hadji Malick Sy'}],
+  ['habib','img:img/habib-ba-face.jpg',{ar:'قصائد الشيخ محمد الحبيب باه · فاس غناس',fr:'Poèmes de Thierno M. Habibou Ba · Fass Gounass',en:'Poems of Thierno M. Habibou Ba · Fass Gounass',ff:'Jimɗi Ceerno M. Habibou Ba · Fass Gounass',wo:'Woy yu Ceerno M. Habibou Ba · Fass Gounass'}],
   ['pop','🎶',{ar:'قصائد شعبية',fr:'Poèmes populaires',en:'Popular poems',ff:'Jimɗi leydi',wo:'Woy yu bari'}],
   ['wird','🌙',{ar:'التجانية · الورد اللازم',fr:'At-Tijaniyya · Wird Lawol',en:'At-Tijaniyya · Wird Lazim',ff:'Tijaaniyya · Wird Lawol',wo:'Tijaan · Wird Lawol'}],
   ['parab','🖋️',{ar:'قصائد عربية',fr:'Poèmes arabes',en:'Arabic poems',ff:'Jimɗi Arabiya',wo:'Woy yu Araab'}],
@@ -664,8 +667,16 @@ function setLang(){var h=document.documentElement;if($('back4'))$('back4').textC
  ['q','fTitle','fAu','fBody'].forEach(function(i){$(i).setAttribute('aria-label',$(i).placeholder)});$('fCat').setAttribute('aria-label',T('Catégorie','Category','الفئة'));$('fLang').setAttribute('aria-label',t('lang'));
  $('shr').setAttribute('aria-label',T('Partager','Share','مشاركة'));$('del').setAttribute('aria-label',T('Supprimer','Delete','حذف'));$('minus').setAttribute('aria-label',T('Texte plus petit','Smaller text','خط أصغر'));$('plus').setAttribute('aria-label',T('Texte plus grand','Larger text','خط أكبر'));$('fav').setAttribute('aria-label',t('favs'));$('tap').setAttribute('aria-label',T('Compter','Count','عدّ'))}
 var HAY={};function hay(b){if(HAY[b.id]!==undefined&&b.id.charAt(0)!=='c')return HAY[b.id];var tt=TT[b.id]||{},x=[b.title,b.ar,b.au];Object.keys(tt).forEach(function(k){x.push(tt[k])});(b.lines||[]).forEach(function(l){x.push(l)});(b.items||[]).forEach(function(i){x.push(i.a,i.fr,i.en)});(b.bayts||[]).concat(b.pre||[],b.chorus?[b.chorus]:[],b.post?b.post.v:[]).forEach(function(v){x.push(v.join(' '))});(b.secs||[]).forEach(function(z){x.push(z[1])});(b.tl||[]).forEach(function(z){x.push(z)});var h=x.filter(Boolean).join(' ');h=(h+' '+noTash(h)).toLowerCase();HAY[b.id]=h;return h}
-function inMalick(b){return b.cat==='malick'||/Malick Sy/.test(b.au||'')}
-function cnt(id){if(id==='guides')return GUIDES.length;if(id==='malick')return all().filter(inMalick).length;if(id==='cours')return CRS.list?CRS.list.length:4;return all().filter(function(b){return b.cat===id}).length}
+var LIBS={
+ malick:{has:function(b){return b.cat==='malick'||/Malick Sy/.test(b.au||'')},img:'img/malick-sy.jpg',w:600,h:901,pos:'50% 12%',ar:'السَّيِّدُ الْحَاجُّ مَالِكْ سِي',name:'Seydi El Hadji Malick Sy',
+  bio:function(){return T('Grand guide de la Tijaniyya au Sénégal, à Tivaouane (vers 1855 – 1922). Poète et savant, il a écrit de nombreux poèmes à la gloire du Prophète ﷺ.','Great guide of the Tijaniyya in Senegal, in Tivaouane (c. 1855 – 1922). Poet and scholar, he wrote many poems praising the Prophet ﷺ.','شيخ الطريقة التجانية في السنغال بتيواون (نحو 1855 – 1922)، عالم وشاعر له قصائد كثيرة في مدح النبي ﷺ.')}},
+ habib:{has:function(b){return b.cat==='habib'||/محمد الحبيب/.test(b.au||'')},img:'img/habib-ba.jpg',w:548,h:605,pos:'50% 20%',ar:'الشَّيْخُ مُحَمَّدُ الْحَبِيبِ بَاه',name:'Thierno Mouhammad Habibou Ba',
+  bio:function(){return T('Khalife de Fass Gounass, fils de Cheikh Ahmed Tidiane Ba. Ses poèmes à la gloire du Prophète ﷺ.','Khalif of Fass Gounass, son of Cheikh Ahmed Tidiane Ba. His poems praising the Prophet ﷺ.','خليفة فاس غناس، ابن الشيخ أحمد التجان باه. قصائده في مدح النبي ﷺ.')}}};
+function inMalick(b){return LIBS.malick.has(b)}
+function libAv(b){var e=$('rAv');if(!e){e=document.createElement('img');e.id='rAv';e.className='rav';e.alt='';e.width=96;e.height=96;e.decoding='async';$('rTitle').parentNode.insertBefore(e,$('rTitle'))}
+ var k=Object.keys(LIBS).filter(function(x){return LIBS[x].has(b)})[0];if(!k){e.classList.add('hide');e.removeAttribute('src');return}
+ e.src=LIBS[k].img.replace('.jpg','-face.jpg');e.alt=LIBS[k].name;e.title=LIBS[k].name;e.classList.remove('hide')}
+function cnt(id){if(id==='guides')return GUIDES.length;if(LIBS[id])return all().filter(LIBS[id].has).length;if(id==='cours')return CRS.list?CRS.list.length:4;return all().filter(function(b){return b.cat===id}).length}
 function home(){
  var q=$('quick');q.innerHTML='';
  var qi=[['⭐',t('favs'),function(){openCat('fav')}],['📖',t('mush'),function(){openCat('quran')}],['📿',t('zikr'),function(){zk();show('zikr')}]];
@@ -681,10 +692,9 @@ function home(){
    b.onclick=function(){openCat(c[0])};d.appendChild(b)});
   g.appendChild(d)})
 }
-function libHead(id){var h=$('cHead');if(!h){h=document.createElement('div');h.id='cHead';$('cTitle').parentNode.insertBefore(h,$('list'))}h.innerHTML='';if(id!=='malick'||LI)return;
- var d=document.createElement('div');d.className='mhead';d.innerHTML='<div class="mph"><img src="img/malick-sy.jpg" alt="" width="600" height="901" decoding="async"></div><div class="mtx"><b class="ar" lang="ar" dir="rtl">السَّيِّدُ الْحَاجُّ مَالِكْ سِي</b><span></span><small></small></div>';
- d.querySelector('img').alt='Seydi El Hadji Malick Sy';d.querySelector('span').textContent='Seydi El Hadji Malick Sy';
- d.querySelector('small').textContent=T('Grand guide de la Tijaniyya au Sénégal, à Tivaouane (vers 1855 – 1922). Poète et savant, il a écrit de nombreux poèmes à la gloire du Prophète ﷺ.','Great guide of the Tijaniyya in Senegal, in Tivaouane (c. 1855 – 1922). Poet and scholar, he wrote many poems praising the Prophet ﷺ.','شيخ الطريقة التجانية في السنغال بتيواون (نحو 1855 – 1922)، عالم وشاعر له قصائد كثيرة في مدح النبي ﷺ.');
+function libHead(id){var h=$('cHead');if(!h){h=document.createElement('div');h.id='cHead';$('cTitle').parentNode.insertBefore(h,$('list'))}h.innerHTML='';var L0=LIBS[id];if(!L0||LI)return;
+ var d=document.createElement('div');d.className='mhead';d.innerHTML='<div class="mph"><img src="'+L0.img+'" alt="" width="'+L0.w+'" height="'+L0.h+'" decoding="async"></div><div class="mtx"><b class="ar" lang="ar" dir="rtl"></b><span></span><small></small></div>';
+ d.querySelector('img').alt=L0.name;d.querySelector('img').style.objectPosition=L0.pos;d.querySelector('b').textContent=L0.ar;d.querySelector('span').textContent=L0.name;d.querySelector('small').textContent=L0.bio();
  h.appendChild(d)}
 function openCat(id,items,title){
  if(id==='guides'&&!items){guidesPage();return}
@@ -694,7 +704,7 @@ function openCat(id,items,title){
  $('cTitle').textContent=title||(isFav?'⭐ '+t('favs'):L(NAME[id]));
  $('addBtn').classList.toggle('hide',isFav||!!items);
  var l=$('list');l.innerHTML='';
- LI=items;LT=title;items=items||all().filter(function(b){return isFav?favs.indexOf(b.id)>-1:id==='malick'?inMalick(b):b.cat===id});libHead(items?id:'');
+ LI=items;LT=title;items=items||all().filter(function(b){return isFav?favs.indexOf(b.id)>-1:LIBS[id]?LIBS[id].has(b):b.cat===id});libHead(items?id:'');
  var hasAu=items.some(function(x){return x.au});$('gBtn').classList.toggle('hide',!hasAu);$('gBtn').textContent=grp?T('Par poèmes','By poem','حسب القصائد'):T('Par auteurs','By author','حسب الشعراء');
  var last=null,gr=grp&&hasAu;if(gr)items=items.slice().sort(function(a,b){return (a.au||'~').localeCompare(b.au||'~')});
  if(!items.length){var p=document.createElement('p');p.className='empty';p.textContent=isFav?t('emptyF'):t('emptyC');l.appendChild(p)}
@@ -739,7 +749,7 @@ function openBook(b){
   if(p[1]){var r=document.createElement('div');r.className='tr';r.textContent=p[1];d.appendChild(r)}box.appendChild(d)});
  $('cnt').classList.toggle('hide',!b.count);
  if(b.count){$('tap').textContent='0';$('goal').textContent=t('goal')+' : '+b.count}
- $('fav').textContent=favs.indexOf(b.id)>-1?'♥':'♡';show('reader');nav('');audioBar(b)
+ $('fav').textContent=favs.indexOf(b.id)>-1?'♥':'♡';show('reader');nav('');libAv(b);audioBar(b)
 }
 
 var tash=true;try{tash=localStorage.getItem('defteram_tash')!=='0'}catch(e){}
