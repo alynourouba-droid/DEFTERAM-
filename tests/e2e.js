@@ -21,7 +21,18 @@ global.fetch = async (u, o) => {
       if(op==='EXPIRE') return {result:1};
       if(op==='SET'){ if(a.includes('NX')&&REDIS[k]!=null) return {result:null}; REDIS[k]=a[0]; return {result:'OK'}; }
       if(op==='GET') return {result:REDIS[k]==null?null:String(REDIS[k])};
-      if(op==='DEL'){ const had=REDIS[k]!=null; delete REDIS[k]; return {result:had?1:0}; }
+      if(op==='DEL'){ let n=0; for(const x of [k,...a]){ if(REDIS[x]!=null){n++; delete REDIS[x];} } return {result:n}; }
+      if(op==='SADD'){ const S=REDIS[k]=REDIS[k]||new Set(); a.forEach(x=>S.add(x)); return {result:1}; }
+      if(op==='SREM'){ const S=REDIS[k]; if(S) a.forEach(x=>S.delete(x)); return {result:1}; }
+      if(op==='SMEMBERS') return {result:REDIS[k]?[...REDIS[k]]:[]};
+      if(op==='LPUSH'){ const L=REDIS[k]=REDIS[k]||[]; L.unshift(...a); return {result:L.length}; }
+      if(op==='LTRIM'){ if(REDIS[k]) REDIS[k]=REDIS[k].slice(+a[0], +a[1]+1); return {result:'OK'}; }
+      if(op==='LRANGE') return {result:(REDIS[k]||[]).slice(+a[0], +a[1]+1)};
+      if(op==='LLEN') return {result:(REDIS[k]||[]).length};
+      if(op==='LSET'){ REDIS[k][+a[0]]=a[1]; return {result:'OK'}; }
+      if(op==='LREM'){ const L=REDIS[k]||[]; const i=L.indexOf(a[1]); if(i>-1) L.splice(i,1); return {result:i>-1?1:0}; }
+      if(op==='HDEL'){ const H=REDIS[k]; if(H&&typeof H==='object') a.forEach(x=>delete H[x]); return {result:1}; }
+      if(op==='SCAN'){ const pre=a[1].replace(/\*$/,''); return {result:['0',Object.keys(REDIS).filter(x=>x.startsWith(pre))]}; }
       if(op==='MGET') return {result:[k,...a].map(x=>REDIS[x]==null?null:String(REDIS[x]))};
       const H=REDIS[k]=REDIS[k]||{};
       if(op==='HINCRBY') return {result:(H[a[0]]=(H[a[0]]||0)+a[1])};
@@ -33,10 +44,15 @@ global.fetch = async (u, o) => {
 };
 const statsFn = require(path.join(ROOT, 'api', 'stats.js'));
 const authFn = require(path.join(ROOT, 'api', 'auth.js'));
+const adminFn = require(path.join(ROOT, 'api', 'admin.js'));
 
 function serve(){
   return new Promise(res=>{
     const srv = http.createServer((q,r)=>{
+      if(q.url.startsWith('/api/admin')){
+        if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; }
+        q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return adminFn(q, r);
+      }
       if(q.url.startsWith('/api/auth')){
         if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; } else { delete process.env.KV_REST_API_URL; delete process.env.KV_REST_API_TOKEN; }
         q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return authFn(q, r);
@@ -184,7 +200,7 @@ function mockSupabase(state){
     await p.goto(BASE+'#/p/parametres'); await p.click('#th button:nth-child(3)'); ok(await p.evaluate(()=>document.documentElement.dataset.theme)==='dark','thème sombre'); await p.click('#th button:nth-child(1)');
     await p.goto(BASE+'#/p/note'); await p.waitForTimeout(200); await p.click('#rs'); ok((await p.textContent('#toast')).length>0,'note sans étoile refusée');
     await p.click('#st button:nth-child(5)'); await p.fill('#rc','Très bien'); await p.click('#rs'); await p.waitForTimeout(400);
-    ok(st.avis.length===1 && st.avis[0].note===5, 'avis enregistré dans Supabase', st.avis);
+    ok((REDIS['defteram:msgs']||[]).some(x=>/"stars":5/.test(x)&&/Très bien/.test(x)), 'note envoyée dans l’espace administrateur');
     await ctx.close(); }
 
   const accName=async pg=>{ await pg.evaluate(()=>drawer(true)); await pg.waitForTimeout(100); const t=await pg.textContent('#drawer .mi'); await pg.evaluate(()=>drawer(false)); return t; };
@@ -218,6 +234,40 @@ function mockSupabase(state){
     ok(!(await accName(r)).includes('Connexion') && !(await r.$('#nav [data-n=acc]')), 'sans base reliée : pas de Connexion dans le menu');
     await r.goto(BASE+'#/p/compte'); await r.waitForTimeout(300); ok(/pas encore activée/.test(await r.textContent('#acc')), 'sans base reliée : message clair, pas de faux formulaire');
     STATS_ON=true; await c1.close(); await c2.close(); await c3.close(); }
+
+  console.log('\n7b. Espace administrateur et messages');
+  { STATS_ON=true; const CODE=process.env.DEFTERAM_ADMIN_CODE||''; delete REDIS['defteram:msgs'];
+    const clickTab=async(pg,n)=>{ await pg.click('.tabs2 button:nth-child('+n+')'); await pg.waitForTimeout(500); };
+    const signup=async(pg,id)=>{ await pg.goto(BASE+'#/p/compte'); await pg.waitForTimeout(900); await pg.click('.tabs2 button:nth-child(2)'); await pg.fill('#aId',id); await pg.fill('#aPw','123456'); await pg.fill('#aPw2','123456'); await pg.click('#acc [type=submit]'); await pg.waitForTimeout(900); };
+    const v=await b.newContext({serviceWorkers:'block'}); const pv=await newPage(v,{name:'visiteur',allowErr:true,allow404:true});
+    await pv.goto(BASE+'#/p/note'); await pv.waitForTimeout(900); await pv.click('#st button:nth-child(4)'); await pv.fill('#rc','Très belle application, merci !'); await pv.click('#rs'); await pv.waitForTimeout(500);
+    ok((REDIS['defteram:msgs']||[]).length===1 && /merci/.test(REDIS['defteram:msgs'][0]), 'message d’un visiteur enregistré');
+    await pv.goto(BASE+'#/p/admin'); await pv.waitForTimeout(400); ok(/Connecte-toi/.test(await pv.textContent('#adm')), 'admin : demande de se connecter');
+    const ca=await b.newContext({serviceWorkers:'block'}); const pa=await newPage(ca,{name:'admin',allowErr:true,allow404:true});
+    await signup(pa,'proprio');
+    await pa.goto(BASE+'#/p/admin'); await pa.waitForTimeout(500); ok(await pa.isVisible('#admCode'), 'admin : formulaire du code secret');
+    await pa.fill('#admCode','AAAA-BBBB-CCCC-DDDD'); await pa.click('#adm .btn.fill'); await pa.waitForTimeout(400); ok(/incorrect/.test(await pa.textContent('#adm')), 'mauvais code refusé');
+    if(CODE){
+      await pa.fill('#admCode',CODE.toLowerCase()); await pa.click('#adm .btn.fill'); await pa.waitForTimeout(800);
+      ok(REDIS['defteram:admin']==='proprio', 'bon code : ce compte devient administrateur');
+      ok(/visiteurs/.test(await pa.textContent('#adm')) && /comptes/.test(await pa.textContent('#adm')), 'résumé : visiteurs, comptes, messages');
+      await pa.evaluate(()=>drawer(true)); ok(/Administration/.test(await pa.textContent('#drawer')), 'menu ☰ : entrée Administration'); await pa.evaluate(()=>drawer(false));
+      await clickTab(pa,4); ok(/Très belle application/.test(await pa.textContent('#adm')), 'messages : le message du visiteur s’affiche');
+      pa.once('dialog',d=>d.accept()); await pa.click('#adm .card .danger'); await pa.waitForTimeout(600); ok((REDIS['defteram:msgs']||[]).length===0, 'message supprimé');
+      await clickTab(pa,3); ok(/proprio/.test(await pa.textContent('#adm')) && /aly\.ba/.test(await pa.textContent('#adm')), 'comptes : liste des comptes');
+      const cu=await b.newContext({serviceWorkers:'block'}); const pu=await newPage(cu,{name:'u3',allowErr:true,allow404:true}); await signup(pu,'a.supprimer');
+      await clickTab(pa,3);
+      for(const c of await pa.$$('#adm .card')){ if(/a\.supprimer/.test(await c.textContent())){ pa.once('dialog',d=>d.accept()); await (await c.$('.danger')).click(); break; } }
+      await pa.waitForTimeout(700); ok(!REDIS['defteram:user:a.supprimer'] && !Object.values(REDIS).some(x=>x==='a.supprimer'), 'compte supprimé, ses sessions aussi');
+      await clickTab(pa,2); ok(/vues/.test(await pa.textContent('#adm')), 'vues et partages par texte');
+      await cu.close();
+      const ci=await b.newContext({serviceWorkers:'block'}); const pi=await newPage(ci,{name:'intrus',allowErr:true,allow404:true}); await signup(pi,'intrus');
+      await pi.goto(BASE+'#/p/admin'); await pi.waitForTimeout(500); await pi.fill('#admCode',CODE); await pi.click('#adm .btn.fill'); await pi.waitForTimeout(600);
+      ok(/déjà administrateur/.test(await pi.textContent('#adm')) && REDIS['defteram:admin']==='proprio', 'le code ne marche qu’une fois');
+      const st=await pi.evaluate(()=>fetch('api/admin?a=users',{headers:{Authorization:'Bearer '+AUTH.s.tk}}).then(r=>r.status)); ok(st===403, 'un autre compte ne peut pas lire l’administration');
+      await ci.close();
+    } else console.log('  (code admin non fourni : tests du code sautés)');
+    await v.close(); await ca.close(); }
 
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){

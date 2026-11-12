@@ -14,6 +14,7 @@ Site statique sans étape de build, installable comme application (PWA) et utili
 | `b/` | Images des livres (manuscrits, Mukhtasar al-Akhdari) |
 | `icons/`, `og.jpg`, `manifest.webmanifest` | Icônes, image de partage, manifeste de l'app |
 | `privacy.html`, `404.html`, `robots.txt`, `sitemap.xml` | Pages et fichiers SEO |
+| `api/admin.js` | Espace administrateur (comptes, messages, vues) + réception des messages |
 | `api/auth.js` | Comptes utilisateurs (connexion sans e-mail) |
 | `api/stats.js` | Compteurs anonymes (visiteurs, visites, partages) |
 | `vercel.json` | En-têtes de cache et de sécurité pour Vercel |

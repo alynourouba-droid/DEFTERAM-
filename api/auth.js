@@ -67,7 +67,7 @@ module.exports = async (req, res) => {
 
     async function newSession(id) {
       const tk = crypto.randomBytes(32).toString('base64url');
-      await redis(c, [['SET', P + 'sess:' + sha(tk), id, 'EX', SESSION_DAYS * 86400]]);
+      await redis(c, [['SET', P + 'sess:' + sha(tk), id, 'EX', SESSION_DAYS * 86400], ['SADD', P + 'usess:' + id, sha(tk)], ['EXPIRE', P + 'usess:' + id, SESSION_DAYS * 86400]]);
       return { token: tk, user: publicUser(id) };
     }
     async function who() {
@@ -109,8 +109,8 @@ module.exports = async (req, res) => {
 
     const me = await who();
     if (!me) return send(401, { error: 'not_signed_in' });
-    if (a === 'me') return send(200, { user: publicUser(me.id) });
-    if (a === 'logout' && req.method === 'POST') { await redis(c, [['DEL', me.key]]); return send(200, { ok: true }); }
+    if (a === 'me') { const [adm] = await redis(c, [['GET', P + 'admin']]); return send(200, { user: publicUser(me.id), admin: adm === me.id }); }
+    if (a === 'logout' && req.method === 'POST') { await redis(c, [['DEL', me.key], ['SREM', P + 'usess:' + me.id, me.key.slice((P + 'sess:').length)]]); return send(200, { ok: true }); }
     if (a === 'data' && req.method === 'GET') {
       const [raw] = await redis(c, [['GET', P + 'data:' + me.id]]);
       return send(200, { data: raw ? JSON.parse(raw) : null });
