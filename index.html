@@ -887,7 +887,7 @@ function goRoute(h){
  if(a==='s'){$('sb').click();if(x){var q=$('q');q.value=x;q.oninput.call(q)}return}
  if(a==='au'&&x){grp=false;return openCat('search',authorsOf(x),x)}
  if(a==='add'){openCat(NAME[x]?x:'daara');return $('addBtn').click()}
- if(a==='p'){var F={installer:installer,badges:badges,auteurs:authors,note:rate,soutien:support,parametres:settings,apropos:about,compte:sbOn()?account:null}[x];if(F)return F()}
+ if(a==='p'){var F={installer:installer,badges:badges,auteurs:authors,note:rate,soutien:support,parametres:settings,apropos:about,compte:account}[x];if(F)return F()}
  home();show('home')}
 window.addEventListener('popstate',function(){RT.restoring=true;try{goRoute(location.hash)}finally{setTimeout(function(){RT.restoring=false},0)}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!$('drawer').classList.contains('hide')){drawer(false);$('mBtn').focus()}else if(!$('sheet').classList.contains('hide'))$('sheet').classList.add('hide')}});
@@ -912,42 +912,29 @@ $('del').onclick=function(){if(!cur)return;if(!confirm(T('Supprimer « ','Delete
 (function(){var today=new Date().toDateString(),w=load('defteram_wird');if(w&&w.d===today&&w.s)wst=w.s;
  var g=$('pg');g.addEventListener('click',function(){if(g.dataset.k==='w')setTimeout(function(){save('defteram_wird',{d:new Date().toDateString(),s:wst})},0)},true)})();
 
-/* ===== Compte utilisateur (Supabase Auth, sans e-mail de confirmation) ===== */
-var AUTH={s:load('defteram_auth'),busy:null,sync:load('defteram_synced')};
-function sbOn(){return !!(SB.url&&SB.key)}
+/* ===== Compte utilisateur (serveur /api/auth sur Vercel, sans e-mail de confirmation) ===== */
+var AUTH={s:load('defteram_auth'),sync:load('defteram_synced'),on:false};
+if(AUTH.s&&!AUTH.s.tk)AUTH.s=null;
+function sbOn(){return AUTH.on}
 function accLabel(){return AUTH.s?(AUTH.s.user.name||'').slice(0,10):T('Connexion','Sign in','الدخول')}
-function idToEmail(v){v=v.trim().toLowerCase();return v.indexOf('@')>-1?v:v+'@users.defteram.app'}
-function sbFetch(path,o){o=o||{};var h=Object.assign({'apikey':SB.key,'Content-Type':'application/json'},o.headers||{});
- return fetch(SB.url+path,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined}).then(function(r){
-  return r.text().then(function(x){var j=null;try{j=x?JSON.parse(x):null}catch(e){}if(!r.ok){var er=new Error((j&&(j.msg||j.error_description||j.message||j.error))||('HTTP '+r.status));er.code=(j&&(j.error_code||j.code))||r.status;throw er}return j})})}
-function keepSession(j){if(!j||!j.access_token)return null;var u=j.user||{},md=u.user_metadata||{},em=u.email||'';
- AUTH.s={at:j.access_token,rt:j.refresh_token,exp:j.expires_at||Math.floor(Date.now()/1000)+(j.expires_in||3600),
-  user:{id:u.id,email:/@users\.defteram\.app$/.test(em)?'':em,name:md.username||(em.split('@')[0])}};
- save('defteram_auth',AUTH.s);return AUTH.s}
-function token(){var s=AUTH.s;if(!s)return Promise.reject(new Error('no session'));
- if(s.exp-60>Date.now()/1000)return Promise.resolve(s.at);
- if(!AUTH.busy)AUTH.busy=sbFetch('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:{refresh_token:s.rt}})
-  .then(function(j){AUTH.busy=null;if(!keepSession(j))throw new Error('refresh');return AUTH.s.at})
-  .catch(function(e){AUTH.busy=null;if(e.code===400||e.code===401||e.code==='refresh_token_not_found'||e.code==='session_not_found'){logoutLocal()}throw e});
- return AUTH.busy}
-function authErr(e){var c=String(e.code||''),m=String(e.message||'');
- if(c==='invalid_credentials'||/invalid login/i.test(m))return T('Identifiant ou mot de passe incorrect.','Wrong username or password.','اسم المستخدم أو كلمة المرور غير صحيحة.');
- if(c==='user_already_exists'||/already registered/i.test(m))return T('Ce nom est déjà pris. Choisis-en un autre ou connecte-toi.','This name is already taken. Pick another or sign in.','هذا الاسم مستخدم. اختر غيره أو سجّل الدخول.');
- if(c==='weak_password'||/password/i.test(m)&&/least|weak|short/i.test(m))return T('Mot de passe trop faible : au moins 6 caractères.','Password too weak: at least 6 characters.','كلمة المرور ضعيفة: 6 أحرف على الأقل.');
- if(c==='email_not_confirmed')return T('La confirmation par e-mail est encore activée sur le serveur.','Email confirmation is still enabled on the server.','تأكيد البريد ما زال مفعلا على الخادم.');
- if(c==='over_request_rate_limit'||c==='429')return T('Trop d’essais. Réessaie dans une minute.','Too many attempts. Try again in a minute.','محاولات كثيرة. أعد المحاولة بعد دقيقة.');
+function apiAuth(a,o){o=o||{};var h={'Content-Type':'application/json'};if(AUTH.s&&AUTH.s.tk)h.Authorization='Bearer '+AUTH.s.tk;
+ return fetch('api/auth?a='+a,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined,cache:'no-store'}).then(function(r){
+  return r.text().then(function(x){var j=null;try{j=x?JSON.parse(x):null}catch(e){}
+   if(!r.ok){var er=new Error((j&&j.error)||('HTTP '+r.status));er.code=(j&&j.error)||String(r.status);if(r.status===401&&a!=='login'&&a!=='signup')logoutLocal();throw er}return j})})}
+function keepSession(j){if(!j||!j.token)return null;AUTH.s={tk:j.token,user:j.user||{}};save('defteram_auth',AUTH.s);return AUTH.s}
+function authErr(e){var c=String(e.code||'');
+ if(c==='invalid_credentials')return T('Identifiant ou mot de passe incorrect.','Wrong username or password.','اسم المستخدم أو كلمة المرور غير صحيحة.');
+ if(c==='user_exists')return T('Ce nom est déjà pris. Choisis-en un autre ou connecte-toi.','This name is already taken. Pick another or sign in.','هذا الاسم مستخدم. اختر غيره أو سجّل الدخول.');
+ if(c==='weak_password')return T('Mot de passe : au moins 6 caractères.','Password: at least 6 characters.','كلمة المرور: 6 أحرف على الأقل.');
+ if(c==='bad_id')return T('Identifiant ou e-mail invalide.','Invalid username or email.','اسم مستخدم أو بريد غير صالح.');
+ if(c==='rate_limit'||c==='429')return T('Trop d’essais. Réessaie dans une minute.','Too many attempts. Try again in a minute.','محاولات كثيرة. أعد المحاولة بعد دقيقة.');
  if(e instanceof TypeError)return T('Pas de connexion Internet.','No internet connection.','لا يوجد اتصال بالإنترنت.');
- return T('Erreur : ','Error: ','خطأ: ')+m}
-function signIn(id,pw){return sbFetch('/auth/v1/token?grant_type=password',{method:'POST',body:{email:idToEmail(id),password:pw}}).then(keepSession)}
-function signUp(id,pw){var name=id.indexOf('@')>-1?id.split('@')[0]:id;
- return sbFetch('/auth/v1/signup',{method:'POST',body:{email:idToEmail(id),password:pw,data:{username:name}}}).then(function(j){
-  if(j&&j.access_token)return keepSession(j);
-  if(j&&j.session&&j.session.access_token)return keepSession(Object.assign({user:j.user},j.session));
-  return signIn(id,pw)})}
-function logoutLocal(){AUTH.s=null;AUTH.sync=null;try{localStorage.removeItem('defteram_auth');localStorage.removeItem('defteram_synced')}catch(e){}nav(view==='home'?'home':view==='pg'&&$('pg').dataset.k==='acc'?'acc':'')}
-function signOut(){var at=AUTH.s&&AUTH.s.at;clearTimeout(AUTH.tm);
- var p=at?fetch(SB.url+'/auth/v1/logout',{method:'POST',headers:{apikey:SB.key,Authorization:'Bearer '+at}}).catch(function(){}):Promise.resolve();
- return p.then(function(){logoutLocal()})}
+ return T('Le serveur ne répond pas. Réessaie plus tard.','The server is not responding. Try again later.','الخادم لا يستجيب. حاول لاحقا.')}
+function signIn(id,pw){return apiAuth('login',{method:'POST',body:{id:id,password:pw}}).then(keepSession)}
+function signUp(id,pw){return apiAuth('signup',{method:'POST',body:{id:id,password:pw}}).then(keepSession)}
+function curNav(){return view==='home'?'home':view==='cat'&&cat==='fav'?'fav':view==='zikr'?'zikr':(view==='pg'&&$('pg').dataset.k==='acc')?'acc':''}
+function logoutLocal(){AUTH.s=null;AUTH.sync=null;try{localStorage.removeItem('defteram_auth');localStorage.removeItem('defteram_synced')}catch(e){}nav(curNav())}
+function signOut(){clearTimeout(AUTH.tm);var p=AUTH.s?apiAuth('logout',{method:'POST'}).catch(function(){}):Promise.resolve();return p.then(function(){logoutLocal()})}
 
 /* Synchronisation des favoris, textes ajoutés et préférences */
 function localData(){return {v:1,favs:favs,custom:custom,prof:{name:prof.name,theme:prof.theme,rate:prof.rate,shares:prof.shares},lang:lang,page:+(load('defteram_page')||1),tash:tash}}
@@ -957,12 +944,10 @@ function applyData(d){if(!d)return;
  if(d.prof){if(!prof.name&&d.prof.name)prof.name=d.prof.name;prof.shares=Math.max(prof.shares||0,d.prof.shares||0);if(!prof.rate&&d.prof.rate)prof.rate=d.prof.rate}
  if(!load('defteram_page')&&d.page)try{localStorage.setItem('defteram_page',JSON.stringify(d.page))}catch(e){}
  try{localStorage.setItem(KEY,JSON.stringify(custom));localStorage.setItem(FK,JSON.stringify(favs));localStorage.setItem('defteram_prof',JSON.stringify(prof))}catch(e){}HAY={}}
-function pushData(){if(!AUTH.s||!sbOn())return Promise.resolve();var uid=AUTH.s.user.id;
- return token().then(function(at){return sbFetch('/rest/v1/profils?on_conflict=id',{method:'POST',headers:{Authorization:'Bearer '+at,Prefer:'resolution=merge-duplicates,return=minimal'},body:{id:uid,data:localData(),updated_at:new Date().toISOString()}})})
-  .then(function(){AUTH.sync=Date.now();save('defteram_synced',AUTH.sync);if(view==='pg'&&$('pg').dataset.k==='acc')account()})}
-function pullData(){if(!AUTH.s||!sbOn())return Promise.resolve();var uid=AUTH.s.user.id;
- return token().then(function(at){return sbFetch('/rest/v1/profils?select=data&id=eq.'+encodeURIComponent(uid),{headers:{Authorization:'Bearer '+at}})})
-  .then(function(r){if(r&&r[0])applyData(r[0].data);return pushData()})}
+function pushData(){if(!AUTH.s||!sbOn())return Promise.resolve();
+ return apiAuth('data',{method:'POST',body:{data:localData()}}).then(function(){AUTH.sync=Date.now();save('defteram_synced',AUTH.sync);if(view==='pg'&&$('pg').dataset.k==='acc')account()})}
+function pullData(){if(!AUTH.s||!sbOn())return Promise.resolve();
+ return apiAuth('data').then(function(j){if(j&&j.data)applyData(j.data);return pushData()})}
 function syncSoon(){if(!AUTH.s||!sbOn())return;clearTimeout(AUTH.tm);AUTH.tm=setTimeout(function(){pushData().catch(function(){})},1500)}
 window.addEventListener('online',function(){if(AUTH.s)syncSoon()});
 
@@ -970,7 +955,7 @@ function account(){
  page(AUTH.s?T('Mon compte','My account','حسابي'):T('Connexion','Sign in','تسجيل الدخول'),'<div id="acc"></div>');$('pg').dataset.k='acc';nav('acc');
  var g=$('acc');function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e}
  if(!sbOn()){var c0=el('div','card');c0.appendChild(el('b','',T('Connexion pas encore activée','Sign-in not enabled yet','تسجيل الدخول غير مفعّل بعد')));
-  c0.appendChild(el('p','note',T("Le serveur de comptes (Supabase) n'est pas encore relié à DEFTERAM. Tes favoris et textes restent enregistrés sur ce téléphone.","The account server (Supabase) is not linked to DEFTERAM yet. Your favorites and texts stay saved on this phone.",'خادم الحسابات غير مربوط بعد. مفضلاتك ونصوصك محفوظة على هذا الهاتف.')));g.appendChild(c0);return}
+  c0.appendChild(el('p','note',T("Le serveur de comptes n'est pas encore relié, ou tu es hors connexion. Tes favoris et textes restent enregistrés sur ce téléphone.","The account server is not linked yet, or you are offline. Your favorites and texts stay saved on this phone.",'خادم الحسابات غير مربوط بعد أو أنت غير متصل. مفضلاتك ونصوصك محفوظة على هذا الهاتف.')));g.appendChild(c0);return}
  if(AUTH.s){var u=AUTH.s.user,c=el('div','prof');c.appendChild(el('div','acc-av',(u.name||'?').charAt(0).toUpperCase()));
   c.appendChild(el('b','',u.name));if(u.email)c.appendChild(el('div','',u.email));
   c.appendChild(el('div','note',AUTH.sync?T('Synchronisé le ','Synced on ','آخر مزامنة ')+new Date(AUTH.sync).toLocaleString(lang==='ar'?'ar':lang==='en'?'en-GB':'fr-FR',{dateStyle:'short',timeStyle:'short'}):T('Pas encore synchronisé','Not synced yet','لم تتم المزامنة بعد')));
@@ -1000,7 +985,9 @@ function account(){
    toast(T('Bienvenue ','Welcome ','مرحبا ')+s.user.name+' 👋');AUTH.mode='in';return pullData().catch(function(){})}).then(function(){render();account()},
    function(e){sb.disabled=false;sb.textContent=mode==='up'?T('Créer mon compte','Create my account','إنشاء حسابي'):T('Se connecter','Sign in','دخول');er.textContent=authErr(e)})};
  g.appendChild(f);setTimeout(function(){try{iu.focus({preventScroll:true})}catch(e){}},50)}
-if(AUTH.s&&sbOn())setTimeout(function(){pullData().catch(function(){})},1200);
+(function(){if(!/^https?:/.test(location.protocol)||!window.fetch)return;
+ setTimeout(function(){fetch('api/auth?a=ping',{cache:'no-store'}).then(function(r){if(!r.ok)return;AUTH.on=true;nav(curNav());
+  if(view==='pg'&&$('pg').dataset.k==='acc')account();if(AUTH.s)pullData().catch(function(){})}).catch(function(){})},400)})();
 
 /* ===== Animations : apparition 3D, inclinaison au survol, parallax ===== */
 (function(){

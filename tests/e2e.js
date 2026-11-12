@@ -18,6 +18,10 @@ global.fetch = async (u, o) => {
     const cmds = JSON.parse(o.body);
     return { ok: true, json: async () => cmds.map(([op,k,...a]) => {
       if(op==='INCR') return {result:(REDIS[k]=(REDIS[k]||0)+1)};
+      if(op==='EXPIRE') return {result:1};
+      if(op==='SET'){ if(a.includes('NX')&&REDIS[k]!=null) return {result:null}; REDIS[k]=a[0]; return {result:'OK'}; }
+      if(op==='GET') return {result:REDIS[k]==null?null:String(REDIS[k])};
+      if(op==='DEL'){ const had=REDIS[k]!=null; delete REDIS[k]; return {result:had?1:0}; }
       if(op==='MGET') return {result:[k,...a].map(x=>REDIS[x]==null?null:String(REDIS[x]))};
       const H=REDIS[k]=REDIS[k]||{};
       if(op==='HINCRBY') return {result:(H[a[0]]=(H[a[0]]||0)+a[1])};
@@ -28,10 +32,15 @@ global.fetch = async (u, o) => {
   return realFetch(u, o);
 };
 const statsFn = require(path.join(ROOT, 'api', 'stats.js'));
+const authFn = require(path.join(ROOT, 'api', 'auth.js'));
 
 function serve(){
   return new Promise(res=>{
     const srv = http.createServer((q,r)=>{
+      if(q.url.startsWith('/api/auth')){
+        if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; } else { delete process.env.KV_REST_API_URL; delete process.env.KV_REST_API_TOKEN; }
+        q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return authFn(q, r);
+      }
       if(q.url.startsWith('/api/stats')){
         if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; } else { delete process.env.KV_REST_API_URL; delete process.env.KV_REST_API_TOKEN; }
         q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return statsFn(q, r);
@@ -106,7 +115,7 @@ function mockSupabase(state){
 
   console.log('\n2. Routes, liens directs et bouton Retour');
   { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'routes'});
-    for(const [h,v] of [['#/c/parab','cat'],['#/t/p2','reader'],['#/t/g1','pg'],['#/t/lw','pg'],['#/m/50','mushaf'],['#/zikr','zikr'],['#/p/compte','home'],['#/p/parametres','pg'],['#/p/apropos','pg'],['#/p/soutien','pg'],['#/p/note','pg'],['#/p/badges','pg'],['#/p/auteurs','pg'],['#/p/installer','pg'],['#/s/fatiha','cat'],['#/add/daara','form'],['#/inconnu','home']]){
+    for(const [h,v] of [['#/c/parab','cat'],['#/t/p2','reader'],['#/t/g1','pg'],['#/t/lw','pg'],['#/m/50','mushaf'],['#/zikr','zikr'],['#/p/compte','pg'],['#/p/parametres','pg'],['#/p/apropos','pg'],['#/p/soutien','pg'],['#/p/note','pg'],['#/p/badges','pg'],['#/p/auteurs','pg'],['#/p/installer','pg'],['#/s/fatiha','cat'],['#/add/daara','form'],['#/inconnu','home']]){
       await p.goto(BASE+h); await p.waitForTimeout(250);
       ok(await p.evaluate(()=>view)===v, 'lien direct '+h+' → '+v, await p.evaluate(()=>view));
     }
@@ -179,31 +188,35 @@ function mockSupabase(state){
     await ctx.close(); }
 
   console.log('\n7. Connexion / déconnexion / synchronisation');
-  { const st={users:{},rows:{},avis:[],log:[],n:0};
-    const c1=await b.newContext({serviceWorkers:'block'}); await withSB(c1); await mockSupabase(st)(c1); const p=await newPage(c1,{name:'compte1',allowErr:true});
-    await p.goto(BASE); await p.waitForTimeout(300); await p.click('#nav [data-n=acc]'); await p.waitForTimeout(200);
+  { STATS_ON=true;
+    const c1=await b.newContext({serviceWorkers:'block'}); const p=await newPage(c1,{name:'compte1',allowErr:true,allow404:true});
+    await p.goto(BASE); await p.waitForTimeout(900); await p.click('#nav [data-n=acc]'); await p.waitForTimeout(200);
     ok(await p.isVisible('#aId') && await p.isVisible('#aPw'), 'page de connexion (identifiant + mot de passe)');
     await p.click('.tabs2 button:nth-child(2)'); await p.fill('#aId','a b'); await p.fill('#aPw','123456'); await p.fill('#aPw2','123456'); await p.click('#acc [type=submit]');
     ok(/Identifiant/.test(await p.textContent('#acc .err')), 'identifiant invalide refusé');
     await p.fill('#aId','aly.ba'); await p.fill('#aPw','123'); await p.fill('#aPw2','123'); await p.click('#acc [type=submit]'); ok(/6/.test(await p.textContent('#acc .err')), 'mot de passe trop court refusé');
     await p.fill('#aPw','123456'); await p.fill('#aPw2','654321'); await p.click('#acc [type=submit]'); ok(/identiques/.test(await p.textContent('#acc .err')), 'confirmation différente refusée');
-    await p.fill('#aPw2','123456'); await p.click('#acc [type=submit]'); await p.waitForTimeout(800);
+    await p.fill('#aPw2','123456'); await p.click('#acc [type=submit]'); await p.waitForTimeout(900);
     ok(await p.textContent('#nav [data-n=acc] span')==='aly.ba', 'inscription sans e-mail → connecté');
-    ok(st.log.filter(l=>/signup/.test(l)).length===1, 'un seul appel d’inscription');
-    await p.evaluate(()=>{ tog('p3'); save(FK,favs) }); await p.waitForTimeout(2000);
-    ok(st.rows.u0 && st.rows.u0.favs.includes('p3'), 'favori sauvegardé sur le compte');
-    await p.reload(); await p.waitForTimeout(500); ok(await p.textContent('#nav [data-n=acc] span')==='aly.ba', 'session conservée après rechargement');
-    await p.goto(BASE+'#/p/compte'); await p.waitForTimeout(200); await p.click('#acc .danger'); await p.waitForTimeout(300);
+    const rec=JSON.parse(REDIS['defteram:user:aly.ba']||'{}'); ok(rec.h && !JSON.stringify(rec).includes('123456'), 'mot de passe stocké haché, jamais en clair');
+    await p.evaluate(()=>{ tog('p3'); save(FK,favs) }); await p.waitForTimeout(2200);
+    ok(/p3/.test(REDIS['defteram:data:aly.ba']||''), 'favori sauvegardé sur le compte');
+    await p.reload(); await p.waitForTimeout(1000); ok(await p.textContent('#nav [data-n=acc] span')==='aly.ba', 'session conservée après rechargement');
+    await p.goto(BASE+'#/p/compte'); await p.waitForTimeout(700); await p.click('#acc .danger'); await p.waitForTimeout(400);
     ok(await p.textContent('#nav [data-n=acc] span')==='Connexion' && !(await p.evaluate(()=>localStorage.getItem('defteram_auth'))), 'déconnexion');
-    await p.fill('#aId','aly.ba'); await p.fill('#aPw','faux123'); await p.click('#acc [type=submit]'); await p.waitForTimeout(300); ok(/incorrect/.test(await p.textContent('#acc .err')), 'mauvais mot de passe');
-    const c2=await b.newContext({serviceWorkers:'block'}); await withSB(c2); await mockSupabase(st)(c2); const q=await newPage(c2,{name:'compte2'});
-    await q.goto(BASE+'#/p/compte'); await q.waitForTimeout(300); await q.fill('#aId','ALY.BA'); await q.fill('#aPw','123456'); await q.press('#aPw','Enter'); await q.waitForTimeout(800);
+    ok(!Object.keys(REDIS).some(k=>k.startsWith('defteram:sess:')), 'session supprimée côté serveur');
+    await p.fill('#aId','aly.ba'); await p.fill('#aPw','faux123'); await p.click('#acc [type=submit]'); await p.waitForTimeout(500); ok(/incorrect/.test(await p.textContent('#acc .err')), 'mauvais mot de passe');
+    await p.click('.tabs2 button:nth-child(2)'); await p.fill('#aId','aly.ba'); await p.fill('#aPw','123456'); await p.fill('#aPw2','123456'); await p.click('#acc [type=submit]'); await p.waitForTimeout(500);
+    ok(/déjà pris/.test(await p.textContent('#acc .err')), 'nom déjà pris');
+    const c2=await b.newContext({serviceWorkers:'block'}); const q=await newPage(c2,{name:'compte2',allowErr:true,allow404:true});
+    await q.goto(BASE+'#/p/compte'); await q.waitForTimeout(900); await q.fill('#aId','ALY.BA'); await q.fill('#aPw','123456'); await q.press('#aPw','Enter'); await q.waitForTimeout(1200);
     ok(await q.evaluate(()=>favs.indexOf('p3')>-1), 'autre appareil : favoris récupérés');
-    await q.evaluate(()=>{ AUTH.s.exp=0; save('defteram_auth',AUTH.s); tog('p4'); save(FK,favs) }); await q.waitForTimeout(2200);
-    ok(st.log.some(l=>/refresh_token/.test(l)) && st.rows.u0.favs.includes('p4'), 'jeton expiré renouvelé automatiquement');
-    const c3=await b.newContext({serviceWorkers:'block'}); const r=await newPage(c3,{name:'sans-config'}); await r.goto(BASE+'#/p/compte'); await r.waitForTimeout(200);
-    ok(await r.evaluate(()=>view)==='home' && !(await r.$('#nav [data-n=acc]')), 'sans Supabase : pas de bouton Connexion ni de page compte');
-    await c1.close(); await c2.close(); await c3.close(); }
+    await q.evaluate(()=>{ localStorage.setItem('defteram_auth', JSON.stringify({tk:'x'.repeat(43),user:{name:'aly.ba'}})); }); await q.reload(); await q.waitForTimeout(1500);
+    ok(await q.textContent('#nav [data-n=acc] span')==='Connexion', 'session invalide → déconnecté proprement');
+    STATS_ON=false; const c3=await b.newContext({serviceWorkers:'block'}); const r=await newPage(c3,{name:'sans-config',allowErr:true,allow404:true}); await r.goto(BASE); await r.waitForTimeout(900);
+    ok(!(await r.$('#nav [data-n=acc]')), 'sans base reliée : pas de bouton Connexion');
+    await r.goto(BASE+'#/p/compte'); await r.waitForTimeout(300); ok(/pas encore activée/.test(await r.textContent('#acc')), 'sans base reliée : message clair, pas de faux formulaire');
+    STATS_ON=true; await c1.close(); await c2.close(); await c3.close(); }
 
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){
