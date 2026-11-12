@@ -10,8 +10,18 @@
 const K = { visitors: 'defteram:visitors', visits: 'defteram:visits', shares: 'defteram:shares', views: 'defteram:views', ishares: 'defteram:ishares' };
 
 function cfg() {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  // Variables ajoutées par l'intégration Upstash de Vercel : KV_REST_API_*, UPSTASH_REDIS_REST_*,
+  // ou avec un préfixe personnalisé (ex. STORAGE_REST_API_URL / STORAGE_REST_API_TOKEN).
+  const e = process.env;
+  let url = e.KV_REST_API_URL || e.UPSTASH_REDIS_REST_URL, token = e.KV_REST_API_TOKEN || e.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) {
+    for (const k of Object.keys(e)) {
+      const m = /^(.*)_REST_API_URL$/.exec(k) || /^(.*)_REDIS_REST_URL$/.exec(k);
+      if (!m) continue;
+      const t = e[m[1] + '_REST_API_TOKEN'] || e[m[1] + '_REDIS_REST_TOKEN'];
+      if (e[k] && t) { url = e[k]; token = t; break; }
+    }
+  }
   return url && token ? { url: url.replace(/\/$/, ''), token } : null;
 }
 async function redis(c, commands) {
