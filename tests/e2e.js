@@ -187,23 +187,24 @@ function mockSupabase(state){
     ok(st.avis.length===1 && st.avis[0].note===5, 'avis enregistré dans Supabase', st.avis);
     await ctx.close(); }
 
+  const accName=async pg=>{ await pg.evaluate(()=>drawer(true)); await pg.waitForTimeout(100); const t=await pg.textContent('#drawer .mi'); await pg.evaluate(()=>drawer(false)); return t; };
   console.log('\n7. Connexion / déconnexion / synchronisation');
   { STATS_ON=true;
     const c1=await b.newContext({serviceWorkers:'block'}); const p=await newPage(c1,{name:'compte1',allowErr:true,allow404:true});
-    await p.goto(BASE); await p.waitForTimeout(900); await p.click('#nav [data-n=acc]'); await p.waitForTimeout(200);
+    await p.goto(BASE); await p.waitForTimeout(900); await p.goto(BASE+'#/p/compte'); await p.waitForTimeout(300);
     ok(await p.isVisible('#aId') && await p.isVisible('#aPw'), 'page de connexion (identifiant + mot de passe)');
     await p.click('.tabs2 button:nth-child(2)'); await p.fill('#aId','a b'); await p.fill('#aPw','123456'); await p.fill('#aPw2','123456'); await p.click('#acc [type=submit]');
     ok(/Identifiant/.test(await p.textContent('#acc .err')), 'identifiant invalide refusé');
     await p.fill('#aId','aly.ba'); await p.fill('#aPw','123'); await p.fill('#aPw2','123'); await p.click('#acc [type=submit]'); ok(/6/.test(await p.textContent('#acc .err')), 'mot de passe trop court refusé');
     await p.fill('#aPw','123456'); await p.fill('#aPw2','654321'); await p.click('#acc [type=submit]'); ok(/identiques/.test(await p.textContent('#acc .err')), 'confirmation différente refusée');
     await p.fill('#aPw2','123456'); await p.click('#acc [type=submit]'); await p.waitForTimeout(900);
-    ok(await p.textContent('#nav [data-n=acc] span')==='aly.ba', 'inscription sans e-mail → connecté');
+    ok((await accName(p)).includes('aly.ba'), 'inscription sans e-mail → connecté (menu ☰ : Mon compte · aly.ba)');
     const rec=JSON.parse(REDIS['defteram:user:aly.ba']||'{}'); ok(rec.h && !JSON.stringify(rec).includes('123456'), 'mot de passe stocké haché, jamais en clair');
     await p.evaluate(()=>{ tog('p3'); save(FK,favs) }); await p.waitForTimeout(2200);
     ok(/p3/.test(REDIS['defteram:data:aly.ba']||''), 'favori sauvegardé sur le compte');
-    await p.reload(); await p.waitForTimeout(1000); ok(await p.textContent('#nav [data-n=acc] span')==='aly.ba', 'session conservée après rechargement');
+    await p.reload(); await p.waitForTimeout(1000); ok((await accName(p)).includes('aly.ba'), 'session conservée après rechargement');
     await p.goto(BASE+'#/p/compte'); await p.waitForTimeout(700); await p.click('#acc .danger'); await p.waitForTimeout(400);
-    ok(await p.textContent('#nav [data-n=acc] span')==='Connexion' && !(await p.evaluate(()=>localStorage.getItem('defteram_auth'))), 'déconnexion');
+    ok((await accName(p)).includes('Connexion') && !(await p.evaluate(()=>localStorage.getItem('defteram_auth'))), 'déconnexion');
     ok(!Object.keys(REDIS).some(k=>k.startsWith('defteram:sess:')), 'session supprimée côté serveur');
     await p.fill('#aId','aly.ba'); await p.fill('#aPw','faux123'); await p.click('#acc [type=submit]'); await p.waitForTimeout(500); ok(/incorrect/.test(await p.textContent('#acc .err')), 'mauvais mot de passe');
     await p.click('.tabs2 button:nth-child(2)'); await p.fill('#aId','aly.ba'); await p.fill('#aPw','123456'); await p.fill('#aPw2','123456'); await p.click('#acc [type=submit]'); await p.waitForTimeout(500);
@@ -212,9 +213,9 @@ function mockSupabase(state){
     await q.goto(BASE+'#/p/compte'); await q.waitForTimeout(900); await q.fill('#aId','ALY.BA'); await q.fill('#aPw','123456'); await q.press('#aPw','Enter'); await q.waitForTimeout(1200);
     ok(await q.evaluate(()=>favs.indexOf('p3')>-1), 'autre appareil : favoris récupérés');
     await q.evaluate(()=>{ localStorage.setItem('defteram_auth', JSON.stringify({tk:'x'.repeat(43),user:{name:'aly.ba'}})); }); await q.reload(); await q.waitForTimeout(1500);
-    ok(await q.textContent('#nav [data-n=acc] span')==='Connexion', 'session invalide → déconnecté proprement');
+    ok((await accName(q)).includes('Connexion'), 'session invalide → déconnecté proprement');
     STATS_ON=false; const c3=await b.newContext({serviceWorkers:'block'}); const r=await newPage(c3,{name:'sans-config',allowErr:true,allow404:true}); await r.goto(BASE); await r.waitForTimeout(900);
-    ok(!(await r.$('#nav [data-n=acc]')), 'sans base reliée : pas de bouton Connexion');
+    ok(!(await accName(r)).includes('Connexion') && !(await r.$('#nav [data-n=acc]')), 'sans base reliée : pas de Connexion dans le menu');
     await r.goto(BASE+'#/p/compte'); await r.waitForTimeout(300); ok(/pas encore activée/.test(await r.textContent('#acc')), 'sans base reliée : message clair, pas de faux formulaire');
     STATS_ON=true; await c1.close(); await c2.close(); await c3.close(); }
 
@@ -271,7 +272,7 @@ function mockSupabase(state){
     const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'stats'});
     await p.goto(BASE); await p.waitForTimeout(1200);
     ok(REDIS['defteram:visitors']===1 && REDIS['defteram:visits']===1, '1re ouverture : 1 visiteur, 1 visite', REDIS);
-    ok(/1/.test(await p.textContent('#hstats')) && await p.isVisible('#hstats'), 'chiffres affichés sur l’accueil');
+    ok(!(await p.isVisible('#hstats')), 'plus de chiffres sur l’accueil'); await p.evaluate(()=>drawer(true)); await p.waitForTimeout(300); ok(await p.isVisible('#dstats') && /1/.test(await p.textContent('#dstats')), 'chiffres affichés dans le menu ☰'); await p.evaluate(()=>drawer(false));
     await p.reload(); await p.waitForTimeout(1900); ok(REDIS['defteram:visits']===1, 'rechargement dans la même session : pas compté deux fois', REDIS);
     const p2=await ctx.newPage(); await p2.goto(BASE); await p2.waitForTimeout(1900);
     ok(REDIS['defteram:visitors']===1 && REDIS['defteram:visits']===2, 'nouvel onglet : +1 visite, même visiteur', REDIS); await p2.close();
@@ -289,7 +290,7 @@ function mockSupabase(state){
     ok(/👁️ 1/.test(await q.textContent('#list')), 'nombre de vues dans la liste');
     await q.goto(BASE+'#/p/apropos'); await q.waitForTimeout(600); ok(/2/.test(await q.textContent('#astats')), 'chiffres dans « À propos »', await q.textContent('#astats'));
     STATS_ON=false; const c3=await b.newContext({serviceWorkers:'block'}), r=await newPage(c3,{name:'stats-off',allow404:true,allowErr:true}); await r.goto(BASE); await r.waitForTimeout(1200);
-    ok(!(await r.isVisible('#hstats')), 'sans base reliée : aucun faux chiffre affiché'); STATS_ON=true;
+    await r.evaluate(()=>drawer(true)); await r.waitForTimeout(300); ok(!(await r.isVisible('#dstats')), 'sans base reliée : aucun faux chiffre affiché'); STATS_ON=true;
     await ctx.close(); await c2.close(); await c3.close(); }
 
   console.log('\n13. Page 404');

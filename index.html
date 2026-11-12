@@ -162,6 +162,7 @@ details.pm-in .tr{direction:ltr;font-family:Nunito,system-ui,sans-serif;font-siz
 .stats .st{text-align:center;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:10px 4px}
 .stats .st i{display:block;font-style:normal;font-size:1.2rem}.stats .st b{display:block;font:700 1.25rem Amiri,serif;color:var(--accent)}.stats .st small{color:var(--mute);font-size:.78rem}
 .card .stats{margin-bottom:0}
+#drawer .dst{margin:12px 12px 4px;gap:6px}#drawer .dst .st{padding:8px 2px}#drawer .dst .st b{font-size:1.05rem}#drawer .dst .st small{font-size:.7rem}
 @media (min-width:760px){#hstats{max-width:600px;margin-inline:auto}}
 .pm-note{text-align:center;font-size:.6em;color:var(--mute);margin:0 0 6px}
 .pm-end{text-align:center;margin:26px 0 4px;font-family:Amiri,serif;font-size:1.05em;color:var(--accent);padding:14px;border-top:3px double var(--sun);border-bottom:3px double var(--sun);background:linear-gradient(90deg,transparent,rgba(226,192,113,.2),transparent)}
@@ -489,7 +490,7 @@ function show(v){view=v;if(v!=='reader'&&typeof stopAudio==='function')stopAudio
  var m=v==='cat'&&cat==='fav'?'fav':v==='zikr'?'zikr':v==='home'?'home':(v==='pg'&&$('pg').dataset.k==='acc')?'acc':'';
  nav(m);window.scrollTo(0,0);Promise.resolve().then(syncRoute)}
 function nav(on){
- var d=[['home','🏠'],['fav','⭐'],['zikr','📿']].concat(sbOn()?[['acc','👤']]:[],[['lang','🌍']]),h='';
+ var d=[['home','🏠'],['fav','⭐'],['zikr','📿'],['lang','🌍']],h='';
  d.forEach(function(x){var lb=x[0]==='acc'?accLabel():t(x[0]==='fav'?'favs':x[0]);h+='<button data-n="'+x[0]+'" class="'+(on===x[0]?'on':'')+'"'+(on===x[0]?' aria-current="page"':'')+'><i aria-hidden="true">'+x[1]+'</i><span></span></button>'});
  $('nav').innerHTML=h;$('nav').querySelectorAll('button').forEach(function(b,i){b.lastChild.textContent=d[i][0]==='acc'?accLabel():t(d[i][0]==='fav'?'favs':d[i][0])});
  $('nav').querySelectorAll('button').forEach(function(b){b.onclick=function(){var k=b.dataset.n;
@@ -788,7 +789,7 @@ function sp(){save('defteram_prof',prof)}
 function applyTheme(){var r=document.documentElement;if(prof.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',prof.theme)}
 var LGN=0;function logo(s){var k=++LGN;return ('<svg width="'+s+'" height="'+s+'" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lgr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#17937a"/><stop offset="1" stop-color="#06352c"/></linearGradient><mask id="mk"><rect width="64" height="64" fill="#fff"/><circle cx="35" cy="11.5" r="6" fill="#000"/></mask></defs><rect width="64" height="64" rx="16" fill="url(#lgr)"/><path d="M32 24c-5-3-12-3-19-1v23c7-2 14-2 19 1z" fill="#fff6e0"/><path d="M32 24c5-3 12-3 19-1v23c-7-2-14-2-19 1z" fill="#f1d9a2"/><path d="M32 24v23" stroke="#d98a2b" stroke-width="1.6"/><path d="M17 30h10M17 34h10M37 30h10M37 34h10" stroke="#0e5a49" stroke-width="1.2" opacity=".45"/><circle cx="32" cy="14" r="7" fill="#f0a94c" mask="url(#mk)"/><path d="M42 10l1.2 2.6 2.8.3-2.1 1.9.6 2.8-2.5-1.4-2.5 1.4.6-2.8-2.1-1.9 2.8-.3z" fill="#f0a94c"/></svg>').replace(/lgr/g,'lgr'+k).replace(/"mk"/g,'"mk'+k+'"').replace(/#mk\)/g,'#mk'+k+')')}
 function drawer(open){var d=$('drawer');if(!open){d.classList.add('hide');return}
- var p=d.firstChild;p.innerHTML='<div class="dh">'+logo(64)+'<b>DEFTERAM</b><span>'+t('tag')+'</span></div>';
+ var p=d.firstChild;p.innerHTML='<div class="dh">'+logo(64)+'<b>DEFTERAM</b><span>'+t('tag')+'</span></div><div class="stats dst hide" id="dstats" aria-label="Statistiques"></div>';showStats();if(!STATS)stat('');
  (sbOn()?[['👤',AUTH.s?T('Mon compte','My account','حسابي')+' · '+AUTH.s.user.name:T('Connexion','Sign in','تسجيل الدخول'),account]]:[]).concat([
   ['📲',T("Installer l'application",'Install the app','تثبيت التطبيق'),installer],
   ['🏅',T('Badges et partage','Badges and sharing','الأوسمة والمشاركة'),badges],
@@ -986,7 +987,7 @@ function account(){
    function(e){sb.disabled=false;sb.textContent=mode==='up'?T('Créer mon compte','Create my account','إنشاء حسابي'):T('Se connecter','Sign in','دخول');er.textContent=authErr(e)})};
  g.appendChild(f);setTimeout(function(){try{iu.focus({preventScroll:true})}catch(e){}},50)}
 (function(){if(!/^https?:/.test(location.protocol)||!window.fetch)return;
- setTimeout(function(){fetch('api/auth?a=ping',{cache:'no-store'}).then(function(r){if(!r.ok)return;AUTH.on=true;nav(curNav());
+ setTimeout(function(){fetch('api/auth?a=ping',{cache:'no-store'}).then(function(r){if(!r.ok)return;AUTH.on=true;nav(curNav());if(!$('drawer').classList.contains('hide'))drawer(true);
   if(view==='pg'&&$('pg').dataset.k==='acc')account();if(AUTH.s)pullData().catch(function(){})}).catch(function(){})},400)})();
 
 /* ===== Animations : apparition 3D, inclinaison au survol, parallax ===== */
@@ -1033,7 +1034,7 @@ function countView(b){if(!b||!b.id||/^c\d/.test(b.id)||b.page)return;var k='deft
  stat(seen?'':'view',b.id).then(function(j){if(j&&j.item){try{sessionStorage.setItem(k,'1')}catch(e){}showItem(b.id,j.item)}})}
 function statsHtml(big){if(!STATS)return '';var x=[['👥',STATS.visitors,T('visiteurs','visitors','زائر')],['👁️',STATS.visits,T('visites','visits','زيارة')],['📤',STATS.shares,T('partages','shares','مشاركة')]];
  return x.map(function(i){return '<div class="st"><i aria-hidden="true">'+i[0]+'</i><b>'+fmtN(i[1])+'</b><small>'+i[2]+'</small></div>'}).join('')}
-function showStats(){var h=$('hstats');if(h){h.innerHTML=statsHtml();h.classList.toggle('hide',!STATS)}var a=$('astats');if(a){a.innerHTML=statsHtml();a.parentNode.classList.toggle('hide',!STATS)}}
+function showStats(){var h=$('hstats');if(h)h.classList.add('hide');var d=$('dstats');if(d){d.innerHTML=statsHtml();d.classList.toggle('hide',!STATS)}var a=$('astats');if(a){a.innerHTML=statsHtml();a.parentNode.classList.toggle('hide',!STATS)}}
 (function(){var first=false,seen=false;try{first=!localStorage.getItem('defteram_vid');seen=sessionStorage.getItem('defteram_seen')==='1'}catch(e){}
  var ev=first?'new':seen?'':'visit';
  setTimeout(function(){stat(ev).then(function(j){if(j){try{if(first)localStorage.setItem('defteram_vid','1');sessionStorage.setItem('defteram_seen','1')}catch(e){}}})},first?600:1500)})();
