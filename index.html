@@ -1098,6 +1098,8 @@ function pageSrc(n,cb){var u=pageUrl(n);
 </script>
 
 <script>
+// Vercel Web Analytics (sans cookie) : chargé seulement sur le site en ligne.
+if(/\.vercel\.app$|defteram/.test(location.hostname)&&!/^(localhost|127\.)/.test(location.hostname)){window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};window.addEventListener('load',function(){var sc=document.createElement('script');sc.defer=true;sc.src='/_vercel/insights/script.js';document.head.appendChild(sc)})}
 var SWR=null;
 if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){window.addEventListener('load',function(){try{navigator.serviceWorker.register('sw.js').then(function(r){SWR=r}).catch(function(){})}catch(e){}})}
 // Mises à jour : quand l'appli revient au premier plan, on vérifie si le site a changé.
