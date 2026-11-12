@@ -83,8 +83,10 @@ node tests/e2e.js
 
 Ils utilisent Playwright et Chromium. Le site est servi localement et Supabase est simulé, sans aucun appel réseau réel. Ils couvrent tous les textes dans les 5 langues, les routes et le bouton Retour, la recherche, les formulaires, la connexion et la synchronisation, l'affichage mobile, tablette et ordinateur, les animations, l'accessibilité de base, le mode hors connexion et la page 404.
 
-### Cours en ligne
-- Élève : ☰ → Cours en ligne → choisir un cours → payer par Wave ou Orange Money → « J'ai payé, envoyer ma demande ».
-- Enseignant (5 au maximum, créés par l'administrateur) : ☰ → Espace enseignant → vérifier le paiement → « Valider 1 mois / 3 mois » → discuter (texte et messages vocaux de 2 min max).
-- Administrateur : ☰ → Administration → onglet « Cours » (enseignants, prix, numéros de paiement).
-- Les messages vocaux sont gardés 180 jours dans la base Upstash (aucun service en plus).
+### École en ligne
+- Accueil : grande carte « École en ligne » en haut (heures d'ouverture, ouvert / fermé).
+- Élève : choisir un cours → payer par Wave ou Orange Money → « J'ai payé ». **La direction (administrateur) confirme** l'inscription.
+- Discussions (texte + vocal 2 min) : élève ↔ direction, élève ↔ enseignant (sa classe, option désactivable), enseignant ↔ direction (salle des professeurs).
+- Enseignants : 5 au maximum, créés par la direction ; ils voient seulement leurs classes.
+- Direction : ☰ → Direction de l'école (inscriptions, messages) ; réglages dans Administration → École (heures d'ouverture, heures de cours, prix, numéros).
+- Heures en heure du Sénégal (UTC). Les messages vocaux sont gardés 180 jours dans la base Upstash.
