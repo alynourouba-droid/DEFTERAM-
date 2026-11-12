@@ -144,7 +144,7 @@ function mockSupabase(state){
       ok(await p.evaluate(()=>view)===v, 'lien direct '+h+' → '+v, await p.evaluate(()=>view));
     }
     await p.goto(BASE); await p.waitForTimeout(300);
-    await p.click('.gc >> text=Poèmes arabes'); await p.waitForTimeout(200);
+    await p.click('.tile >> text=Poèmes arabes'); await p.waitForTimeout(200);
     await p.click('#list .book .main'); await p.waitForTimeout(200);
     ok(/#\/t\//.test(p.url()), 'URL du texte ouverte', p.url());
     await p.goBack(); await p.waitForTimeout(200); ok(await p.evaluate(()=>view+'|'+cat)==='cat|parab', 'Retour du navigateur → liste');
@@ -283,7 +283,7 @@ function mockSupabase(state){
       const gk=Object.keys(REDIS['defteram:guides']||{}); ok(gk.length===1 && /Cheikh Test/.test(REDIS['defteram:guides'][gk[0]]), 'guide enregistré (nom, rôle, histoire)');
       const up=await pa.evaluate(()=>fetch('api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(r=>r.status)); ok(up===503, 'envoi de fichiers : refusé tant que le stockage Blob n’est pas relié');
       const gv=await b.newContext({serviceWorkers:'block'}); const pg=await newPage(gv,{name:'guides-public',allowErr:true,allow404:true});
-      await pg.goto(BASE); await pg.waitForTimeout(1500); ok(/Nos guides1 /.test((await pg.$$eval('.gc',x=>x.map(e=>e.textContent))).join('|')), 'accueil : tuile « Nos guides » avec 1 guide');
+      await pg.goto(BASE); await pg.waitForTimeout(1500); ok(/Nos guides1/.test((await pg.$$eval('.tile',x=>x.map(e=>e.textContent))).join('|')), 'accueil : tuile « Nos guides » avec 1 guide');
       await pg.goto(BASE+'#/p/guides'); await pg.waitForTimeout(400); await pg.click('.gcard'); await pg.waitForTimeout(400);
       ok(/Il est né à Fass/.test(await pg.textContent('#gd1')) && /#\/g\//.test(pg.url()), 'page du guide : histoire + lien direct');
       await pg.goto(pg.url()); await pg.waitForTimeout(900); ok(/Cheikh Test/.test(await pg.textContent('#pg h2')), 'lien direct vers un guide');
@@ -305,22 +305,22 @@ function mockSupabase(state){
       const w = await p.evaluate(()=>document.documentElement.scrollWidth - innerWidth);
       if(w>1){ ok(false, n+' : défilement horizontal sur '+(h||'#/'), w); }
     }
-    const cols = await p.goto(BASE).then(()=>p.waitForTimeout(200)).then(()=>p.evaluate(()=>document.querySelectorAll('.row').length));
-    ok(true, n+' : pas de défilement horizontal · '+cols+' rangées de cartes');
+    const cols = await p.goto(BASE).then(()=>p.waitForTimeout(200)).then(()=>p.evaluate(()=>getComputedStyle(document.querySelector('.grid')).gridTemplateColumns.split(' ').length));
+    ok(true, n+' : pas de défilement horizontal · '+cols+' colonnes');
     await ctx.close();
   }
 
   console.log('\n9. Animations');
   { const ctx=await b.newContext({viewport:{width:1280,height:800},serviceWorkers:'block'}), p=await newPage(ctx,{name:'anim'});
     await p.goto(BASE); await p.waitForTimeout(700);
-    const below = await p.evaluate(()=>{ const t=[...document.querySelectorAll('.gc')].pop(); return {rv:t.classList.contains('rv'),in:t.classList.contains('in')} });
+    const below = await p.evaluate(()=>{ const t=[...document.querySelectorAll('.tile')].pop(); return {rv:t.classList.contains('rv'),in:t.classList.contains('in')} });
     ok(below.rv && !below.in, 'carte hors écran pas encore apparue');
-    await p.evaluate(()=>[...document.querySelectorAll('.gc')].pop().scrollIntoView()); await p.waitForTimeout(900);
-    ok(await p.evaluate(()=>[...document.querySelectorAll('.gc')].pop().classList.contains('in')), 'apparition au défilement');
+    await p.evaluate(()=>[...document.querySelectorAll('.tile')].pop().scrollIntoView()); await p.waitForTimeout(900);
+    ok(await p.evaluate(()=>[...document.querySelectorAll('.tile')].pop().classList.contains('in')), 'apparition au défilement');
     ok(Number(await p.evaluate(()=>getComputedStyle(document.querySelector('.hero')).getPropertyValue('--p')))>0, 'parallax du bandeau');
-    const tile = await p.$('.gc'); await tile.scrollIntoViewIfNeeded(); const bx=await tile.boundingBox();
+    const tile = await p.$('.tile'); await tile.scrollIntoViewIfNeeded(); const bx=await tile.boundingBox();
     await p.mouse.move(bx.x+bx.width*.9, bx.y+bx.height*.2); await p.waitForTimeout(120);
-    ok(await p.evaluate(()=>document.querySelector('.gc').style.getPropertyValue('--ry'))!=='', 'inclinaison 3D au survol');
+    ok(await p.evaluate(()=>document.querySelector('.tile').style.getPropertyValue('--ry'))!=='', 'inclinaison 3D au survol');
     const ctx2=await b.newContext({reducedMotion:'reduce',serviceWorkers:'block'}), q=await newPage(ctx2,{name:'reduit'}); await q.goto(BASE); await q.waitForTimeout(300);
     ok(!(await q.evaluate(()=>document.querySelector('.rv'))), 'animations désactivées si « réduire les animations »');
     await ctx.close(); await ctx2.close(); }
@@ -340,7 +340,7 @@ function mockSupabase(state){
     await p.goto(BASE); await p.evaluate(()=>navigator.serviceWorker.ready); await p.reload(); await p.waitForTimeout(600);
     await p.goto(BASE+'privacy.html'); await p.waitForTimeout(300); await p.goto(BASE+'#/m/5'); await p.waitForTimeout(800);
     await ctx.setOffline(true); await p.goto(BASE); await p.waitForTimeout(600);
-    ok((await p.$$('.gc')).length>10, 'l’app s’ouvre hors connexion (et pas la page de confidentialité)');
+    ok((await p.$$('.tile')).length>10, 'l’app s’ouvre hors connexion (et pas la page de confidentialité)');
     await p.goto(BASE+'#/m/5'); await p.waitForTimeout(600); ok(await p.evaluate(()=>$('mImg').naturalWidth)===440, 'page du Mushaf déjà vue lisible hors connexion');
     await p.goto(BASE+'privacy.html'); ok(/confidentialit/i.test(await p.title()), 'confidentialité lisible hors connexion');
     await ctx.close(); }
