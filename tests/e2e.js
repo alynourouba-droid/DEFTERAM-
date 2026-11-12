@@ -16,7 +16,14 @@ const realFetch = global.fetch;
 global.fetch = async (u, o) => {
   if (String(u).startsWith('https://fake-redis.test/')) {
     const cmds = JSON.parse(o.body);
-    return { ok: true, json: async () => cmds.map(c => c[0]==='INCR' ? {result:(REDIS[c[1]]=(REDIS[c[1]]||0)+1)} : {result:c.slice(1).map(k=>REDIS[k]==null?null:String(REDIS[k]))}) };
+    return { ok: true, json: async () => cmds.map(([op,k,...a]) => {
+      if(op==='INCR') return {result:(REDIS[k]=(REDIS[k]||0)+1)};
+      if(op==='MGET') return {result:[k,...a].map(x=>REDIS[x]==null?null:String(REDIS[x]))};
+      const H=REDIS[k]=REDIS[k]||{};
+      if(op==='HINCRBY') return {result:(H[a[0]]=(H[a[0]]||0)+a[1])};
+      if(op==='HGET') return {result:H[a[0]]==null?null:String(H[a[0]])};
+      if(op==='HGETALL') return {result:Object.entries(H).flat().map(String)};
+    }) };
   }
   return realFetch(u, o);
 };
@@ -260,6 +267,13 @@ function mockSupabase(state){
     await q.evaluate(()=>{ navigator.share=()=>Promise.resolve() }); await q.goto(BASE+'#/t/p2'); await q.waitForTimeout(300); await q.evaluate(()=>{navigator.share=()=>Promise.resolve()}); await q.click('#shr'); await q.waitForTimeout(500);
     ok(REDIS['defteram:shares']===1, 'partage d’un texte compté', REDIS);
     await q.evaluate(()=>shareApp()); await q.waitForTimeout(500); ok(REDIS['defteram:shares']===2, 'partage de l’application compté', REDIS);
+    ok(REDIS['defteram:ishares'] && REDIS['defteram:ishares'].p2===1, 'partage compté pour le texte p2', REDIS['defteram:ishares']);
+    ok(REDIS['defteram:views'] && REDIS['defteram:views'].p2===1, 'vue du texte p2 comptée', REDIS['defteram:views']);
+    ok(/1 vues/.test(await q.textContent('#rStat')) && /1 partages/.test(await q.textContent('#rStat')), 'vues et partages affichés sur le texte', await q.textContent('#rStat'));
+    await q.goto(BASE+'#/c/parab'); await q.waitForTimeout(150); await q.goto(BASE+'#/t/p2'); await q.waitForTimeout(400);
+    ok(REDIS['defteram:views'].p2===1, 'revoir le même texte dans la session ne recompte pas');
+    await q.goto(BASE+'#/c/fass'); await q.waitForTimeout(700);
+    ok(/👁️ 1/.test(await q.textContent('#list')), 'nombre de vues dans la liste');
     await q.goto(BASE+'#/p/apropos'); await q.waitForTimeout(600); ok(/2/.test(await q.textContent('#astats')), 'chiffres dans « À propos »', await q.textContent('#astats'));
     STATS_ON=false; const c3=await b.newContext({serviceWorkers:'block'}), r=await newPage(c3,{name:'stats-off',allow404:true,allowErr:true}); await r.goto(BASE); await r.waitForTimeout(1200);
     ok(!(await r.isVisible('#hstats')), 'sans base reliée : aucun faux chiffre affiché'); STATS_ON=true;
