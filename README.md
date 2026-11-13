@@ -84,10 +84,11 @@ node tests/e2e.js
 
 Ils utilisent Playwright et Chromium. Le site est servi localement et Supabase est simulé, sans aucun appel réseau réel. Ils couvrent tous les textes dans les 5 langues, les routes et le bouton Retour, la recherche, les formulaires, la connexion et la synchronisation, l'affichage mobile, tablette et ordinateur, les animations, l'accessibilité de base, le mode hors connexion et la page 404.
 
-### École en ligne
-- Accueil : grande carte « École en ligne » en haut (heures d'ouverture, ouvert / fermé).
-- Élève : choisir un cours → payer par Wave ou Orange Money → « J'ai payé ». **La direction (administrateur) confirme** l'inscription.
-- Discussions (texte + vocal 2 min) : élève ↔ direction, élève ↔ enseignant (sa classe, option désactivable), enseignant ↔ direction (salle des professeurs).
-- Enseignants : 5 au maximum, créés par la direction ; ils voient seulement leurs classes.
-- Direction : ☰ → Direction de l'école (inscriptions, messages) ; réglages dans Administration → École (heures d'ouverture, heures de cours, prix, numéros).
-- Heures en heure du Sénégal (UTC). Les messages vocaux sont gardés 180 jours dans la base Upstash.
+### École en ligne « Cours en ligne · Ar Jangou »
+- Accueil : grande carte « Cours en ligne · Ar Jangou » en haut (heures d'ouverture, appel en cours).
+- Chaque compte a un **profil** : photo, nom complet, présentation (☰ → Mon compte).
+- **Enseignants** (nombre illimité) : ☰ → Cours en ligne → « Devenir enseignant ». La direction parle avec le candidat (messages / vocal) puis l'accepte.
+- Chaque enseignant a **sa classe : 20 élèves au maximum**. L'élève **paie son enseignant** (Wave / Orange Money) : 1000 F la 1re fois, puis 500 F par mois ; l'enseignant confirme le paiement reçu.
+- Discussions texte + vocal : élève ↔ son enseignant, chacun ↔ direction, enseignant ↔ direction.
+- **Appel de groupe** : l'enseignant démarre un appel (Jitsi Meet, gratuit, audio ou vidéo) ; ses élèves voient « Rejoindre ».
+- Direction : ☰ → Direction de l'école (candidats, enseignants, messages, réglages : heures, prix, nombre d'élèves).

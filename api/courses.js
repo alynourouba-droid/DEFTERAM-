@@ -1,32 +1,26 @@
-// Cours en ligne DEFTERAM : programmes, inscriptions payantes, enseignants, discussion texte + vocal.
-// Même base Upstash Redis que /api/auth. Les messages vocaux sont gardés dans Redis (≤ 2 min, ~600 Ko).
-//
+// École en ligne DEFTERAM « Cours en ligne · Ar Jangou »
+// Chaque enseignant a sa classe (20 élèves au maximum). L'élève paie SON enseignant (1000 F la 1re fois, puis 500 F par mois)
+// par Wave ou Orange Money ; l'enseignant confirme le paiement reçu. La direction parle avec chaque candidat puis le confirme.
 // Public :
-//   GET  /api/courses?a=list                      → { courses, pay }
-//   GET  /api/courses?a=voice&id=<id>             → fichier audio (lien secret, non devinable)
+//   GET  /api/courses?a=list                → réglages, matières (programmes), enseignants (profil, places, heures, numéros)
+//   GET  /api/courses?a=voice&id=<id>       → message vocal (lien secret)
 // Compte connecté (Authorization: Bearer <token>) :
-//   GET  /api/courses?a=me                        → rôle, inscriptions, messages non lus
-//   POST /api/courses?a=enroll   { course, method, phone, ref }      → demande d'inscription (après paiement)
-//   POST /api/courses?a=thread   { course, student? }                → messages (élève : les siens ; enseignant : d'un élève)
-//   POST /api/courses?a=send     { course, student?, text?, audio? } → envoie un message texte ou vocal
-//   (course = un cours, « dir » = discussion avec la direction, « prof » = salle des professeurs)
-// Enseignant (5 au maximum) ou administrateur :
-//   GET  /api/courses?a=teach                     → élèves et discussions de ses cours
-// Direction de l'école (administrateur) seulement :
-//   GET  /api/courses?a=staff                     → inscriptions à confirmer, discussions élèves et enseignants
-//   POST /api/courses?a=validate { course, student, months } / ?a=refuse { course, student }
-//   POST /api/courses?a=school_save { d, from, to, tchat }
-//   GET  /api/courses?a=teachers
-//   POST /api/courses?a=teacher_set { user, courses, password? } / ?a=teacher_del { user }
-//   POST /api/courses?a=course_save { id, price, active, per } / ?a=pay_save { wave, om, note }
+//   GET  /api/courses?a=me                  → mes classes, messages non lus, rôle, appel en cours
+//   POST /api/courses?a=apply               { subjects, bio, sched, wave, om }   → devenir enseignant
+//   POST /api/courses?a=join                { teacher, method, phone, ref }      → l'élève a payé son enseignant
+//   POST /api/courses?a=thread | send       { room, student?, text?, audio? }   → room : dir, prof, c:<enseignant>
+// Enseignant :
+//   GET  /api/courses?a=myclass             → élèves, demandes, appel
+//   POST /api/courses?a=confirm | refuse | remove { student }  · ?a=tprofile {…} · ?a=call { stop? }
+// Direction (administrateur) :
+//   GET  /api/courses?a=staff               → candidats, enseignants, messages
+//   POST /api/courses?a=tapprove | treject | tremove { user } · ?a=school_save { d, from, to, first, month, max }
 const crypto = require('crypto');
 const { P, cfg, redis, sha, readBody } = require('./_lib');
 
-const MAX_TEACHERS = 5;
 const ID_RE = /^[a-z0-9._-]{3,30}$/;
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,80}\.[^\s@]{2,20}$/;
 const DAY = 86400000;
-const scrypt = (pw, salt) => new Promise((ok, no) => crypto.scrypt(pw, salt, 64, { N: 16384, r: 8, p: 1 }, (e, k) => e ? no(e) : ok(k)));
 const nameOf = id => { const at = id.indexOf('@'); return at > -1 ? id.slice(0, at) : id; };
 
 const L3 = (fr, en, ar) => ({ fr, en, ar });
@@ -77,21 +71,21 @@ const COURSES = [
     ] },
 ];
 const CIDS = COURSES.map(x => x.id);
-const DEF = { price: 2000, per: 'mois', active: true };
-const PAY = { wave: '+221 710876405', om: '+221 710876405', note: '' };
-// Heures d'ouverture de l'école (heure du Sénégal = UTC) ; tchat : les élèves parlent aussi avec l'enseignant
-const SCHOOL = { d: [1, 2, 3, 4, 5, 6], from: '08:00', to: '22:00' };
-
-function parse(x) { try { return x ? JSON.parse(x) : null; } catch (e) { return null; } }
-const status = e => !e ? null : e.s === 'a' ? (e.until > Date.now() ? 'a' : 'x') : e.s; // a actif, p en attente, r refusé, x expiré
+// Réglages de l'école (modifiables par la direction) : heures d'ouverture (heure du Sénégal = UTC),
+// prix payé par l'élève à son enseignant (1re fois, puis chaque mois), nombre maximum d'élèves par enseignant.
+const SCHOOL = { d: [1, 2, 3, 4, 5, 6], from: '08:00', to: '22:00', first: 1000, month: 500, max: 20 };
 const HM = /^([01]\d|2[0-3]):[0-5]\d$/;
-function cleanSched(s, def) {
-  s = s || {};
-  const d = [...new Set((Array.isArray(s.d) ? s.d : []).map(Number).filter(x => x >= 0 && x <= 6))].sort();
-  return { d: d.length ? d : def.d, from: HM.test(s.from) ? s.from : def.from, to: HM.test(s.to) ? s.to : def.to };
-}
-// Salles de discussion en plus des classes : « dir » (élève ↔ direction), « prof » (enseignant ↔ direction)
-const ROOMS = ['dir', 'prof'];
+const parse = x => { try { return x ? JSON.parse(x) : null; } catch (e) { return null; } };
+const cleanSched = (s, def) => { s = s || {}; const d = [...new Set((Array.isArray(s.d) ? s.d : []).map(Number).filter(x => x >= 0 && x <= 6))].sort();
+  return { d: d.length ? d : def.d, from: HM.test(s.from) ? s.from : def.from, to: HM.test(s.to) ? s.to : def.to }; };
+const cleanNum = s => String(s || '').replace(/[^\d+ ]/g, '').trim().slice(0, 20);
+const status = e => !e ? null : e.s === 'a' ? (e.until > Date.now() ? 'a' : 'x') : e.s;   // a actif · p en attente · r refusé · x expiré
+const cleanTeacher = b => ({
+  subjects: (Array.isArray(b.subjects) ? b.subjects : []).filter(x => CIDS.indexOf(x) > -1).slice(0, 4),
+  bio: String(b.bio || '').trim().slice(0, 1500),
+  sched: cleanSched(b.sched, { d: [1, 3, 5], from: '20:00', to: '21:00' }),
+  wave: cleanNum(b.wave), om: cleanNum(b.om),
+});
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
@@ -101,18 +95,31 @@ module.exports = async (req, res) => {
   const q = req.query || Object.fromEntries(new URL(req.url, 'http://x').searchParams);
   const a = q.a;
   try {
-    async function school() {
-      const [ov, th, pay, sc] = await redis(c, [['HGETALL', P + 'courses'], ['HGETALL', P + 'teachers'], ['GET', P + 'payinfo'], ['GET', P + 'school']]);
-      const o = {}; for (let i = 0; ov && i < ov.length; i += 2) o[ov[i]] = parse(ov[i + 1]) || {};
-      const tch = {}; for (let i = 0; th && i < th.length; i += 2) { const t = parse(th[i + 1]) || {}; (t.courses || []).forEach(id => { (tch[id] = tch[id] || []).push(nameOf(th[i])); }); }
-      const s = parse(sc) || {};
-      return {
-        courses: COURSES.map(x => Object.assign({}, x, DEF, o[x.id] || {}, { id: x.id, sched: cleanSched((o[x.id] || {}).sched, x.sched), teachers: tch[x.id] || [] })).sort((x, y) => x.order - y.order),
-        pay: Object.assign({}, PAY, parse(pay) || {}),
-        school: Object.assign(cleanSched(s, SCHOOL), { tchat: s.tchat !== false }),
-      };
+    const [traw, scraw] = await redis(c, [['HGETALL', P + 'teachers'], ['GET', P + 'school']]);
+    const teachers = {}; for (let i = 0; traw && i < traw.length; i += 2) { const t = parse(traw[i + 1]); if (t && t.subjects) teachers[traw[i]] = t; }
+    const sc = parse(scraw) || {};
+    const school = Object.assign(cleanSched(sc, SCHOOL), {
+      first: sc.first >= 0 ? sc.first : SCHOOL.first, month: sc.month >= 0 ? sc.month : SCHOOL.month, max: sc.max > 0 ? sc.max : SCHOOL.max });
+    const TU = Object.keys(teachers);
+    async function profiles(us) {
+      if (!us.length) return {};
+      const r = await redis(c, us.map(u => ['GET', P + 'prof:' + u]));
+      const o = {}; us.forEach((u, i) => { const p = parse(r[i]) || {}; o[u] = { name: p.name || nameOf(u), pv: p.pv || 0 }; }); return o;
     }
-    if (a === 'list') return send(200, await school());
+    async function counts(us) {   // élèves actifs par enseignant
+      if (!us.length) return {};
+      const r = await redis(c, us.map(u => ['HVALS', P + 'cls:' + u]));
+      const o = {}; us.forEach((u, i) => { o[u] = (r[i] || []).filter(v => status(parse(v)) === 'a').length; }); return o;
+    }
+
+    if (a === 'list') {
+      const [pr, cn] = await Promise.all([profiles(TU), counts(TU)]);
+      return send(200, {
+        school, subjects: COURSES.map(x => ({ id: x.id, icon: x.icon, color: x.color, title: x.title, desc: x.desc, program: x.program })),
+        teachers: TU.map(u => Object.assign({ u, count: cn[u] || 0 }, pr[u], { subjects: teachers[u].subjects, bio: teachers[u].bio, sched: teachers[u].sched, wave: teachers[u].wave, om: teachers[u].om, t: teachers[u].t || 0 }))
+          .sort((x, y) => x.t - y.t),
+      });
+    }
     if (a === 'voice') {
       const id = String(q.id || '');
       if (!/^[A-Za-z0-9_-]{20,40}$/.test(id)) return send(400, { error: 'bad_id' });
@@ -127,113 +134,165 @@ module.exports = async (req, res) => {
 
     const hm = /^Bearer\s+([A-Za-z0-9_-]{20,100})$/.exec(req.headers.authorization || '');
     if (!hm) return send(401, { error: 'not_signed_in' });
-    const [me, admin, traw, scraw] = await redis(c, [['GET', P + 'sess:' + sha(hm[1])], ['GET', P + 'admin'], ['HGETALL', P + 'teachers'], ['GET', P + 'school']]);
+    const [me, admin] = await redis(c, [['GET', P + 'sess:' + sha(hm[1])], ['GET', P + 'admin']]);
     if (!me) return send(401, { error: 'not_signed_in' });
-    const teachers = {}; for (let i = 0; traw && i < traw.length; i += 2) teachers[traw[i]] = parse(traw[i + 1]) || { courses: [] };
-    const tchat = (parse(scraw) || {}).tchat !== false;
     const isAdmin = admin === me, isTeacher = !!teachers[me];
-    const myT = isAdmin ? CIDS : ((teachers[me] && teachers[me].courses) || []);
-    const teaches = id => myT.indexOf(id) > -1;
     async function limited(kind, max) {
       const k = P + 'rl:' + kind + ':' + sha(me).slice(0, 16) + ':' + Math.floor(Date.now() / 60000);
       const [n] = await redis(c, [['INCR', k], ['EXPIRE', k, 120]]);
       return n > max;
     }
     const sumUt = h => { let n = 0; for (let j = 1; h && j < h.length; j += 2) n += (parse(h[j]) || {}).ut || 0; return n; };
-    const threads = h => { const out = []; for (let j = 0; h && j < h.length; j += 2) { const v = parse(h[j + 1]); if (v) out.push({ u: h[j], n: nameOf(h[j]), t: v.t, x: v.x, ut: v.ut || 0 }); } return out.sort((x, y) => y.t - x.t); };
+    async function threads(h) {
+      const out = []; for (let j = 0; h && j < h.length; j += 2) { const v = parse(h[j + 1]); if (v) out.push({ u: h[j], t: v.t, x: v.x, ut: v.ut || 0 }); }
+      const pr = await profiles(out.map(t => t.u)); out.forEach(t => Object.assign(t, pr[t.u])); return out.sort((x, y) => y.t - x.t);
+    }
+    async function callOf(t) { const [r] = await redis(c, [['GET', P + 'call:' + t]]); return parse(r); }
 
     if (a === 'me') {
-      const r = await redis(c, CIDS.map(id => ['HGET', P + 'enr:' + id, me]).concat(CIDS.map(id => ['HGET', P + 'thi:' + id, me]), [['HGET', P + 'thi:dir', me], ['HGET', P + 'thi:prof', me]]));
-      const enr = {}; let unread = 0;
-      CIDS.forEach((id, i) => { const e = parse(r[i]); if (e) enr[id] = { s: status(e), until: e.until || 0 }; const t = parse(r[CIDS.length + i]); if (tchat && t && t.us) { unread += t.us; if (enr[id]) enr[id].unread = t.us; } });
-      const dir = (parse(r[2 * CIDS.length]) || {}).us || 0, prof = isTeacher ? (parse(r[2 * CIDS.length + 1]) || {}).us || 0 : 0;
-      let tun = 0; const adm = isAdmin ? { pending: 0, dir: 0, prof: 0 } : null;
-      if (myT.length && tchat) { const rr = await redis(c, myT.map(id => ['HGETALL', P + 'thi:' + id])); if (!isAdmin) rr.forEach(h => { tun += sumUt(h); }); }
-      if (isAdmin) {
-        const rr = await redis(c, CIDS.map(id => ['HVALS', P + 'enr:' + id]).concat([['HGETALL', P + 'thi:dir'], ['HGETALL', P + 'thi:prof']]));
-        CIDS.forEach((id, i) => (rr[i] || []).forEach(v => { if ((parse(v) || {}).s === 'p') adm.pending++; }));
-        adm.dir = sumUt(rr[CIDS.length]); adm.prof = sumUt(rr[CIDS.length + 1]);
+      const myTs = (await redis(c, [['SMEMBERS', P + 'stc:' + me]]))[0] || [];
+      const r = await redis(c, myTs.map(t => ['HGET', P + 'cls:' + t, me]).concat(myTs.map(t => ['HGET', P + 'thi:c:' + t, me]), myTs.map(t => ['GET', P + 'call:' + t]),
+        [['HGET', P + 'thi:dir', me], ['HGET', P + 'thi:prof', me], ['HGET', P + 'tapp', me]]));
+      const n = myTs.length, classes = {}; let unread = 0;
+      myTs.forEach((t, i) => { const e = parse(r[i]); if (!e) return; const th = parse(r[n + i]) || {}; const st = status(e), call = parse(r[2 * n + i]);
+        classes[t] = { s: st, until: e.until || 0, paid: !!e.paid, unread: st === 'a' ? th.us || 0 : 0, call: st === 'a' && call ? call.room : null }; unread += classes[t].unread; });
+      const dir = (parse(r[3 * n]) || {}).us || 0, prof = isTeacher ? (parse(r[3 * n + 1]) || {}).us || 0 : 0;
+      const app = parse(r[3 * n + 2]);
+      const out = { user: nameOf(me), admin: isAdmin, teacher: isTeacher, app: app ? { s: app.s } : null, classes, unread, dir, prof };
+      if (isTeacher) {
+        const [cl, ti, call] = await redis(c, [['HVALS', P + 'cls:' + me], ['HGETALL', P + 'thi:c:' + me], ['GET', P + 'call:' + me]]);
+        out.tc = { pending: (cl || []).filter(v => (parse(v) || {}).s === 'p').length, unread: sumUt(ti), count: (cl || []).filter(v => status(parse(v)) === 'a').length, call: !!call };
       }
-      return send(200, { user: nameOf(me), admin: isAdmin, teacher: isTeacher, tcourses: myT, tchat, enr, unread, dir, prof, tunread: tun, adm });
+      if (isAdmin) {
+        const [ap, d1, d2] = await redis(c, [['HVALS', P + 'tapp'], ['HGETALL', P + 'thi:dir'], ['HGETALL', P + 'thi:prof']]);
+        out.adm = { apps: (ap || []).filter(v => (parse(v) || {}).s === 'p').length, dir: sumUt(d1), prof: sumUt(d2) };
+      }
+      return send(200, out);
     }
 
-    if (a === 'teach') {
-      if (!myT.length) return send(403, { error: 'not_teacher' });
-      const rr = await redis(c, myT.map(id => ['HGETALL', P + 'enr:' + id]).concat(myT.map(id => ['HGETALL', P + 'thi:' + id])));
-      const out = myT.map((id, i) => {
-        const e = rr[i] || [], st = [];
-        for (let j = 0; j < e.length; j += 2) { const v = parse(e[j + 1]); if (!v) continue; const s = status(v); if (s === 'a' || s === 'x') st.push({ u: e[j], n: nameOf(e[j]), s, until: v.until || 0 }); }
-        st.sort((x, y) => (x.s === 'a' ? 0 : 1) - (y.s === 'a' ? 0 : 1) || x.n.localeCompare(y.n));
-        return { id, students: st, threads: tchat ? threads(rr[myT.length + i]) : [] };
-      });
-      return send(200, { courses: out, tchat });
+    if (a === 'myclass') {   // l'enseignant : ses élèves, ses demandes, l'appel en cours
+      const t = isAdmin && q.t && teachers[q.t] ? q.t : me;
+      if (!teachers[t]) return send(403, { error: 'not_teacher' });
+      const [cl, ti, call] = await redis(c, [['HGETALL', P + 'cls:' + t], ['HGETALL', P + 'thi:c:' + t], ['GET', P + 'call:' + t]]);
+      const th = {}; for (let j = 0; ti && j < ti.length; j += 2) th[ti[j]] = parse(ti[j + 1]) || {};
+      const st = []; for (let j = 0; cl && j < cl.length; j += 2) { const e = parse(cl[j + 1]); if (!e) continue; const u = cl[j];
+        st.push({ u, s: status(e), until: e.until || 0, m: e.m, ph: e.ph, ref: e.ref, t: e.t, price: e.price, paid: !!e.paid, ut: (th[u] || {}).ut || 0, x: (th[u] || {}).x || '', lt: (th[u] || {}).t || 0 }); }
+      const pr = await profiles(st.map(s => s.u)); st.forEach(s => Object.assign(s, pr[s.u]));
+      st.sort((x, y) => ({ p: 0, a: 1, x: 2, r: 3 }[x.s] - { p: 0, a: 1, x: 2, r: 3 }[y.s]) || (y.lt || y.t) - (x.lt || x.t));
+      return send(200, { students: st, max: school.max, call: parse(call), room: teachers[t].room });
     }
 
-    if ((a === 'staff' || a === 'teachers') && !isAdmin) return send(403, { error: 'not_admin' });
-    if (isAdmin && a === 'staff') {
-      const rr = await redis(c, CIDS.map(id => ['HGETALL', P + 'enr:' + id]).concat([['HGETALL', P + 'thi:dir'], ['HGETALL', P + 'thi:prof']]));
-      const pending = [], recent = [];
-      CIDS.forEach((id, i) => { const e = rr[i] || []; for (let j = 0; j < e.length; j += 2) { const v = parse(e[j + 1]); if (!v) continue; const row = { course: id, u: e[j], n: nameOf(e[j]), s: status(v), m: v.m, ph: v.ph, ref: v.ref, t: v.t, until: v.until || 0 }; if (row.s === 'p') pending.push(row); else recent.push(row); } });
-      pending.sort((x, y) => x.t - y.t); recent.sort((x, y) => (y.v || y.t) - (x.v || x.t));
-      const prof = threads(rr[CIDS.length + 1]);
-      Object.keys(teachers).forEach(u => { if (!prof.some(t => t.u === u)) prof.push({ u, n: nameOf(u), t: 0, x: '', ut: 0 }); });
-      return send(200, { pending, students: recent.slice(0, 300), dir: threads(rr[CIDS.length]), prof: prof.map(t => Object.assign(t, { courses: (teachers[t.u] || {}).courses || [] })) });
-    }
-    if (isAdmin && a === 'teachers') {
-      return send(200, { teachers: Object.keys(teachers).map(u => ({ u, n: nameOf(u), courses: teachers[u].courses || [], t: teachers[u].t || 0 })), max: MAX_TEACHERS });
+    if (a === 'staff') {
+      if (!isAdmin) return send(403, { error: 'not_admin' });
+      const [ap, d1, d2] = await redis(c, [['HGETALL', P + 'tapp'], ['HGETALL', P + 'thi:dir'], ['HGETALL', P + 'thi:prof']]);
+      const apps = []; for (let j = 0; ap && j < ap.length; j += 2) { const v = parse(ap[j + 1]); if (v && v.s === 'p') apps.push(Object.assign({ u: ap[j] }, v)); }
+      const [pa, cn, pt] = await Promise.all([profiles(apps.map(x => x.u)), counts(TU), profiles(TU)]);
+      apps.forEach(x => Object.assign(x, pa[x.u]));
+      const prof = await threads(d2);
+      return send(200, { apps, teachers: TU.map(u => Object.assign({ u, count: cn[u] || 0, subjects: teachers[u].subjects, ut: (prof.find(t => t.u === u) || {}).ut || 0 }, pt[u])),
+        dir: await threads(d1), prof, school });
     }
 
     if (req.method !== 'POST') return send(400, { error: 'bad_action' });
     const b = await readBody(req, 1500000);
     if (b === null) return send(413, { error: 'audio_too_large' });
-    const course = String(b.course || '');
 
-    if (a === 'enroll') {
-      if (CIDS.indexOf(course) < 0) return send(400, { error: 'bad_course' });
-      if (await limited('enr', 10)) return send(429, { error: 'rate_limit' });
-      const method = b.method === 'om' ? 'om' : 'wave';
-      const phone = String(b.phone || '').replace(/[^\d+ ]/g, '').trim().slice(0, 20);
-      const ref = String(b.ref || '').trim().slice(0, 80);
+    if (a === 'apply') {   // devenir enseignant : la direction parle avec la personne, puis confirme
+      if (isTeacher) return send(409, { error: 'already_teacher' });
+      if (await limited('app', 10)) return send(429, { error: 'rate_limit' });
+      const t = cleanTeacher(b);
+      if (!t.subjects.length) return send(400, { error: 'no_course' });
+      if (!t.wave && !t.om) return send(400, { error: 'bad_phone' });
+      await redis(c, [['HSET', P + 'tapp', me, JSON.stringify(Object.assign(t, { s: 'p', t: Date.now() }))]]);
+      return send(200, { ok: true });
+    }
+    if (a === 'tprofile') {   // l'enseignant modifie ses matières, ses heures, ses numéros
+      if (!isTeacher) return send(403, { error: 'not_teacher' });
+      const t = cleanTeacher(b);
+      if (!t.subjects.length) return send(400, { error: 'no_course' });
+      if (!t.wave && !t.om) return send(400, { error: 'bad_phone' });
+      await redis(c, [['HSET', P + 'teachers', me, JSON.stringify(Object.assign({}, teachers[me], t))]]);
+      return send(200, { ok: true });
+    }
+
+    if (a === 'join') {   // l'élève a payé son enseignant : il envoie sa demande
+      const t = String(b.teacher || '');
+      if (!teachers[t]) return send(404, { error: 'no_teacher' });
+      if (t === me) return send(400, { error: 'self' });
+      if (await limited('join', 10)) return send(429, { error: 'rate_limit' });
+      const phone = cleanNum(b.phone), ref = String(b.ref || '').trim().slice(0, 80);
       if (phone.replace(/\D/g, '').length < 7) return send(400, { error: 'bad_phone' });
-      const [old] = await redis(c, [['HGET', P + 'enr:' + course, me]]);
+      const [old, vals] = await redis(c, [['HGET', P + 'cls:' + t, me], ['HVALS', P + 'cls:' + t]]);
+      const o = parse(old), st = status(o);
+      if (st === 'p') return send(409, { error: 'already_pending' });
+      if (st !== 'a' && (vals || []).filter(v => status(parse(v)) === 'a').length >= school.max) return send(409, { error: 'class_full' });
+      const price = o && o.paid ? school.month : school.first;
+      const rec = { s: 'p', m: b.method === 'om' ? 'om' : 'wave', ph: phone, ref, t: Date.now(), until: o ? o.until || 0 : 0, paid: !!(o && o.paid), price };
+      await redis(c, [['HSET', P + 'cls:' + t, me, JSON.stringify(rec)], ['SADD', P + 'stc:' + me, t]]);
+      return send(200, { ok: true, s: 'p', price });
+    }
+
+    if (a === 'confirm' || a === 'refuse' || a === 'remove') {   // l'enseignant confirme le paiement reçu (ou la direction)
+      const t = isAdmin && b.teacher && teachers[b.teacher] ? String(b.teacher) : me;
+      if (!teachers[t]) return send(403, { error: 'not_teacher' });
+      const u = String(b.student || '').toLowerCase();
+      const [old, vals] = await redis(c, [['HGET', P + 'cls:' + t, u], ['HVALS', P + 'cls:' + t]]);
       const o = parse(old);
-      if (o && status(o) === 'p') return send(409, { error: 'already_pending' });
-      const rec = { s: 'p', m: method, ph: phone, ref, t: Date.now(), until: o ? o.until || 0 : 0 };
-      await redis(c, [['HSET', P + 'enr:' + course, me, JSON.stringify(rec)]]);
-      return send(200, { ok: true, s: 'p' });
+      if (!o) return send(404, { error: 'no_student' });
+      const now = Date.now(), msg = { i: crypto.randomBytes(6).toString('hex'), f: 'sys', n: nameOf(me), t: now };
+      if (a === 'confirm') {
+        if (status(o) !== 'a' && (vals || []).filter(v => status(parse(v)) === 'a').length >= school.max) return send(409, { error: 'class_full' });
+        o.s = 'a'; o.until = Math.max(now, o.until || 0) + 30 * DAY; o.paid = true; o.v = now; msg.x = 'ok:' + o.until;
+      } else if (a === 'refuse') { o.s = 'r'; o.v = now; msg.x = 'refused'; }
+      else { o.s = 'x'; o.until = now; o.v = now; msg.x = 'removed'; }
+      const ik = P + 'thi:c:' + t, [info] = await redis(c, [['HGET', ik, u]]);
+      const inf = parse(info) || { ut: 0, us: 0 }; inf.t = now; inf.us = (inf.us || 0) + 1; inf.x = a === 'confirm' ? '✅' : '⛔';
+      await redis(c, [['HSET', P + 'cls:' + t, u, JSON.stringify(o)], ['RPUSH', P + 'thr:c:' + t + ':' + u, JSON.stringify(msg)], ['HSET', ik, u, JSON.stringify(inf)]]);
+      return send(200, { ok: true, s: status(o), until: o.until || 0 });
+    }
+
+    if (a === 'call') {   // appel de groupe (Jitsi Meet) de l'enseignant avec ses élèves
+      if (!isTeacher) return send(403, { error: 'not_teacher' });
+      let room = teachers[me].room;
+      if (!room) { room = 'ArJangou-' + crypto.randomBytes(9).toString('hex'); teachers[me].room = room; await redis(c, [['HSET', P + 'teachers', me, JSON.stringify(teachers[me])]]); }
+      if (b.stop) { await redis(c, [['DEL', P + 'call:' + me]]); return send(200, { ok: true, live: false }); }
+      await redis(c, [['SET', P + 'call:' + me, JSON.stringify({ room, t: Date.now() }), 'EX', 3 * 3600]]);
+      return send(200, { ok: true, live: true, room });
     }
 
     if (a === 'thread' || a === 'send') {
-      if (CIDS.indexOf(course) < 0 && ROOMS.indexOf(course) < 0) return send(400, { error: 'bad_course' });
-      let student = me, asT = false, st = null;
-      const other = b.student && String(b.student).toLowerCase() !== me ? String(b.student).toLowerCase() : null;
-      if (course === 'dir') {                       // élève (ou visiteur connecté) ↔ direction
-        if (other) { if (!isAdmin) return send(403, { error: 'not_admin' }); student = other; asT = true;
-          const [ex] = await redis(c, [['EXISTS', P + 'user:' + student]]); if (!ex) return send(404, { error: 'no_student' }); }
-      } else if (course === 'prof') {               // enseignant ↔ direction
-        if (other) { if (!isAdmin) return send(403, { error: 'not_admin' }); if (!teachers[other]) return send(404, { error: 'no_student' }); student = other; asT = true; }
+      // Salles : « dir » (chacun ↔ direction), « prof » (enseignant ↔ direction), « c:<enseignant> » (élève ↔ son enseignant)
+      const room = String(b.room || ''), other = b.student && String(b.student).toLowerCase() !== me ? String(b.student).toLowerCase() : null;
+      let key, user = me, staff = false;
+      if (room === 'dir') {
+        if (other) { if (!isAdmin) return send(403, { error: 'not_admin' }); const [ex] = await redis(c, [['EXISTS', P + 'user:' + other]]); if (!ex) return send(404, { error: 'no_student' }); user = other; staff = true; }
+        key = 'dir';
+      } else if (room === 'prof') {
+        if (other) { if (!isAdmin) return send(403, { error: 'not_admin' }); if (!teachers[other]) return send(404, { error: 'no_student' }); user = other; staff = true; }
         else if (!isTeacher) return send(403, { error: 'not_teacher' });
-      } else {                                      // classe : élève ↔ enseignant
-        if (!tchat && !isAdmin) return send(403, { error: 'chat_off' });
-        if (other) { if (!teaches(course)) return send(403, { error: 'not_teacher' }); student = other; asT = true; }
-        const [er] = await redis(c, [['HGET', P + 'enr:' + course, student]]);
-        st = status(parse(er));
-        if (!asT && st !== 'a') return send(403, { error: 'not_enrolled', s: st });
-        if (asT && !er) return send(404, { error: 'no_student' });
-      }
-      const tk = P + 'thr:' + course + ':' + student, ik = P + 'thi:' + course;
-
+        key = 'prof';
+      } else if (/^c:[a-z0-9@._-]{3,100}$/.test(room) && teachers[room.slice(2)]) {
+        const t = room.slice(2);
+        if (other) { if (t !== me && !isAdmin) return send(403, { error: 'not_teacher' }); user = other; staff = true; }
+        const [er] = await redis(c, [['HGET', P + 'cls:' + t, user]]);
+        const st = status(parse(er));
+        if (!er) return send(staff ? 404 : 403, { error: staff ? 'no_student' : 'not_enrolled' });
+        if (!staff && st !== 'a' && a === 'send') return send(403, { error: 'not_enrolled', s: st });
+        key = 'c:' + t;
+      } else return send(400, { error: 'bad_room' });
+      const tk = P + 'thr:' + key + ':' + user, ik = P + 'thi:' + key;
       if (a === 'thread') {
-        const [list, info] = await redis(c, [['LRANGE', tk, -200, -1], ['HGET', ik, student]]);
+        const [list, info] = await redis(c, [['LRANGE', tk, -200, -1], ['HGET', ik, user]]);
         const inf = parse(info);
-        if (inf && (asT ? inf.ut : inf.us)) { if (asT) inf.ut = 0; else inf.us = 0; await redis(c, [['HSET', ik, student, JSON.stringify(inf)]]); }
-        return send(200, { msgs: (list || []).map(parse).filter(Boolean), s: st, student: nameOf(student) });
+        if (inf && (staff ? inf.ut : inf.us)) { if (staff) inf.ut = 0; else inf.us = 0; await redis(c, [['HSET', ik, user, JSON.stringify(inf)]]); }
+        const pr = await profiles([user]);
+        return send(200, { msgs: (list || []).map(parse).filter(Boolean), user: pr[user] });
       }
-
       if (await limited('msg', 40)) return send(429, { error: 'rate_limit' });
       const text = String(b.text || '').trim().slice(0, 4000);
-      const msg = { i: crypto.randomBytes(6).toString('hex'), f: asT ? 't' : 's', n: nameOf(me), t: Date.now() };
-      if (asT && ROOMS.indexOf(course) > -1) msg.r = 'dir';
+      const [mp] = await redis(c, [['GET', P + 'prof:' + me]]);
+      const msg = { i: crypto.randomBytes(6).toString('hex'), f: staff ? 't' : 's', u: me, n: (parse(mp) || {}).name || nameOf(me), t: Date.now() };
+      if (staff && key !== 'c:' + me) msg.r = 'dir';
       const cmds = [];
       if (b.audio && b.audio.data) {
         const d = String(b.audio.data), m = String(b.audio.mime || '');
@@ -245,70 +304,40 @@ module.exports = async (req, res) => {
       }
       if (text) msg.x = text;
       if (!msg.x && !msg.a) return send(400, { error: 'empty' });
-      const [info] = await redis(c, [['HGET', ik, student]]);
+      const [info] = await redis(c, [['HGET', ik, user]]);
       const inf = parse(info) || { ut: 0, us: 0 };
-      inf.t = msg.t; inf.x = msg.x ? msg.x.slice(0, 80) : '🎤'; if (asT) inf.us = (inf.us || 0) + 1; else inf.ut = (inf.ut || 0) + 1;
-      cmds.push(['RPUSH', tk, JSON.stringify(msg)], ['LTRIM', tk, -500, -1], ['HSET', ik, student, JSON.stringify(inf)]);
+      inf.t = msg.t; inf.x = msg.x ? msg.x.slice(0, 80) : '🎤'; if (staff) inf.us = (inf.us || 0) + 1; else inf.ut = (inf.ut || 0) + 1;
+      cmds.push(['RPUSH', tk, JSON.stringify(msg)], ['LTRIM', tk, -500, -1], ['HSET', ik, user, JSON.stringify(inf)]);
       await redis(c, cmds);
       return send(200, { ok: true, msg });
     }
 
     if (!isAdmin) return send(403, { error: 'not_admin' });   // la suite : direction de l'école seulement
-
-    if (a === 'validate' || a === 'refuse') {
-      if (CIDS.indexOf(course) < 0) return send(400, { error: 'bad_course' });
-      const student = String(b.student || '').toLowerCase();
-      const [old] = await redis(c, [['HGET', P + 'enr:' + course, student]]);
-      const o = parse(old);
-      if (!o) return send(404, { error: 'no_student' });
-      const now = Date.now(), msg = { i: crypto.randomBytes(6).toString('hex'), f: 'sys', n: nameOf(me), t: now };
-      if (a === 'validate') {
-        const months = [1, 2, 3, 6, 12].indexOf(+b.months) > -1 ? +b.months : 1;
-        o.s = 'a'; o.until = Math.max(now, o.until || 0) + months * 30 * DAY; o.by = me; o.v = now;
-        msg.x = 'ok:' + course + ':' + months + ':' + o.until;
-      } else { o.s = 'r'; o.by = me; o.v = now; msg.x = 'refused:' + course; }
-      const ik = P + 'thi:dir', [info] = await redis(c, [['HGET', ik, student]]);
-      const inf = parse(info) || { ut: 0, us: 0 }; inf.t = now; inf.us = (inf.us || 0) + 1; inf.x = a === 'validate' ? '✅' : '⛔';
-      await redis(c, [['HSET', P + 'enr:' + course, student, JSON.stringify(o)], ['RPUSH', P + 'thr:dir:' + student, JSON.stringify(msg)], ['HSET', ik, student, JSON.stringify(inf)]]);
-      return send(200, { ok: true, s: status(o), until: o.until || 0 });
-    }
-    if (a === 'teacher_set') {
-      const u = String(b.user || '').trim().toLowerCase();
-      if (!(ID_RE.test(u) || EMAIL_RE.test(u))) return send(400, { error: 'bad_id' });
-      const cs = (Array.isArray(b.courses) ? b.courses : []).filter(x => CIDS.indexOf(x) > -1);
-      if (!cs.length) return send(400, { error: 'no_course' });
-      if (!teachers[u] && Object.keys(teachers).length >= MAX_TEACHERS) return send(409, { error: 'max_teachers' });
-      const uk = P + 'user:' + u, [exists] = await redis(c, [['EXISTS', uk]]);
-      if (!exists) {
-        const pw = String(b.password || '');
-        if (pw.length < 6 || pw.length > 200) return send(404, { error: 'no_user' });
-        const salt = crypto.randomBytes(16), hash = await scrypt(pw, salt);
-        await redis(c, [['SET', uk, JSON.stringify({ s: salt.toString('base64'), h: hash.toString('base64'), t: Date.now() }), 'NX']]);
-      }
-      await redis(c, [['HSET', P + 'teachers', u, JSON.stringify({ courses: cs, t: (teachers[u] && teachers[u].t) || Date.now() })]]);
-      return send(200, { ok: true, created: !exists });
-    }
-    if (a === 'teacher_del') {
-      await redis(c, [['HDEL', P + 'teachers', String(b.user || '').toLowerCase()]]);
+    const u = String(b.user || '').toLowerCase();
+    if (a === 'tapprove') {
+      const [raw] = await redis(c, [['HGET', P + 'tapp', u]]);
+      const app = parse(raw);
+      if (!app) return send(404, { error: 'no_user' });
+      const rec = Object.assign(cleanTeacher(app), { t: Date.now(), room: 'ArJangou-' + crypto.randomBytes(9).toString('hex') });
+      const msg = { i: crypto.randomBytes(6).toString('hex'), f: 'sys', t: Date.now(), x: 'teacher_ok' };
+      await redis(c, [['HSET', P + 'teachers', u, JSON.stringify(rec)], ['HDEL', P + 'tapp', u], ['RPUSH', P + 'thr:dir:' + u, JSON.stringify(msg)],
+        ['HSET', P + 'thi:dir', u, JSON.stringify({ t: Date.now(), x: '✅', us: 1, ut: 0 })]]);
       return send(200, { ok: true });
     }
-    if (a === 'course_save') {
-      const id = String(b.id || '');
-      const def = COURSES.filter(x => x.id === id)[0];
-      if (!def) return send(400, { error: 'bad_course' });
-      const price = Math.round(+b.price);
-      if (!(price >= 0 && price <= 1000000)) return send(400, { error: 'bad_price' });
-      const per = ['mois', 'trimestre', 'an'].indexOf(b.per) > -1 ? b.per : 'mois';
-      await redis(c, [['HSET', P + 'courses', id, JSON.stringify({ price, per, active: b.active !== false, sched: cleanSched(b.sched, def.sched) })]]);
+    if (a === 'treject') {
+      const [raw] = await redis(c, [['HGET', P + 'tapp', u]]);
+      const app = parse(raw); if (!app) return send(404, { error: 'no_user' });
+      app.s = 'r'; await redis(c, [['HSET', P + 'tapp', u, JSON.stringify(app)]]);
+      return send(200, { ok: true });
+    }
+    if (a === 'tremove') {
+      await redis(c, [['HDEL', P + 'teachers', u], ['DEL', P + 'call:' + u]]);
       return send(200, { ok: true });
     }
     if (a === 'school_save') {
-      await redis(c, [['SET', P + 'school', JSON.stringify(Object.assign(cleanSched(b, SCHOOL), { tchat: b.tchat !== false }))]]);
-      return send(200, { ok: true });
-    }
-    if (a === 'pay_save') {
-      const clean = s => String(s || '').replace(/[^\d+ ]/g, '').trim().slice(0, 20);
-      await redis(c, [['SET', P + 'payinfo', JSON.stringify({ wave: clean(b.wave), om: clean(b.om), note: String(b.note || '').slice(0, 300) })]]);
+      const n = (x, lo, hi, def) => { x = Math.round(+x); return x >= lo && x <= hi ? x : def; };
+      await redis(c, [['SET', P + 'school', JSON.stringify(Object.assign(cleanSched(b, SCHOOL), {
+        first: n(b.first, 0, 1000000, SCHOOL.first), month: n(b.month, 0, 1000000, SCHOOL.month), max: n(b.max, 1, 200, SCHOOL.max) }))]]);
       return send(200, { ok: true });
     }
     return send(400, { error: 'bad_action' });

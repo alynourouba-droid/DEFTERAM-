@@ -314,96 +314,88 @@ function mockSupabase(state){
     } else console.log('  (code admin non fourni : tests du code sautés)');
     await v.close(); await ca.close(); }
 
-  console.log('\n7c. École en ligne : direction, enseignants, inscriptions, discussions texte et vocales');
+  console.log('\n7c. École Ar Jangou : profils, candidats enseignants, classes de 20, paiement à l’enseignant, appel de groupe');
   { STATS_ON=true; Object.keys(REDIS).filter(k=>k.startsWith('defteram:rl:')).forEach(k=>delete REDIS[k]);
-    const up=async(pg,id)=>{ await pg.goto(BASE+'#/p/compte'); await pg.waitForSelector('#acc .tabs2 button:nth-child(2)',{timeout:8000}); await pg.click('.tabs2 button:nth-child(2)'); await pg.fill('#aId',id); await pg.fill('#aPw','123456'); await pg.fill('#aPw2','123456'); await pg.click('#acc [type=submit]'); await pg.waitForTimeout(900); };
-    const login=async(pg,id,pw)=>{ await pg.goto(BASE+'#/p/compte'); await pg.waitForSelector('#aId',{timeout:8000}); await pg.fill('#aId',id); await pg.fill('#aPw',pw); await pg.click('#acc [type=submit]'); await pg.waitForTimeout(900); };
-    const C=(pg,a,body)=>pg.evaluate(([a,body])=>apiC(a,body?{body}:{}).then(j=>({ok:1,j}),e=>({err:e.code})),[a,body]);
+    const up=async(pg,id)=>{ await pg.goto(BASE+'#/p/compte'); await pg.waitForSelector('#acc .tabs2 button:nth-child(2)',{timeout:8000}); await pg.click('.tabs2 button:nth-child(2)'); await pg.fill('#aId',id); await pg.fill('#aPw','123456'); await pg.fill('#aPw2','123456'); await pg.click('#acc [type=submit]'); await pg.waitForTimeout(1000); };
+    const C=(pg,a,body,q)=>pg.evaluate(([a,body,q])=>apiC(a,Object.assign(body?{body}:{},q?{q}:{})).then(j=>({ok:1,j}),e=>({err:e.code})),[a,body,q]);
+    const prof=(pg,name,photo)=>pg.evaluate(([name,photo])=>{let d=null;if(photo){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#0a6';x.fillRect(0,0,64,64);d=c.toDataURL('image/jpeg',.8).split(',')[1]}
+      return apiAuth('profile',{method:'POST',body:{name,bio:'Bio de '+name,photo:d}}).then(j=>j.profile)},[name,photo]);
     const ca=await b.newContext({serviceWorkers:'block'}), pa=await newPage(ca,{name:'direction',allowErr:true,allow404:true});
-    await up(pa,'direction'); REDIS['defteram:admin']='direction';
-    let r=await C(pa,'teacher_set',{user:'oustaz.ba',password:'secret1',courses:['quran','arabe']}); ok(r.ok&&r.j.created, 'direction : crée le compte enseignant « oustaz.ba » (Coran + arabe)');
-    for(const u of ['prof.fr','prof.en','prof4','prof5']) await C(pa,'teacher_set',{user:u,password:'secret1',courses:['francais']});
-    r=await C(pa,'teacher_set',{user:'prof6',password:'secret1',courses:['anglais']}); ok(r.err==='max_teachers', '6e enseignant refusé (5 au maximum)');
-    r=await C(pa,'course_save',{id:'quran',price:1500,per:'mois',active:true,sched:{d:[1,3,5],from:'19:00',to:'20:30'}}); ok(r.ok, 'direction : prix et heures du cours de Coran');
-    r=await C(pa,'school_save',{d:[0,1,2,3,4,5,6],from:'00:00',to:'23:59',tchat:true}); ok(r.ok, 'direction : heures d’ouverture de l’école');
-    r=await pa.evaluate(()=>fetch('api/courses?a=list').then(x=>x.json())); ok(r.school.from==='00:00'&&r.courses[0].sched.from==='19:00'&&r.courses[0].price===1500, 'horaires et prix publiés');
-    await pa.reload(); await pa.waitForTimeout(1500); await pa.evaluate(()=>admin()); await pa.waitForTimeout(600); await pa.click('.tabs2 button:has-text("École")'); await pa.waitForTimeout(800);
-    ok(/Enseignants \(5 \/ 5\)/.test(await pa.textContent('#adm')) && /Heures d’ouverture/.test(await pa.textContent('#adm')), 'onglet « École » : enseignants et heures d’ouverture');
+    await up(pa,'direction'); REDIS['defteram:admin']='direction'; await pa.reload(); await pa.waitForTimeout(1500);
+    let r=await pa.evaluate(()=>fetch('api/courses?a=list').then(x=>x.json()));
+    ok(r.school.first===1000 && r.school.month===500 && r.school.max===20 && r.subjects.length===4, 'réglages : 1000 F puis 500 F par mois, 20 élèves par enseignant, 4 matières');
 
+    // Candidat enseignant : profil, demande, discussion avec la direction
+    const ct=await b.newContext({serviceWorkers:'block'}), pt=await newPage(ct,{name:'candidat',allowErr:true,allow404:true});
+    await up(pt,'oustaz.ba');
+    let pr=await prof(pt,'Oustaz Mamadou Ba',true); ok(pr && pr.name==='Oustaz Mamadou Ba' && pr.pv>0, 'profil : nom complet et photo enregistrés');
+    const ph=await pt.evaluate(u=>fetch('api/auth?a=photo&u='+u+'&v=1').then(r=>[r.status,r.headers.get('content-type')]),'oustaz.ba'); ok(ph[0]===200 && ph[1]==='image/jpeg', 'photo du profil visible');
+    await pt.reload(); await pt.waitForTimeout(1500); await pt.goto(BASE+'#/p/compte'); await pt.waitForTimeout(800);
+    ok(/Oustaz Mamadou Ba/.test(await pt.textContent('#acc .pcard')) && await pt.isVisible('#acc .pcard .av img'), 'Mon compte : carte de profil avec photo et nom');
+    await pt.goto(BASE+'#/p/devenir-enseignant'); await pt.waitForTimeout(1500);
+    await pt.click('#apg .chip:has-text("Coran")'); await pt.click('#apg .chip:has-text("arabe")');
+    await pt.fill('#apg textarea','Diplômé en sciences islamiques, 10 ans d’enseignement du Coran.'); await pt.fill('#apg input[aria-label="Wave"]','77 111 22 33');
+    await pt.click('#apg .btn.fill.wide'); await pt.waitForTimeout(1500);
+    ok(/en attente|direction va te parler/i.test(await pt.textContent('#apg')), 'candidat : demande envoyée, en attente');
+    r=await C(pt,'myclass'); ok(r.err==='not_teacher', 'pas encore enseignant avant la confirmation');
+    await pa.goto(BASE+'#/p/direction'); await pa.waitForTimeout(1500);
+    ok(/Oustaz Mamadou Ba/.test(await pa.textContent('#dsp')) && /10 ans/.test(await pa.textContent('#dsp')), 'direction : candidat visible avec son profil');
+    await pa.click('#dsp .btn.fill:has-text("Parler")'); await pa.waitForTimeout(1000);
+    await pa.fill('.ccomp textarea','Assalamou alaykoum Oustaz, parlons de votre classe.'); await pa.click('.cbtn.send'); await pa.waitForTimeout(700);
+    r=await C(pt,'me'); ok(r.ok && r.j.dir===1, 'candidat : reçoit le message de la direction');
+    r=await C(pt,'send',{room:'dir',text:'Wa alaykoum salam, je suis disponible le soir.'}); ok(r.ok, 'candidat : répond à la direction');
+    await pa.goto(BASE+'#/p/direction'); await pa.waitForTimeout(1300);
+    pa.once('dialog',d=>d.accept()); await pa.click('#dsp .btn:has-text("Accepter")'); await pa.waitForTimeout(1200);
+    r=await pa.evaluate(()=>fetch('api/courses?a=list').then(x=>x.json())); const T1=r.teachers.find(t=>t.u==='oustaz.ba');
+    ok(T1 && T1.name==='Oustaz Mamadou Ba' && T1.subjects.join()==='quran,arabe' && T1.pv>0 && T1.wave==='77 111 22 33', 'direction : enseignant confirmé, visible avec son profil');
+    r=await C(pt,'me'); ok(r.ok && r.j.teacher, 'le candidat devient enseignant');
+
+    // Élève : profil, choisit l'enseignant, paie 1000 F, l'enseignant confirme
     const cs=await b.newContext({serviceWorkers:'block'}), ps=await newPage(cs,{name:'eleve',allowErr:true,allow404:true});
-    await up(ps,'eleve.diallo');
+    await up(ps,'eleve.diallo'); await prof(ps,'Awa Diallo',false);
     await ps.goto(BASE); await ps.waitForTimeout(800);
-    ok(await ps.isVisible('.hero .scard') && /Cours en ligne/.test(await ps.textContent('.scard')), 'accueil : grande carte « École en ligne » en haut');
-    ok(!(await ps.$('.tile >> text=Cours en ligne')), 'plus de petite tuile « Cours en ligne » dans la liste');
-    await ps.click('.scard'); await ps.waitForTimeout(1000);
-    ok((await ps.$$('.sch-c')).length===4, 'école : 4 cours (Coran, arabe, français, anglais)');
-    ok(/1 500 FCFA/.test(await ps.textContent('#crs')) && /19:00–20:30/.test(await ps.textContent('#crs')), 'prix et heures de cours affichés');
-    ok(/Ouverte maintenant/.test(await ps.textContent('#crs .sch-head')), 'école ouverte maintenant (heures d’ouverture)');
-    await ps.click('.sch-c >> text=Cours de Coran'); await ps.waitForTimeout(600);
-    ok((await ps.$$('.crs-prog li')).length===4 && /tajwid/i.test(await ps.textContent('.crs-prog')), 'programme du cours de Coran (4 niveaux)');
-    ok(ps.url().endsWith('#/p/cours/quran'), 'lien direct du cours : #/p/cours/quran');
-    await ps.click('#crd .btn.fill.wide'); await ps.waitForTimeout(400); ok(/numéro/i.test(await ps.textContent('#crd .err')), 'numéro de téléphone obligatoire');
-    await ps.fill('#crPh','77 123 45 67'); await ps.fill('#crRef','TX-998'); await ps.click('#crd .btn.fill.wide'); await ps.waitForTimeout(1000);
-    ok(/En attente de confirmation/.test(await ps.textContent('#crd')), 'demande envoyée : « En attente de confirmation »');
-    r=await C(ps,'thread',{course:'quran'}); ok(r.err==='not_enrolled', 'pas de classe avant la confirmation');
-    r=await C(ps,'teach'); ok(r.err==='not_teacher', 'un élève n’a pas accès à l’Espace enseignant');
+    ok(/AR JANGOU/i.test(await ps.textContent('.scard')) && /Cours en ligne/.test(await ps.textContent('.scard')), 'accueil : grande carte « Cours en ligne · Ar Jangou »');
+    await ps.click('.scard'); await ps.waitForTimeout(1500);
+    ok(/Oustaz Mamadou Ba/.test(await ps.textContent('#crs .tcard')) && /20 places libres/.test(await ps.textContent('#crs .tcard')), 'école : carte de l’enseignant (photo, matières, 20 places)');
+    await ps.click('#crs .chip:has-text("Français")'); await ps.waitForTimeout(300); ok(!(await ps.$('#crs .tcard')), 'filtre par matière');
+    await ps.click('#crs .chip:has-text("Tous")'); await ps.waitForTimeout(300);
+    await ps.click('#crs .tcard'); await ps.waitForTimeout(1500);
+    ok(ps.url().endsWith('#/p/ecole/oustaz.ba'), 'lien direct de l’enseignant : #/p/ecole/oustaz.ba');
+    ok(/1 000 F/.test(await ps.textContent('#tpg .crs-pay')) && /77 111 22 33/.test(await ps.textContent('#tpg .crs-pay')), 'paiement : 1000 F au numéro de l’enseignant');
+    await ps.fill('#crPh','77 123 45 67'); await ps.fill('#crRef','TX-1'); await ps.click('#tpg .crs-pay .btn.fill.wide'); await ps.waitForTimeout(1500);
+    ok(/En attente/.test(await ps.textContent('#tpg')), 'élève : demande en attente');
+    r=await C(ps,'confirm',{student:'eleve.diallo'}); ok(r.err==='not_teacher', 'un élève ne peut pas confirmer un paiement');
     r=await C(ps,'staff'); ok(r.err==='not_admin', 'un élève n’a pas accès à la direction');
+    await pt.reload(); await pt.waitForTimeout(1500); await pt.goto(BASE+'#/p/enseignant'); await pt.waitForTimeout(1500);
+    ok(/Awa Diallo/.test(await pt.textContent('#tsp')) && /1 000 F/.test(await pt.textContent('#tsp')) && /TX-1/.test(await pt.textContent('#tsp')), 'enseignant : paiement à confirmer (élève, 1000 F, référence)');
+    await pt.click('#tsp .btn.fill:has-text("reçu")'); await pt.waitForTimeout(1300);
+    r=await C(ps,'me'); ok(r.ok && r.j.classes['oustaz.ba'].s==='a' && r.j.classes['oustaz.ba'].paid, 'paiement confirmé : l’élève est dans la classe');
+    r=await C(ps,'join',{teacher:'oustaz.ba',method:'wave',phone:'771234567'}); ok(r.ok && r.j.price===500, 'mois suivant : 500 F');
+    await C(pt,'refuse',{student:'eleve.diallo'});
+    await C(pt,'confirm',{student:'eleve.diallo'});
 
-    const ct=await b.newContext({serviceWorkers:'block'}), pt=await newPage(ct,{name:'enseignant',allowErr:true,allow404:true});
-    await login(pt,'oustaz.ba','secret1'); await pt.waitForTimeout(800);
-    await pt.click('#mBtn'); await pt.waitForTimeout(400); const dr=await pt.textContent('#drawer');
-    ok(/Espace enseignant/.test(dr) && !/Administration/.test(dr) && !/Direction de l’école/.test(dr), 'enseignant : Espace enseignant, sans administration ni direction');
-    r=await C(pt,'validate',{course:'quran',student:'eleve.diallo',months:1}); ok(r.err==='not_admin', 'seule la direction confirme les inscriptions');
-    r=await C(pt,'teach'); ok(r.ok&&r.j.courses.map(x=>x.id).join()==='quran,arabe' && !r.j.courses[0].students.length, 'enseignant : ses cours, sans les demandes de paiement');
+    // Classe : messages et appel de groupe
+    await ps.goto(BASE+'#/p/ecole/oustaz.ba'); await ps.waitForTimeout(1500);
+    await ps.click('#tpg .btn.fill:has-text("Ma classe")'); await ps.waitForTimeout(1000);
+    await ps.fill('.ccomp textarea','Assalamou alaykoum Oustaz !'); await ps.click('.cbtn.send'); await ps.waitForTimeout(700);
+    r=await C(pt,'myclass'); const st=r.j.students.find(s=>s.u==='eleve.diallo'); ok(st && st.ut===1 && st.name==='Awa Diallo', 'enseignant : 1 message de son élève (avec son nom)');
+    r=await C(pt,'send',{room:'c:oustaz.ba',student:'eleve.diallo',text:'Wa alaykoum salam Awa !'}); ok(r.ok, 'enseignant : répond à son élève');
+    r=await C(ps,'thread',{room:'c:oustaz.ba',student:'autre'}); ok(r.err==='not_teacher', 'un élève ne lit pas les messages des autres');
+    r=await C(ps,'call',{}); ok(r.err==='not_teacher', 'un élève ne peut pas lancer l’appel');
+    r=await C(pt,'call',{}); ok(r.ok && /^ArJangou-/.test(r.j.room), 'enseignant : démarre l’appel de groupe');
+    r=await C(ps,'me'); ok(r.ok && /^ArJangou-/.test(r.j.classes['oustaz.ba'].call), 'élève : voit l’appel en cours');
+    await ps.goto(BASE+'#/p/ecole/oustaz.ba'); await ps.waitForTimeout(1500); ok(/Rejoindre/.test(await ps.textContent('#tpg .callb')), 'élève : bouton « Rejoindre l’appel »');
+    await C(pt,'call',{stop:true}); r=await C(ps,'me'); ok(!r.j.classes['oustaz.ba'].call, 'appel terminé');
 
-    await pa.goto(BASE+'#/p/direction'); await pa.waitForTimeout(1200);
-    ok(/eleve\.diallo/.test(await pa.textContent('#dsp')) && /TX-998/.test(await pa.textContent('#dsp')), 'direction : demande visible (élève, numéro, référence)');
-    await pa.click('#dsp .btn.fill:has-text("1 mois")'); await pa.waitForTimeout(1000);
-    ok(JSON.parse(REDIS['defteram:enr:quran']['eleve.diallo']).s==='a', 'direction : inscription confirmée pour 1 mois');
-
-    await ps.goto(BASE+'#/p/cours/quran'); await ps.waitForTimeout(1300);
-    ok(/Inscrit jusqu/.test(await ps.textContent('#crd')), 'élève : inscrit');
-    await ps.click('#crd .btn.wide:has-text("direction")'); await ps.waitForTimeout(1000);
-    ok(/Inscription confirmée/.test(await ps.textContent('#cmsgs')), 'élève : message de la direction « Inscription confirmée »');
-    await ps.fill('.ccomp textarea','Merci ! À quelle heure commence le cours ?'); await ps.click('.cbtn.send'); await ps.waitForTimeout(700);
-    await ps.goto(BASE+'#/p/cours/quran'); await ps.waitForTimeout(1300);
-    await ps.click('#crd .btn.fill.wide'); await ps.waitForTimeout(900);
-    await ps.fill('.ccomp textarea','Assalamou alaykoum Oustaz, je suis débutant.'); await ps.click('.cbtn.send'); await ps.waitForTimeout(700);
-    ok(/débutant/.test(await ps.textContent('#cmsgs .cm.me')), 'classe : message texte de l’élève');
-    const fake='GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQRChYECGFOAZwH/////////';
-    r=await C(ps,'send',{course:'quran',audio:{data:fake,mime:'audio/webm;codecs=opus',dur:7}}); ok(r.ok&&r.j.msg.a, 'classe : message vocal de l’élève');
-    const vr=await ps.evaluate(id=>fetch('api/courses?a=voice&id='+id).then(x=>[x.status,x.headers.get('content-type')]),r.j.msg.a); ok(vr[0]===200&&/audio\/webm/.test(vr[1]), 'message vocal lisible (audio/webm)');
-    r=await C(ps,'send',{course:'quran',audio:{data:'x'.repeat(1200000),mime:'audio/webm',dur:9}}); ok(r.err==='audio_too_large', 'message vocal trop long refusé', r);
-    r=await C(ps,'thread',{course:'quran',student:'autre.eleve'}); ok(r.err==='not_teacher', 'un élève ne lit pas la classe d’un autre');
-    r=await C(ps,'thread',{course:'dir',student:'autre.eleve'}); ok(r.err==='not_admin', 'un élève ne lit pas les messages d’un autre avec la direction');
-    r=await C(ps,'send',{course:'prof',text:'x'}); ok(r.err==='not_teacher', 'un élève n’entre pas dans la salle des professeurs');
-
-    await pt.goto(BASE+'#/p/enseignant'); await pt.waitForTimeout(1000);
-    ok(/eleve\.diallo/.test(await pt.textContent('#tsp .tsp-th')) && /2/.test(await pt.textContent('#tsp .tsp-th .ub')), 'enseignant : classe avec 2 messages non lus');
-    await pt.click('#tsp .tsp-th'); await pt.waitForTimeout(900);
-    ok(/débutant/.test(await pt.textContent('#cmsgs')) && (await pt.$$('#cmsgs audio')).length===1, 'enseignant : voit le texte et le vocal de l’élève');
-    await pt.fill('.ccomp textarea','Wa alaykoum salam ! Commençons par les lettres.'); await pt.click('.cbtn.send'); await pt.waitForTimeout(700);
-    r=await C(pt,'send',{course:'prof',text:'Bonjour Direction, la classe a bien commencé.'}); ok(r.ok, 'enseignant → direction : salle des professeurs');
-    r=await C(ps,'me'); ok(r.ok&&r.j.enr.quran.unread===1, 'élève : 1 nouveau message de l’enseignant');
-    await ps.waitForTimeout(6600); ok(/Commençons/.test(await ps.textContent('#cmsgs')), 'élève : la réponse arrive toute seule');
-
-    r=await C(pa,'staff'); ok(r.ok && r.j.dir[0].u==='eleve.diallo' && r.j.dir[0].ut===1 && r.j.prof.find(t=>t.u==='oustaz.ba').ut===1, 'direction : 1 message d’élève et 1 message d’enseignant non lus');
-    await pa.goto(BASE+'#/p/direction'); await pa.waitForTimeout(900); await pa.click('#dsp .tabs2 button:nth-child(2)'); await pa.waitForTimeout(900); await pa.click('#dsp .tsp-th'); await pa.waitForTimeout(900);
-    ok(/quelle heure/.test(await pa.textContent('#cmsgs')), 'direction : lit le message de l’élève');
-    await pa.fill('.ccomp textarea','Le cours de Coran est lundi, mercredi et vendredi à 19h.'); await pa.click('.cbtn.send'); await pa.waitForTimeout(700);
-    r=await C(ps,'me'); ok(r.ok&&r.j.dir===1, 'élève : réponse de la direction reçue');
-    r=await C(pa,'thread',{course:'prof',student:'oustaz.ba'}); ok(r.ok && /bien commencé/.test(JSON.stringify(r.j.msgs)), 'direction : lit le message de l’enseignant');
-    r=await C(pa,'thread',{course:'quran',student:'eleve.diallo'}); ok(r.ok && r.j.msgs.length>=3, 'direction : peut lire la classe élève ↔ enseignant');
-    await C(pa,'school_save',{d:[0,1,2,3,4,5,6],from:'00:00',to:'23:59',tchat:false});
-    r=await C(ps,'send',{course:'quran',text:'test'}); ok(r.err==='chat_off', 'option : élèves ↔ direction seulement (classe fermée)');
-    r=await C(ps,'send',{course:'dir',text:'Toujours possible avec la direction'}); ok(r.ok, 'la discussion avec la direction reste ouverte');
-    await C(pa,'school_save',{d:[0,1,2,3,4,5,6],from:'00:00',to:'23:59',tchat:true});
+    // 20 élèves au maximum (ici réglé à 1 pour le test)
+    await C(pa,'school_save',{d:[1,2,3,4,5,6],from:'08:00',to:'22:00',first:1000,month:500,max:1});
     Object.keys(REDIS).filter(k=>k.startsWith('defteram:rl:')).forEach(k=>delete REDIS[k]);
-    const ci=await b.newContext({serviceWorkers:'block'}), pi=await newPage(ci,{name:'curieux',allowErr:true,allow404:true}); await up(pi,'curieux');
-    r=await C(pi,'thread',{course:'quran',student:'eleve.diallo'}); ok(r.err==='not_teacher', 'curieux : pas d’accès aux classes', r);
-    r=await C(pi,'send',{course:'quran',text:'spam'}); ok(r.err==='not_enrolled', 'curieux : ne peut pas écrire dans une classe sans inscription', r);
-    r=await C(pi,'send',{course:'dir',text:'Bonjour, comment s’inscrire ?'}); ok(r.ok, 'visiteur connecté : peut poser une question à la direction');
-    await ca.close(); await cs.close(); await ct.close(); await ci.close();
+    const c2=await b.newContext({serviceWorkers:'block'}), p2=await newPage(c2,{name:'eleve2',allowErr:true,allow404:true}); await up(p2,'eleve.deux');
+    r=await C(p2,'join',{teacher:'oustaz.ba',method:'wave',phone:'770000000'}); ok(r.err==='class_full', 'classe complète : nouvelle inscription refusée');
+    await C(pa,'school_save',{d:[1,2,3,4,5,6],from:'08:00',to:'22:00',first:1000,month:500,max:20});
+    r=await C(pa,'staff'); ok(r.ok && r.j.teachers.length===1 && r.j.teachers[0].count===1, 'direction : liste des enseignants et nombre d’élèves');
+    await C(pa,'tremove',{user:'oustaz.ba'}); r=await pa.evaluate(()=>fetch('api/courses?a=list').then(x=>x.json())); ok(!r.teachers.length, 'direction : peut retirer un enseignant');
+    await ca.close(); await ct.close(); await cs.close(); await c2.close();
   }
 
   console.log('\n7d. Bibliothèque Seydi El Hadji Malick Sy');
