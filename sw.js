@@ -2,7 +2,7 @@
 // - Pages : réseau d'abord (avec délai max), donc les nouveautés du site s'affichent dès l'ouverture.
 //   Sans connexion, la dernière version enregistrée est affichée.
 // - Autres fichiers du site : affichés depuis le cache puis rafraîchis en arrière-plan.
-const V='defteram-v22';
+const V='defteram-v23';
 const CORE=['./','./index.html','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(CORE.map(u=>new Request(u,{cache:'reload'})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
