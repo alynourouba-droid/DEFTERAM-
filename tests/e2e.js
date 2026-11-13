@@ -436,7 +436,8 @@ function mockSupabase(state){
     await p.goto(BASE+'#/c/parab'); await p.waitForTimeout(400); ok(!(await p.$('#cHead .mhead')), 'pas de présentation dans les autres catégories');
     await p.goto(BASE); await p.waitForTimeout(500); await p.click('.tile >> text=Habibou Ba'); await p.waitForTimeout(500);
     ok(/Thierno Mouhammad Habibou Ba/.test(await p.textContent('#cHead')) && await p.isVisible('#cHead img[src="img/habib-ba.jpg"]'), 'Poèmes de Thierno M. Habibou Ba : photo et présentation');
-    const th=await p.textContent('#list'); ok(/Sahi imtati/.test(th) && /Wa la-tala/.test(th) && !/Taala ishtiyaqi/.test(th), 'ses 2 poèmes (sans ceux d’un autre auteur)');
+    const th=await p.textContent('#list'); ok(/Sahi imtati/.test(th) && /Wa la-tala/.test(th) && /Amin tahayyuji/.test(th) && !/Taala ishtiyaqi/.test(th), 'ses 3 poèmes (sans ceux d’un autre auteur)');
+    await p.goto(BASE+'#/t/hb1'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===46 && await p.isVisible('#rAv[src="img/habib-ba-face.jpg"]'), 'nouveau poème : 46 vers, avec sa photo');
     await p.goto(BASE+'#/t/p6'); await p.waitForTimeout(500); ok(await p.isVisible('#rAv[src="img/habib-ba-face.jpg"]'), 'sa photo en haut de son poème');
     await p.goto(BASE+'#/t/p2'); await p.waitForTimeout(500); ok(!(await p.isVisible('#rAv')), 'pas de photo sur le poème d’un autre auteur');
     await ctx.close(); }
