@@ -1446,6 +1446,11 @@ function schoolCard(){var box=$('school');if(!box)return;box.innerHTML='';var s=
 
 /* Page de l'école : les enseignants, mes classes, devenir enseignant */
 var SUBF='';
+function schoolVideo(g){var vd=gel('video');vd.controls=true;vd.playsInline=true;vd.preload='none';vd.poster='videos/comptes-poster.jpg';vd.src='videos/comptes-ecole.mp4';
+ vd.setAttribute('aria-label',T('Vidéo : créer ton compte élève et enseignant','Video: create your student and teacher account','فيديو: إنشاء حساب الطالب والمعلّم'));
+ vd.style.cssText='width:100%;max-width:380px;display:block;margin:12px auto 10px;border-radius:18px;border:2px solid var(--sun);background:#06352c;aspect-ratio:9/16';
+ g.appendChild(gel('p','note','🎬 '+T('Vidéo pas à pas (avec la voix) : créer ton compte élève et enseignant, régler tes jours et tes heures.','Step-by-step video (with voice): create your student and teacher account, set your days and times.','فيديو خطوة بخطوة بالصوت.')));g.appendChild(vd);
+ var vs=gel('button','btn wide','📤 '+T('Partager cette vidéo','Share this video','مشاركة الفيديو'));vs.onclick=function(){var u=location.origin+'/videos/comptes-ecole.mp4';if(navigator.share)navigator.share({title:'DEFTERAM · Ar Jangou',url:u}).then(function(){stat('share')}).catch(function(){});else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){toast(T('Lien copié','Link copied','تم نسخ الرابط'))}).catch(function(){prompt('',u)});else prompt('',u)};g.appendChild(vs)}
 function coursesPage(){
  page('🏫 '+T('Cours en ligne','Online courses','دروس عن بعد'),'<div id="crs"></div>');$('pg').dataset.k='co';CRS.curT=null;
  function draw(){var g=$('crs');if(!g||$('pg').dataset.k!=='co')return;g.innerHTML='';var me=CRS.me,s=CRS.school;
@@ -1475,7 +1480,7 @@ function coursesPage(){
   g.appendChild(gr);
   var hw=gel('div','card sch-how');hw.appendChild(gel('b','',T('Comment ça marche ?','How does it work?','كيف يعمل؟')));
   var st=gel('div','sch-steps');[['🧑‍🏫',T('Choisis ton enseignant','Choose your teacher','اختر معلّمك')],['📲',T('Paie-le : ','Pay them: ','ادفع له: ')+fcfa((s||{}).first||1000)+T(', puis ',', then ','، ثم ')+fcfa((s||{}).month||500)+T('/mois','/month','/شهر')],['✅',T('Il confirme ton paiement','They confirm your payment','يؤكّد الدفع')],['📞',T('Cours, messages et appel de groupe','Lessons, messages and group calls','دروس ورسائل ومكالمات جماعية')]].forEach(function(x){var d=gel('div','');d.innerHTML='<i></i><span></span>';d.firstChild.textContent=x[0];d.lastChild.textContent=x[1];st.appendChild(d)});
-  hw.appendChild(st);g.appendChild(hw)}
+  hw.appendChild(st);schoolVideo(hw);g.appendChild(hw)}
  draw();cList(function(e){if(e&&!CRS.teachers){var g=$('crs');if(g){g.innerHTML='';g.appendChild(gel('p','note',cErr(e)))}return}draw();cMe(draw)})}
 
 /* Page d'un enseignant : profil, horaires, places, paiement, ma classe */
@@ -1556,7 +1561,7 @@ function applyPage(){
  cMe(function(){if(!$('apg'))return;g.innerHTML='';var me=CRS.me||{};
   if(me.teacher){g.appendChild(gel('p','cst big ok','✅ '+T('Tu es enseignant.','You are a teacher.','أنت معلّم.')));var b=gel('button','btn fill wide','👩‍🏫 '+T('Mon école','My school','مدرستي'));b.onclick=teacherSpace;g.appendChild(b);return}
   var steps=gel('div','card');steps.appendChild(gel('b','',T('Comment devenir enseignant ?','How to become a teacher?','كيف تصبح معلّما؟')));var ol=gel('ol','crs-steps');
-  [T('Remplis ce formulaire.','Fill in this form.','املأ هذا النموذج.'),T('La direction parle avec toi (messages ou vocal).','The direction talks with you (messages or voice).','تتحدث معك الإدارة.'),T('Tu paies ','You pay ','تدفع ')+fcfa((CRS.school||{tfee:500}).tfee)+T(' par mois à la direction. Après ton paiement, la direction confirme et ton école s’ouvre (20 élèves au maximum).',' per month to the direction. After your payment, the direction confirms and your school opens (20 students max).',' شهريا للإدارة، ثم تؤكّدك ويفتح فصلك.'),T('Tes élèves te paient directement : ','Your students pay you directly: ','يدفع لك طلابك مباشرة: ')+priceLine()+'.'].forEach(function(x){ol.appendChild(gel('li','',x))});steps.appendChild(ol);g.appendChild(steps);
+  [T('Remplis ce formulaire.','Fill in this form.','املأ هذا النموذج.'),T('La direction parle avec toi (messages ou vocal).','The direction talks with you (messages or voice).','تتحدث معك الإدارة.'),T('Tu paies ','You pay ','تدفع ')+fcfa((CRS.school||{tfee:500}).tfee)+T(' par mois à la direction. Après ton paiement, la direction confirme et ton école s’ouvre (20 élèves au maximum).',' per month to the direction. After your payment, the direction confirms and your school opens (20 students max).',' شهريا للإدارة، ثم تؤكّدك ويفتح فصلك.'),T('Tes élèves te paient directement : ','Your students pay you directly: ','يدفع لك طلابك مباشرة: ')+priceLine()+'.'].forEach(function(x){ol.appendChild(gel('li','',x))});steps.appendChild(ol);var sv0=gel('details','');sv0.appendChild(gel('summary','','🎬 '+T('Voir la vidéo pas à pas','Watch the step-by-step video','شاهد الفيديو')));schoolVideo(sv0);steps.appendChild(sv0);g.appendChild(steps);
   if(me.app&&me.app.s==='p'){g.appendChild(gel('div','cst big wait','⏳ '+T('Ta demande est envoyée. La direction va te parler.','Your request is sent. The direction will talk with you.','تم إرسال طلبك وستتحدث معك الإدارة.')))}
   if(me.app&&me.app.s==='r')g.appendChild(gel('div','cst big off','⛔ '+T('Ta demande n’a pas été acceptée. Parle avec la direction.','Your request was not accepted. Talk with the direction.','لم يُقبل طلبك. تحدّث مع الإدارة.')));
   var dr=gel('button','btn wide','💬 '+T('Parler avec la direction','Talk to the direction','تحدّث مع الإدارة')+(me.dir?' ('+me.dir+')':''));dr.style.marginBottom='12px';dr.onclick=function(){chatPage('dir')};g.appendChild(dr);
