@@ -436,7 +436,8 @@ function mockSupabase(state){
     await p.goto(BASE+'#/c/parab'); await p.waitForTimeout(400); ok(!(await p.$('#cHead .mhead')), 'pas de présentation dans les autres catégories');
     await p.goto(BASE); await p.waitForTimeout(500); await p.click('.tile >> text=Habibou Ba'); await p.waitForTimeout(500);
     ok(/Thierno Mouhammad Habibou Ba/.test(await p.textContent('#cHead')) && await p.isVisible('#cHead img[src="img/habib-ba.jpg"]'), 'Poèmes de Thierno M. Habibou Ba : photo et présentation');
-    const th=await p.textContent('#list'); ok(/Sahi imtati/.test(th) && /Wa la-tala/.test(th) && /Amin tahayyuji/.test(th) && !/Taala ishtiyaqi/.test(th), 'ses 3 poèmes (sans ceux d’un autre auteur)');
+    const th=await p.textContent('#list'); ok(/Sahi imtati/.test(th) && /Wa la-tala/.test(th) && /Amin tahayyuji/.test(th) && /Abâ Allâhu/.test(th) && !/Taala ishtiyaqi/.test(th), 'ses 4 poèmes (sans ceux d’un autre auteur)');
+    await p.goto(BASE+'#/t/hb2'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===34 && /ماءه/.test(await p.textContent('#rText')), 'Abâ Allâhu : 34 vers, avec la note « ماءه »');
     await p.goto(BASE); await p.waitForTimeout(500); await p.click('.tile >> text=Ahmadou Tidiane'); await p.waitForTimeout(500);
     ok(/Thierno Ahmadou Tidiane Ba/.test(await p.textContent('#cHead')) && await p.isVisible('#cHead img[src="img/ahmad-ba.jpg"]'), 'Poèmes de Thierno Ahmadou Tidiane Ba : photo et présentation');
     const ta=await p.textContent('#list'); ok(/Tawassuliyya/.test(ta) && /Taala ishtiyaqi/.test(ta) && /Sal mâ li-Salmâ/.test(ta) && !/Sahi imtati/.test(ta), 'ses 3 poèmes (Tawassuliyya, Taala ishtiyaqi, Sal mâ li-Salmâ)');
