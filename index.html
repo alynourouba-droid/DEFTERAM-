@@ -409,6 +409,10 @@ body.inchat nav{display:none}body.inchat .wrap{padding-bottom:16px}
 .pcard{display:flex;flex-direction:column;align-items:center;gap:6px}.pcard .note{color:var(--onhero);opacity:.85}.pcard .pbio{opacity:.95;line-height:1.5;margin:4px 0}.pcard .btn{margin-top:6px}
 .pprev{display:flex;justify-content:center;margin-bottom:10px}
 
+.sub.on{border-color:#2ecc71}.sub.off{border-color:#b3261e;background:rgba(179,38,30,.06)}.sub summary{cursor:pointer;font-weight:700;color:var(--accent);margin-top:8px}
+.paynote{font-weight:700;color:var(--accent);background:rgba(226,192,113,.18);border-radius:10px;padding:8px 10px;margin:6px 0}
+.fee{margin-top:12px}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.hero,.hero *,.hero::before,body::before{translate:none!important}.rv{opacity:1!important}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -1400,6 +1404,7 @@ function cErr(e){var k=e&&e.code;return k==='not_configured'||k==='404'||k==='50
  k==='class_full'?T('Cette classe est complète (20 élèves). Choisis un autre enseignant.','This class is full (20 students). Choose another teacher.','هذا الفصل ممتلئ (20 طالبا).'):
  k==='rate_limit'?T('Trop d’envois, réessaie dans une minute.','Too many attempts, try again in a minute.','محاولات كثيرة، أعد المحاولة بعد دقيقة.'):k==='audio_too_large'?T('Message vocal trop long (2 minutes au maximum).','Voice message too long (2 minutes max).','الرسالة الصوتية طويلة جدا.'):
  k==='not_enrolled'?T('Ton inscription n’est pas encore confirmée.','Your enrolment is not confirmed yet.','اشتراكك غير مؤكد بعد.'):k==='no_course'?T('Choisis au moins une matière.','Choose at least one subject.','اختر مادة واحدة على الأقل.'):
+ k==='school_closed'?T('Cette école est fermée pour le moment (abonnement de l’enseignant non payé).','This school is closed for now.','هذه المدرسة مغلقة حاليا.'):k==='bad_pay_phone'?T('Écris le numéro qui a payé la direction.','Enter the number that paid the direction.','اكتب الرقم الذي دفعت به.'):
  k==='already_teacher'?T('Tu es déjà enseignant.','You are already a teacher.','أنت معلّم بالفعل.'):k==='photo_too_large'?T('Photo trop lourde.','Photo too large.','الصورة كبيرة جدا.'):T('Erreur : ','Error: ','خطأ: ')+(k||(e&&e.message)||'')}
 function cMe(cb){if(!AUTH.s||!AUTH.on){CRS.me=null;cb&&cb();return}apiC('me').then(function(j){CRS.me=j;cb&&cb();if(view==='home')schoolCard()},function(){cb&&cb()})}
 function cList(cb){apiC('list').then(function(j){CRS.subjects=j.subjects;CRS.teachers=j.teachers;CRS.school=j.school;try{localStorage.setItem('defteram_school2',JSON.stringify(j))}catch(e){}cb&&cb()},function(e){cb&&cb(CRS.teachers?null:e)})}
@@ -1458,7 +1463,7 @@ function coursesPage(){
   if(!ts.length)g.appendChild(gel('p','note',T('Bientôt nos premiers enseignants, in shâ Allah. Tu enseignes le Coran, l’arabe, le français ou l’anglais ? Appuie sur « Devenir enseignant ».','Our first teachers are coming soon. Do you teach? Tap “Become a teacher”.','قريبا معلّمونا الأوائل إن شاء الله.')));
   ts.forEach(function(t){var b=gel('button','tcard'),max=(s&&s.max)||20,full=t.count>=max;b.appendChild(avatar(t.u,t.pv,t.name,'big'));
    var tx=gel('span','tx');tx.appendChild(gel('b','',t.name));tx.appendChild(gel('span','ts',t.subjects.map(function(id){return subj(id).icon}).join(' ')+' '+t.subjects.map(function(id){return L(subj(id).title).replace(/^Cours (de |d’)/,'')}).join(', ')));
-   tx.appendChild(gel('span','tp',full?'🔴 '+T('Classe complète','Class full','الفصل ممتلئ'):'🟢 '+(max-t.count)+' '+T('places libres','places left','أماكن متاحة')+' · '+t.count+'/'+max));
+   tx.appendChild(gel('span','tp',!t.active?'🔒 '+T('École fermée pour le moment','School closed for now','المدرسة مغلقة حاليا'):full?'🔴 '+T('Classe complète','Class full','الفصل ممتلئ'):'🟢 '+(max-t.count)+' '+T('places libres','places left','أماكن متاحة')+' · '+t.count+'/'+max));
    tx.appendChild(gel('span','th','🗓️ '+sched(t.sched)));b.appendChild(tx);b.onclick=function(){teacherPage(t.u)};gr.appendChild(b)});
   g.appendChild(gr);
   var hw=gel('div','card sch-how');hw.appendChild(gel('b','',T('Comment ça marche ?','How does it work?','كيف يعمل؟')));
@@ -1486,6 +1491,7 @@ function teacherPage(u,again){
   var cw=gel('button','btn wide','💬 '+T('Écrire à mon enseignant','Write to my teacher','راسل معلّمي'));cw.onclick=function(){chatPage('c:'+u)};g.appendChild(cw)}
  else if(!AUTH.s){var lg=gel('button','btn fill wide','👤 '+T('Connexion pour s’inscrire','Sign in to enrol','سجّل الدخول للاشتراك'));lg.onclick=account;g.appendChild(lg)}
  else if(u===(AUTH.s.user.email||AUTH.s.user.name))g.appendChild(gel('p','note',T('C’est ta page d’enseignant : les élèves la voient ainsi.','This is your teacher page: students see it like this.','هذه صفحتك كمعلّم.')));
+ else if(!t.active)g.appendChild(gel('div','cst big off','🔒 '+T('Cette école est fermée pour le moment. Reviens plus tard ou choisis un autre enseignant.','This school is closed for now. Come back later or choose another teacher.','هذه المدرسة مغلقة حاليا.')));
  else if(full&&!(c&&c.s==='x'))g.appendChild(gel('div','cst big off','🔴 '+T('Cette classe est complète. Choisis un autre enseignant.','This class is full. Choose another teacher.','الفصل ممتلئ. اختر معلّما آخر.')));
  else{if(c&&(c.s==='x'||c.s==='r'))g.appendChild(gel('div','cst big off',c.s==='x'?'⌛ '+T('Ton mois est terminé : paie le mois suivant.','Your month is over: pay the next month.','انتهى شهرك: ادفع الشهر التالي.'):'⛔ '+T('Paiement non confirmé : vérifie et renvoie ta demande.','Payment not confirmed: check and send again.','لم يتم تأكيد الدفع.')));joinForm(g,t,c&&c.paid)}
  var pg=gel('details','card sch-prog');pg.appendChild(gel('summary','','📋 '+T('Programme des cours','Course programme','برنامج الدروس')));
@@ -1504,6 +1510,15 @@ function joinForm(g,t,paid){var s=CRS.school||{first:1000,month:500},price=paid?
  go.onclick=function(){go.disabled=true;er.textContent='';apiC('join',{body:{teacher:t.u,method:method,phone:ph.value,ref:rf.value}}).then(function(){toast(T('Demande envoyée ✓','Request sent ✓','تم إرسال الطلب ✓'));cMe(function(){teacherPage(t.u,true)})},function(e){go.disabled=false;er.textContent=cErr(e)})};
  f.appendChild(go);g.appendChild(f)}
 
+/* Paiement de l'enseignant à la direction (500 F par mois) */
+function feeBox(g,title){var s=CRS.school||{tfee:500},f=gel('div','card crs-pay fee');f.appendChild(gel('b','','💰 '+title+' · '+fcfa(s.tfee)));
+ var ins=gel('ol','crs-steps');ins.appendChild(gel('li','',T('Envoie ','Send ','أرسل ')+fcfa(s.tfee)+T(' à la direction :',' to the direction:',' إلى الإدارة:')));
+ [['wave','🌊 Wave',s.dwave],['om','🟠 Orange Money',s.dom]].forEach(function(x){if(!x[2])return;var r=gel('span','crs-num');r.appendChild(gel('span','',x[1]+' : '));r.appendChild(gel('b','',x[2]));var cp=gel('button','btn','📋');cp.type='button';cp.setAttribute('aria-label',T('Copier le numéro','Copy the number','نسخ الرقم'));cp.onclick=function(){if(navigator.clipboard)navigator.clipboard.writeText(x[2].replace(/\s/g,'')).then(function(){toast(T('Numéro copié','Number copied','تم نسخ الرقم'))})};r.appendChild(cp);ins.firstChild.appendChild(r)});
+ ins.appendChild(gel('li','',T('Écris ton numéro qui a payé. La direction vérifie, puis ouvre ton école pour 1 mois.','Enter your number that paid. The direction checks, then opens your school for 1 month.','اكتب رقمك وستفتح الإدارة مدرستك لمدة شهر.')));f.appendChild(ins);
+ var ms=gel('div','tabs2'),m='wave';[['wave','🌊 Wave'],['om','🟠 Orange Money']].forEach(function(x){var b=gel('button',x[0]===m?'on':'',x[1]);b.type='button';b.onclick=function(){m=x[0];[].forEach.call(ms.children,function(z){z.classList.toggle('on',z===b)})};ms.appendChild(b)});f.appendChild(ms);
+ f.appendChild(gel('label','fld',T('Ton numéro qui a payé','Your number that paid','رقمك الذي دفعت به')));var ph=gel('input');ph.type='tel';ph.inputMode='tel';ph.placeholder='77 123 45 67';ph.setAttribute('aria-label',T('Numéro qui a payé la direction','Number that paid the direction','الرقم الذي دفعت به'));ph.className='feeph';f.appendChild(ph);
+ f.appendChild(gel('label','fld',T('Référence du paiement (facultatif)','Payment reference (optional)','رقم العملية (اختياري)')));var rf=gel('input');rf.setAttribute('aria-label','Référence');rf.className='feeref';f.appendChild(rf);
+ g.appendChild(f);return function(){return {method:m,phone:ph.value,ref:rf.value}}}
 /* Formulaire enseignant (devenir enseignant / modifier mon profil enseignant) */
 function teacherForm(g,v,action,done){var f=gel('div','card');v=v||{};
  if(!(AUTH.profile&&AUTH.profile.pv)){var pn=gel('p','wnote','📷 '+T('Ajoute d’abord ta photo et ton nom complet dans ton profil : les élèves te verront.','First add your photo and full name in your profile: students will see you.','أضف صورتك واسمك الكامل في ملفك أولا.'));var pb=gel('button','btn','👤 '+T('Mon profil','My profile','ملفي'));pb.onclick=account;pn.appendChild(document.createElement('br'));pn.appendChild(pb);f.appendChild(pn)}
@@ -1514,10 +1529,11 @@ function teacherForm(g,v,action,done){var f=gel('div','card');v=v||{};
  var tr=gel('div','trow'),f1=timeIn(sc.from,'Début'),f2=timeIn(sc.to,'Fin');tr.appendChild(gel('span','',T('De','From','من')));tr.appendChild(f1);tr.appendChild(gel('span','',T('à','to','إلى')));tr.appendChild(f2);f.appendChild(tr);
  f.appendChild(gel('label','fld','🌊 '+T('Ton numéro Wave (les élèves te paient ici)','Your Wave number (students pay you here)','رقمك في Wave')));var w=gel('input');w.type='tel';w.value=v.wave||'';w.setAttribute('aria-label','Wave');f.appendChild(w);
  f.appendChild(gel('label','fld','🟠 '+T('Ton numéro Orange Money','Your Orange Money number','رقمك في Orange Money')));var om=gel('input');om.type='tel';om.value=v.om||'';om.setAttribute('aria-label','Orange Money');f.appendChild(om);
+ var fee=action==='apply'?feeBox(f,T('Paiement du 1er mois à la direction','First month payment to the direction','دفع الشهر الأول للإدارة')):null;
  var er=gel('div','err');f.appendChild(er);
- var go=gel('button','btn fill wide',action==='apply'?'📨 '+T('Envoyer ma demande','Send my request','أرسل طلبي'):'💾 '+T('Enregistrer','Save','حفظ'));
+ var go=gel('button','btn fill wide',action==='apply'?'📨 '+T('J’ai payé, envoyer ma demande','I have paid, send my request','لقد دفعت، أرسل طلبي'):'💾 '+T('Enregistrer','Save','حفظ'));
  go.onclick=function(){go.disabled=true;er.textContent='';var subs=[].filter.call(cks.children,function(b){return b.classList.contains('on')}).map(function(b){return b.dataset.id});
-  apiC(action,{body:{subjects:subs,bio:bio.value,sched:{d:dp.val(),from:f1.value,to:f2.value},wave:w.value,om:om.value}}).then(function(){done()},function(e){go.disabled=false;er.textContent=cErr(e)})};
+  var fv=fee?fee():{};apiC(action,{body:{subjects:subs,bio:bio.value,sched:{d:dp.val(),from:f1.value,to:f2.value},wave:w.value,om:om.value,paym:fv.method,payph:fv.phone,payref:fv.ref}}).then(function(){done()},function(e){go.disabled=false;er.textContent=cErr(e)})};
  f.appendChild(go);g.appendChild(f)}
 function applyPage(){
  page('🧑‍🏫 '+T('Devenir enseignant','Become a teacher','كن معلّما'),'<div id="apg"></div>');$('pg').dataset.k='cand';$('pgB').onclick=bk(coursesPage);
@@ -1525,7 +1541,7 @@ function applyPage(){
  cMe(function(){if(!$('apg'))return;g.innerHTML='';var me=CRS.me||{};
   if(me.teacher){g.appendChild(gel('p','cst big ok','✅ '+T('Tu es enseignant.','You are a teacher.','أنت معلّم.')));var b=gel('button','btn fill wide','👩‍🏫 '+T('Mon école','My school','مدرستي'));b.onclick=teacherSpace;g.appendChild(b);return}
   var steps=gel('div','card');steps.appendChild(gel('b','',T('Comment devenir enseignant ?','How to become a teacher?','كيف تصبح معلّما؟')));var ol=gel('ol','crs-steps');
-  [T('Remplis ce formulaire.','Fill in this form.','املأ هذا النموذج.'),T('La direction parle avec toi (messages ou vocal).','The direction talks with you (messages or voice).','تتحدث معك الإدارة.'),T('La direction te confirme : ta classe s’ouvre (20 élèves au maximum).','The direction confirms you: your class opens (20 students max).','تؤكّدك الإدارة ويفتح فصلك (20 طالبا كحد أقصى).'),T('Tes élèves te paient directement : ','Your students pay you directly: ','يدفع لك طلابك مباشرة: ')+priceLine()+'.'].forEach(function(x){ol.appendChild(gel('li','',x))});steps.appendChild(ol);g.appendChild(steps);
+  [T('Remplis ce formulaire.','Fill in this form.','املأ هذا النموذج.'),T('La direction parle avec toi (messages ou vocal).','The direction talks with you (messages or voice).','تتحدث معك الإدارة.'),T('Tu paies ','You pay ','تدفع ')+fcfa((CRS.school||{tfee:500}).tfee)+T(' par mois à la direction. Après ton paiement, la direction confirme et ton école s’ouvre (20 élèves au maximum).',' per month to the direction. After your payment, the direction confirms and your school opens (20 students max).',' شهريا للإدارة، ثم تؤكّدك ويفتح فصلك.'),T('Tes élèves te paient directement : ','Your students pay you directly: ','يدفع لك طلابك مباشرة: ')+priceLine()+'.'].forEach(function(x){ol.appendChild(gel('li','',x))});steps.appendChild(ol);g.appendChild(steps);
   if(me.app&&me.app.s==='p'){g.appendChild(gel('div','cst big wait','⏳ '+T('Ta demande est envoyée. La direction va te parler.','Your request is sent. The direction will talk with you.','تم إرسال طلبك وستتحدث معك الإدارة.')))}
   if(me.app&&me.app.s==='r')g.appendChild(gel('div','cst big off','⛔ '+T('Ta demande n’a pas été acceptée. Parle avec la direction.','Your request was not accepted. Talk with the direction.','لم يُقبل طلبك. تحدّث مع الإدارة.')));
   var dr=gel('button','btn wide','💬 '+T('Parler avec la direction','Talk to the direction','تحدّث مع الإدارة')+(me.dir?' ('+me.dir+')':''));dr.style.marginBottom='12px';dr.onclick=function(){chatPage('dir')};g.appendChild(dr);
@@ -1537,7 +1553,14 @@ function teacherSpace(){
  var g=$('tsp');
  Promise.all([new Promise(function(ok){cList(function(){ok()})}),apiC('myclass')]).then(function(r){var j=r[1];if(!$('tsp'))return;g.innerHTML='';
   var meU=AUTH.s.user.email||AUTH.s.user.name,t=tById(meU)||{};
-  var cc=gel('div','callc');cc.appendChild(gel('b','','📞 '+T('Appel de groupe avec mes élèves','Group call with my students','مكالمة جماعية مع طلابي')));
+  var sb=gel('div','card sub '+(j.active?'on':'off'));
+  sb.appendChild(gel('b','',j.active?'🟢 '+T('Ton école est ouverte jusqu’au ','Your school is open until ','مدرستك مفتوحة حتى ')+cDate(j.until):'🔒 '+T('Ton école est fermée : paie ton mois à la direction.','Your school is closed: pay your month to the direction.','مدرستك مغلقة: ادفع شهرك للإدارة.')));
+  if(j.pay&&j.pay.s==='p')sb.appendChild(gel('p','note','⏳ '+T('Paiement envoyé : la direction vérifie.','Payment sent: the direction is checking.','تم إرسال الدفع: الإدارة تتحقق.')));
+  else{if(j.pay&&j.pay.s==='r')sb.appendChild(gel('p','err','⛔ '+T('Ton dernier paiement n’a pas été confirmé.','Your last payment was not confirmed.','لم يتم تأكيد دفعتك الأخيرة.')));
+   var pd=gel('details','');if(!j.active)pd.open=true;pd.appendChild(gel('summary','',T('Payer le mois suivant à la direction','Pay next month to the direction','ادفع الشهر القادم للإدارة')));var fv=feeBox(pd,T('Mon école · 1 mois','My school · 1 month','مدرستي · شهر'));
+   var pe=gel('div','err');pd.appendChild(pe);var pg2=gel('button','btn fill wide','✅ '+T('J’ai payé, envoyer','I have paid, send','لقد دفعت، أرسل'));pg2.onclick=function(){pg2.disabled=true;apiC('tpay',{body:fv()}).then(function(){toast(T('Envoyé ✓','Sent ✓','تم الإرسال ✓'));teacherSpace()},function(e){pg2.disabled=false;pe.textContent=cErr(e)})};pd.appendChild(pg2);sb.appendChild(pd)}
+  g.appendChild(sb);
+  var cc=gel('div','callc');if(!j.active)cc.classList.add('hide');cc.appendChild(gel('b','','📞 '+T('Appel de groupe avec mes élèves','Group call with my students','مكالمة جماعية مع طلابي')));
   cc.appendChild(gel('p','note',T('Jusqu’à 20 élèves, en audio ou en vidéo. Tes élèves voient « Rejoindre » dans l’application.','Up to 20 students, audio or video. Your students see “Join” in the app.','حتى 20 طالبا بالصوت أو الفيديو.')));
   var br=gel('div','bar');br.style.flexWrap='wrap';
   if(j.call){cc.classList.add('live');var jn=gel('button','btn fill','📞 '+T('Rejoindre l’appel','Join the call','انضم إلى المكالمة'));jn.onclick=function(){jitsi(j.call.room)};
@@ -1577,6 +1600,8 @@ function chatPage(room,other,oname){
  function sysText(x){var m=/^ok:(\d+)$/.exec(x||'');if(m)return '✅ '+T('Paiement confirmé : ta classe est ouverte jusqu’au ','Payment confirmed: your class is open until ','تم تأكيد الدفع: فصلك مفتوح حتى ')+cDate(+m[1]);
   if(x==='refused')return '⛔ '+T('Paiement non confirmé. Vérifie ton paiement puis renvoie ta demande.','Payment not confirmed. Check your payment and send again.','لم يتم تأكيد الدفع.');
   if(x==='removed')return T('Tu n’es plus dans cette classe.','You are no longer in this class.','لم تعد في هذا الفصل.');
+  var so=/^school_ok:(\d+)$/.exec(x||'');if(so)return '✅ '+T('Paiement reçu : ton école est ouverte jusqu’au ','Payment received: your school is open until ','تم استلام الدفع: مدرستك مفتوحة حتى ')+cDate(+so[1]);
+  if(x==='school_refused')return '⛔ '+T('Paiement de ton école non confirmé. Vérifie et renvoie.','Your school payment was not confirmed.','لم يتم تأكيد دفع مدرستك.');
   if(x==='teacher_ok')return '✅ '+T('Bienvenue ! Tu es maintenant enseignant à l’école Ar Jangou. Ouvre « Mon école ».','Welcome! You are now a teacher at the Ar Jangou school. Open “My school”.','مرحبا! أنت الآن معلّم في مدرسة أر جانغو.');return x}
  function add(m){if(seen[m.i])return;seen[m.i]=1;var mine=staff?m.f==='t':m.f==='s',d;
   if(m.f==='sys'){d=gel('div','cm sys',sysText(m.x))}
@@ -1637,19 +1662,27 @@ function directionSpace(){
    if(!j.apps.length)box.appendChild(gel('p','note',T('Aucune demande pour le moment.','No requests yet.','لا توجد طلبات.')));
    j.apps.forEach(function(a){var c=gel('div','tsp-req');var hd=gel('div','prow');hd.appendChild(avatar(a.u,a.pv,a.name,'big'));var tx=gel('div','');tx.appendChild(gel('b','',a.name));tx.appendChild(gel('p','note',a.subjects.map(function(id){return subj(id).icon+' '+L(subj(id).title)}).join(' · ')));hd.appendChild(tx);c.appendChild(hd);
     if(a.bio)c.appendChild(gel('p','tbio',a.bio));c.appendChild(gel('p','note','🗓️ '+sched(a.sched)+' · 🌊 '+(a.wave||'—')+' · 🟠 '+(a.om||'—')+' · '+cTime(a.t)));
+    if(a.pay)c.appendChild(gel('p','paynote','💰 '+fcfa(j.school.tfee)+' '+T('payé par','paid by','دفع عبر')+' '+(a.pay.m==='om'?'Orange Money':'Wave')+' · 📞 '+a.pay.ph+(a.pay.ref?' · Réf. '+a.pay.ref:'')+' — '+T('vérifie que tu as reçu l’argent avant d’accepter.','check that you received the money before accepting.','تحقق من استلام المال قبل القبول.')));
     var br=gel('div','bar');br.style.flexWrap='wrap';var tk=gel('button','btn fill','💬 '+T('Parler avec lui / elle','Talk with them','تحدّث معه'));tk.onclick=function(){chatPage('dir',a.u,a.name)};
     var ok=gel('button','btn','✅ '+T('Accepter','Accept','قبول'));ok.onclick=function(){if(!confirm(T('Accepter ','Accept ','قبول ')+a.name+T(' comme enseignant ?',' as a teacher?',' كمعلّم؟')))return;apiC('tapprove',{body:{user:a.u}}).then(function(){toast('✓');CRS.teachers=null;directionSpace()},function(e){toast(cErr(e))})};
     var no=gel('button','btn danger','⛔ '+T('Refuser','Refuse','رفض'));no.onclick=function(){if(!confirm(T('Refuser cette demande ?','Refuse this request?','رفض هذا الطلب؟')))return;apiC('treject',{body:{user:a.u}}).then(directionSpace,function(e){toast(cErr(e))})};
     br.appendChild(tk);br.appendChild(ok);br.appendChild(no);c.appendChild(br);box.appendChild(c)})}
-  if(DIRT==='en'){if(!j.teachers.length)box.appendChild(gel('p','note',T('Pas encore d’enseignant.','No teachers yet.','لا يوجد معلّمون بعد.')));
-   j.teachers.forEach(function(t){var row=gel('div','prow2');row.appendChild(thRow(t,function(){chatPage('prof',t.u,t.name)},t.subjects.map(function(id){return subj(id).icon}).join(' ')+' · '+t.count+'/'+j.school.max+' '+T('élèves','students','طالبا')));
+  if(DIRT==='en'){var tp=j.teachers.filter(function(t){return t.pay});if(tp.length){var pc=gel('div','card');pc.appendChild(gel('b','','💰 '+T('Paiements des enseignants à confirmer','Teacher payments to confirm','دفعات المعلّمين للتأكيد')+' ('+tp.length+')'));
+    tp.forEach(function(t){var r=gel('div','tsp-req');var hd=gel('div','prow');hd.appendChild(avatar(t.u,t.pv,t.name));hd.appendChild(gel('b','',t.name+' · '+fcfa(j.school.tfee)));r.appendChild(hd);r.appendChild(gel('p','note',(t.pay.m==='om'?'🟠 Orange Money':'🌊 Wave')+' · 📞 '+t.pay.ph+(t.pay.ref?' · Réf. '+t.pay.ref:'')+' · '+cTime(t.pay.t)));
+     var b2=gel('div','bar');b2.style.flexWrap='wrap';var ok=gel('button','btn fill','✅ '+T('Reçu : ouvrir 1 mois','Received: open 1 month','استلمت: افتح شهرا'));ok.onclick=function(){ok.disabled=true;apiC('tpayok',{body:{user:t.u}}).then(function(){toast('✓');CRS.teachers=null;directionSpace()},function(e){ok.disabled=false;toast(cErr(e))})};
+     var no=gel('button','btn danger','⛔ '+T('Pas reçu','Not received','لم أستلم'));no.onclick=function(){apiC('tpayno',{body:{user:t.u}}).then(directionSpace,function(e){toast(cErr(e))})};b2.appendChild(ok);b2.appendChild(no);r.appendChild(b2);pc.appendChild(r)});box.appendChild(pc)}
+   if(!j.teachers.length)box.appendChild(gel('p','note',T('Pas encore d’enseignant.','No teachers yet.','لا يوجد معلّمون بعد.')));
+   j.teachers.forEach(function(t){var row=gel('div','prow2');row.appendChild(thRow(t,function(){chatPage('prof',t.u,t.name)},t.subjects.map(function(id){return subj(id).icon}).join(' ')+' · '+t.count+'/'+j.school.max+' '+T('élèves','students','طالبا')+' · '+(t.active?'🟢 '+T('jusqu’au ','until ','حتى ')+cDate(t.until):'🔒 '+T('école fermée','school closed','المدرسة مغلقة'))));
     var rm=gel('button','btn danger','🗑️');rm.setAttribute('aria-label',T('Retirer','Remove','إزالة'));rm.onclick=function(){if(!confirm(T('Retirer ','Remove ','إزالة ')+t.name+T(' des enseignants ?',' from the teachers?',' من المعلّمين؟')))return;apiC('tremove',{body:{user:t.u}}).then(function(){CRS.teachers=null;directionSpace()},function(e){toast(cErr(e))})};row.appendChild(rm);box.appendChild(row)})}
   if(DIRT==='el'){if(!j.dir.length)box.appendChild(gel('p','note',T('Aucun message pour le moment.','No messages yet.','لا توجد رسائل.')));j.dir.forEach(function(t){box.appendChild(thRow(t,function(){chatPage('dir',t.u,t.name)}))})}
   if(DIRT==='re'){var sc=j.school,hc=gel('div','card');hc.appendChild(gel('b','','🕗 '+T('Heures d’ouverture (heure du Sénégal)','Opening hours (Senegal time)','ساعات الدوام')));
    var dp=dayPick(sc.d),f1=timeIn(sc.from,'Ouverture'),f2=timeIn(sc.to,'Fermeture');hc.appendChild(dp);var tr=gel('div','trow');tr.appendChild(gel('span','',T('De','From','من')));tr.appendChild(f1);tr.appendChild(gel('span','',T('à','to','إلى')));tr.appendChild(f2);hc.appendChild(tr);
    function num(lab,v){hc.appendChild(gel('label','fld',lab));var i=gel('input');i.type='number';i.min=0;i.value=v;i.setAttribute('aria-label',lab);hc.appendChild(i);return i}
+   var tf=num(T('Prix par mois payé par chaque enseignant à la direction, en F','Monthly price paid by each teacher to the direction, in F','الاشتراك الشهري للمعلّم'),sc.tfee);
+   hc.appendChild(gel('label','fld','🌊 '+T('Ton numéro Wave (les enseignants te paient ici)','Your Wave number (teachers pay you here)','رقمك في Wave')));var dw=gel('input');dw.type='tel';dw.value=sc.dwave||'';dw.setAttribute('aria-label','Wave direction');hc.appendChild(dw);
+   hc.appendChild(gel('label','fld','🟠 '+T('Ton numéro Orange Money','Your Orange Money number','رقمك في Orange Money')));var dm=gel('input');dm.type='tel';dm.value=sc.dom||'';dm.setAttribute('aria-label','Orange Money direction');hc.appendChild(dm);
    var p1=num(T('Prix de la 1re fois (payé à l’enseignant), en F','First payment (paid to the teacher), in F','الدفعة الأولى'),sc.first),p2=num(T('Prix de chaque mois suivant, en F','Each following month, in F','كل شهر'),sc.month),mx=num(T('Élèves au maximum par enseignant','Maximum students per teacher','الحد الأقصى للطلاب'),sc.max);
-   var sv=gel('button','btn fill wide','💾 '+T('Enregistrer','Save','حفظ'));sv.onclick=function(){apiC('school_save',{body:{d:dp.val(),from:f1.value,to:f2.value,first:+p1.value,month:+p2.value,max:+mx.value}}).then(function(){toast(T('Enregistré ✓','Saved ✓','تم الحفظ ✓'));cList()},function(e){toast(cErr(e))})};hc.appendChild(sv);box.appendChild(hc)}
+   var sv=gel('button','btn fill wide','💾 '+T('Enregistrer','Save','حفظ'));sv.onclick=function(){apiC('school_save',{body:{d:dp.val(),from:f1.value,to:f2.value,first:+p1.value,month:+p2.value,max:+mx.value,tfee:+tf.value,dwave:dw.value,dom:dm.value}}).then(function(){toast(T('Enregistré ✓','Saved ✓','تم الحفظ ✓'));cList()},function(e){toast(cErr(e))})};hc.appendChild(sv);box.appendChild(hc)}
  }).catch(function(e){if(!$('dsp'))return;g.innerHTML='';g.appendChild(gel('p','err',e&&e.code==='not_admin'?T('Réservé à la direction.','Direction only.','للإدارة فقط.'):cErr(e)))})}
 function dayPick(sel){var w=gel('div','dpick');for(var i=1;i<=7;i++){var d=i%7,l=gel('label'),c=gel('input');c.type='checkbox';c.value=d;c.checked=sel.indexOf(d)>-1;l.appendChild(c);l.appendChild(document.createTextNode(dName(d)));w.appendChild(l)}
  w.val=function(){return [].filter.call(w.querySelectorAll('input'),function(i){return i.checked}).map(function(i){return +i.value})};return w}

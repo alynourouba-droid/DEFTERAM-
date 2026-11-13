@@ -1,6 +1,7 @@
 // École en ligne DEFTERAM « Cours en ligne · Ar Jangou »
 // Chaque enseignant a sa classe (20 élèves au maximum). L'élève paie SON enseignant (1000 F la 1re fois, puis 500 F par mois)
 // par Wave ou Orange Money ; l'enseignant confirme le paiement reçu. La direction parle avec chaque candidat puis le confirme.
+// Chaque enseignant paie 500 F par mois à la direction : son école est ouverte seulement quand ce mois est payé et confirmé.
 // Public :
 //   GET  /api/courses?a=list                → réglages, matières (programmes), enseignants (profil, places, heures, numéros)
 //   GET  /api/courses?a=voice&id=<id>       → message vocal (lien secret)
@@ -11,10 +12,10 @@
 //   POST /api/courses?a=thread | send       { room, student?, text?, audio? }   → room : dir, prof, c:<enseignant>
 // Enseignant :
 //   GET  /api/courses?a=myclass             → élèves, demandes, appel
-//   POST /api/courses?a=confirm | refuse | remove { student }  · ?a=tprofile {…} · ?a=call { stop? }
+//   POST /api/courses?a=confirm | refuse | remove { student }  · ?a=tprofile {…} · ?a=call { stop? } · ?a=tpay { method, phone, ref }
 // Direction (administrateur) :
 //   GET  /api/courses?a=staff               → candidats, enseignants, messages
-//   POST /api/courses?a=tapprove | treject | tremove { user } · ?a=school_save { d, from, to, first, month, max }
+//   POST /api/courses?a=tapprove | treject | tremove | tpayok | tpayno { user } · ?a=school_save { d, from, to, first, month, max, tfee, dwave, dom }
 const crypto = require('crypto');
 const { P, cfg, redis, sha, readBody } = require('./_lib');
 
@@ -73,7 +74,8 @@ const COURSES = [
 const CIDS = COURSES.map(x => x.id);
 // Réglages de l'école (modifiables par la direction) : heures d'ouverture (heure du Sénégal = UTC),
 // prix payé par l'élève à son enseignant (1re fois, puis chaque mois), nombre maximum d'élèves par enseignant.
-const SCHOOL = { d: [1, 2, 3, 4, 5, 6], from: '08:00', to: '22:00', first: 1000, month: 500, max: 20 };
+const SCHOOL = { d: [1, 2, 3, 4, 5, 6], from: '08:00', to: '22:00', first: 1000, month: 500, max: 20, tfee: 500, dwave: '+221 710876405', dom: '+221 710876405' };
+const tActive = t => !!(t && t.until > Date.now());   // l'école de l'enseignant est ouverte (mois payé à la direction)
 const HM = /^([01]\d|2[0-3]):[0-5]\d$/;
 const parse = x => { try { return x ? JSON.parse(x) : null; } catch (e) { return null; } };
 const cleanSched = (s, def) => { s = s || {}; const d = [...new Set((Array.isArray(s.d) ? s.d : []).map(Number).filter(x => x >= 0 && x <= 6))].sort();
@@ -99,7 +101,8 @@ module.exports = async (req, res) => {
     const teachers = {}; for (let i = 0; traw && i < traw.length; i += 2) { const t = parse(traw[i + 1]); if (t && t.subjects) teachers[traw[i]] = t; }
     const sc = parse(scraw) || {};
     const school = Object.assign(cleanSched(sc, SCHOOL), {
-      first: sc.first >= 0 ? sc.first : SCHOOL.first, month: sc.month >= 0 ? sc.month : SCHOOL.month, max: sc.max > 0 ? sc.max : SCHOOL.max });
+      first: sc.first >= 0 ? sc.first : SCHOOL.first, month: sc.month >= 0 ? sc.month : SCHOOL.month, max: sc.max > 0 ? sc.max : SCHOOL.max,
+      tfee: sc.tfee >= 0 ? sc.tfee : SCHOOL.tfee, dwave: sc.dwave !== undefined ? sc.dwave : SCHOOL.dwave, dom: sc.dom !== undefined ? sc.dom : SCHOOL.dom });
     const TU = Object.keys(teachers);
     async function profiles(us) {
       if (!us.length) return {};
@@ -116,7 +119,7 @@ module.exports = async (req, res) => {
       const [pr, cn] = await Promise.all([profiles(TU), counts(TU)]);
       return send(200, {
         school, subjects: COURSES.map(x => ({ id: x.id, icon: x.icon, color: x.color, title: x.title, desc: x.desc, program: x.program })),
-        teachers: TU.map(u => Object.assign({ u, count: cn[u] || 0 }, pr[u], { subjects: teachers[u].subjects, bio: teachers[u].bio, sched: teachers[u].sched, wave: teachers[u].wave, om: teachers[u].om, t: teachers[u].t || 0 }))
+        teachers: TU.map(u => Object.assign({ u, count: cn[u] || 0 }, pr[u], { subjects: teachers[u].subjects, bio: teachers[u].bio, sched: teachers[u].sched, wave: teachers[u].wave, om: teachers[u].om, t: teachers[u].t || 0, active: tActive(teachers[u]) }))
           .sort((x, y) => x.t - y.t),
       });
     }
@@ -161,11 +164,12 @@ module.exports = async (req, res) => {
       const out = { user: nameOf(me), admin: isAdmin, teacher: isTeacher, app: app ? { s: app.s } : null, classes, unread, dir, prof };
       if (isTeacher) {
         const [cl, ti, call] = await redis(c, [['HVALS', P + 'cls:' + me], ['HGETALL', P + 'thi:c:' + me], ['GET', P + 'call:' + me]]);
-        out.tc = { pending: (cl || []).filter(v => (parse(v) || {}).s === 'p').length, unread: sumUt(ti), count: (cl || []).filter(v => status(parse(v)) === 'a').length, call: !!call };
+        out.tc = { pending: (cl || []).filter(v => (parse(v) || {}).s === 'p').length, unread: sumUt(ti), count: (cl || []).filter(v => status(parse(v)) === 'a').length, call: !!call,
+          active: tActive(teachers[me]), until: teachers[me].until || 0, pay: teachers[me].pay ? teachers[me].pay.s : null };
       }
       if (isAdmin) {
         const [ap, d1, d2] = await redis(c, [['HVALS', P + 'tapp'], ['HGETALL', P + 'thi:dir'], ['HGETALL', P + 'thi:prof']]);
-        out.adm = { apps: (ap || []).filter(v => (parse(v) || {}).s === 'p').length, dir: sumUt(d1), prof: sumUt(d2) };
+        out.adm = { apps: (ap || []).filter(v => (parse(v) || {}).s === 'p').length + TU.filter(u => teachers[u].pay && teachers[u].pay.s === 'p').length, dir: sumUt(d1), prof: sumUt(d2) };
       }
       return send(200, out);
     }
@@ -179,7 +183,7 @@ module.exports = async (req, res) => {
         st.push({ u, s: status(e), until: e.until || 0, m: e.m, ph: e.ph, ref: e.ref, t: e.t, price: e.price, paid: !!e.paid, ut: (th[u] || {}).ut || 0, x: (th[u] || {}).x || '', lt: (th[u] || {}).t || 0 }); }
       const pr = await profiles(st.map(s => s.u)); st.forEach(s => Object.assign(s, pr[s.u]));
       st.sort((x, y) => ({ p: 0, a: 1, x: 2, r: 3 }[x.s] - { p: 0, a: 1, x: 2, r: 3 }[y.s]) || (y.lt || y.t) - (x.lt || x.t));
-      return send(200, { students: st, max: school.max, call: parse(call), room: teachers[t].room });
+      return send(200, { students: st, max: school.max, call: parse(call), room: teachers[t].room, active: tActive(teachers[t]), until: teachers[t].until || 0, pay: teachers[t].pay || null });
     }
 
     if (a === 'staff') {
@@ -189,7 +193,8 @@ module.exports = async (req, res) => {
       const [pa, cn, pt] = await Promise.all([profiles(apps.map(x => x.u)), counts(TU), profiles(TU)]);
       apps.forEach(x => Object.assign(x, pa[x.u]));
       const prof = await threads(d2);
-      return send(200, { apps, teachers: TU.map(u => Object.assign({ u, count: cn[u] || 0, subjects: teachers[u].subjects, ut: (prof.find(t => t.u === u) || {}).ut || 0 }, pt[u])),
+      return send(200, { apps, teachers: TU.map(u => Object.assign({ u, count: cn[u] || 0, subjects: teachers[u].subjects, ut: (prof.find(t => t.u === u) || {}).ut || 0,
+          active: tActive(teachers[u]), until: teachers[u].until || 0, pay: teachers[u].pay && teachers[u].pay.s === 'p' ? teachers[u].pay : null }, pt[u])),
         dir: await threads(d1), prof, school });
     }
 
@@ -203,7 +208,9 @@ module.exports = async (req, res) => {
       const t = cleanTeacher(b);
       if (!t.subjects.length) return send(400, { error: 'no_course' });
       if (!t.wave && !t.om) return send(400, { error: 'bad_phone' });
-      await redis(c, [['HSET', P + 'tapp', me, JSON.stringify(Object.assign(t, { s: 'p', t: Date.now() }))]]);
+      const pay = { m: b.paym === 'om' ? 'om' : 'wave', ph: cleanNum(b.payph), ref: String(b.payref || '').trim().slice(0, 80), t: Date.now() };
+      if (pay.ph.replace(/\D/g, '').length < 7) return send(400, { error: 'bad_pay_phone' });
+      await redis(c, [['HSET', P + 'tapp', me, JSON.stringify(Object.assign(t, { s: 'p', t: Date.now(), pay }))]]);
       return send(200, { ok: true });
     }
     if (a === 'tprofile') {   // l'enseignant modifie ses matières, ses heures, ses numéros
@@ -215,10 +222,20 @@ module.exports = async (req, res) => {
       return send(200, { ok: true });
     }
 
+    if (a === 'tpay') {   // l'enseignant a payé son mois à la direction
+      if (!isTeacher) return send(403, { error: 'not_teacher' });
+      if (teachers[me].pay && teachers[me].pay.s === 'p') return send(409, { error: 'already_pending' });
+      const pay = { s: 'p', m: b.method === 'om' ? 'om' : 'wave', ph: cleanNum(b.phone), ref: String(b.ref || '').trim().slice(0, 80), t: Date.now() };
+      if (pay.ph.replace(/\D/g, '').length < 7) return send(400, { error: 'bad_phone' });
+      teachers[me].pay = pay; await redis(c, [['HSET', P + 'teachers', me, JSON.stringify(teachers[me])]]);
+      return send(200, { ok: true });
+    }
+
     if (a === 'join') {   // l'élève a payé son enseignant : il envoie sa demande
       const t = String(b.teacher || '');
       if (!teachers[t]) return send(404, { error: 'no_teacher' });
       if (t === me) return send(400, { error: 'self' });
+      if (!tActive(teachers[t])) return send(409, { error: 'school_closed' });
       if (await limited('join', 10)) return send(429, { error: 'rate_limit' });
       const phone = cleanNum(b.phone), ref = String(b.ref || '').trim().slice(0, 80);
       if (phone.replace(/\D/g, '').length < 7) return send(400, { error: 'bad_phone' });
@@ -241,6 +258,7 @@ module.exports = async (req, res) => {
       if (!o) return send(404, { error: 'no_student' });
       const now = Date.now(), msg = { i: crypto.randomBytes(6).toString('hex'), f: 'sys', n: nameOf(me), t: now };
       if (a === 'confirm') {
+        if (!tActive(teachers[t])) return send(409, { error: 'school_closed' });
         if (status(o) !== 'a' && (vals || []).filter(v => status(parse(v)) === 'a').length >= school.max) return send(409, { error: 'class_full' });
         o.s = 'a'; o.until = Math.max(now, o.until || 0) + 30 * DAY; o.paid = true; o.v = now; msg.x = 'ok:' + o.until;
       } else if (a === 'refuse') { o.s = 'r'; o.v = now; msg.x = 'refused'; }
@@ -253,6 +271,7 @@ module.exports = async (req, res) => {
 
     if (a === 'call') {   // appel de groupe (Jitsi Meet) de l'enseignant avec ses élèves
       if (!isTeacher) return send(403, { error: 'not_teacher' });
+      if (!tActive(teachers[me]) && !b.stop) return send(409, { error: 'school_closed' });
       let room = teachers[me].room;
       if (!room) { room = 'ArJangou-' + crypto.randomBytes(9).toString('hex'); teachers[me].room = room; await redis(c, [['HSET', P + 'teachers', me, JSON.stringify(teachers[me])]]); }
       if (b.stop) { await redis(c, [['DEL', P + 'call:' + me]]); return send(200, { ok: true, live: false }); }
@@ -318,7 +337,7 @@ module.exports = async (req, res) => {
       const [raw] = await redis(c, [['HGET', P + 'tapp', u]]);
       const app = parse(raw);
       if (!app) return send(404, { error: 'no_user' });
-      const rec = Object.assign(cleanTeacher(app), { t: Date.now(), room: 'ArJangou-' + crypto.randomBytes(9).toString('hex') });
+      const rec = Object.assign(cleanTeacher(app), { t: Date.now(), until: Date.now() + 30 * DAY, room: 'ArJangou-' + crypto.randomBytes(9).toString('hex') });
       const msg = { i: crypto.randomBytes(6).toString('hex'), f: 'sys', t: Date.now(), x: 'teacher_ok' };
       await redis(c, [['HSET', P + 'teachers', u, JSON.stringify(rec)], ['HDEL', P + 'tapp', u], ['RPUSH', P + 'thr:dir:' + u, JSON.stringify(msg)],
         ['HSET', P + 'thi:dir', u, JSON.stringify({ t: Date.now(), x: '✅', us: 1, ut: 0 })]]);
@@ -330,6 +349,16 @@ module.exports = async (req, res) => {
       app.s = 'r'; await redis(c, [['HSET', P + 'tapp', u, JSON.stringify(app)]]);
       return send(200, { ok: true });
     }
+    if (a === 'tpayok' || a === 'tpayno') {
+      const t = teachers[u]; if (!t) return send(404, { error: 'no_user' });
+      const now = Date.now(), msg = { i: crypto.randomBytes(6).toString('hex'), f: 'sys', t: now };
+      if (a === 'tpayok') { t.until = Math.max(now, t.until || 0) + 30 * DAY; t.pay = null; msg.x = 'school_ok:' + t.until; }
+      else { if (t.pay) t.pay.s = 'r'; msg.x = 'school_refused'; }
+      const [info] = await redis(c, [['HGET', P + 'thi:prof', u]]);
+      const inf = parse(info) || { ut: 0, us: 0 }; inf.t = now; inf.us = (inf.us || 0) + 1; inf.x = a === 'tpayok' ? '✅' : '⛔';
+      await redis(c, [['HSET', P + 'teachers', u, JSON.stringify(t)], ['RPUSH', P + 'thr:prof:' + u, JSON.stringify(msg)], ['HSET', P + 'thi:prof', u, JSON.stringify(inf)]]);
+      return send(200, { ok: true, until: t.until || 0 });
+    }
     if (a === 'tremove') {
       await redis(c, [['HDEL', P + 'teachers', u], ['DEL', P + 'call:' + u]]);
       return send(200, { ok: true });
@@ -337,7 +366,8 @@ module.exports = async (req, res) => {
     if (a === 'school_save') {
       const n = (x, lo, hi, def) => { x = Math.round(+x); return x >= lo && x <= hi ? x : def; };
       await redis(c, [['SET', P + 'school', JSON.stringify(Object.assign(cleanSched(b, SCHOOL), {
-        first: n(b.first, 0, 1000000, SCHOOL.first), month: n(b.month, 0, 1000000, SCHOOL.month), max: n(b.max, 1, 200, SCHOOL.max) }))]]);
+        first: n(b.first, 0, 1000000, SCHOOL.first), month: n(b.month, 0, 1000000, SCHOOL.month), max: n(b.max, 1, 200, SCHOOL.max),
+        tfee: n(b.tfee, 0, 1000000, SCHOOL.tfee), dwave: cleanNum(b.dwave), dom: cleanNum(b.dom) }))]]);
       return send(200, { ok: true });
     }
     return send(400, { error: 'bad_action' });

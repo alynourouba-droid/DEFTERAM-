@@ -88,6 +88,7 @@ Ils utilisent Playwright et Chromium. Le site est servi localement et Supabase e
 - Accueil : grande carte « Cours en ligne · Ar Jangou » en haut (heures d'ouverture, appel en cours).
 - Chaque compte a un **profil** : photo, nom complet, présentation (☰ → Mon compte).
 - **Enseignants** (nombre illimité) : ☰ → Cours en ligne → « Devenir enseignant ». La direction parle avec le candidat (messages / vocal) puis l'accepte.
+- Chaque enseignant **paie 500 F par mois à la direction** (Wave / Orange Money) : son école s'ouvre quand la direction confirme le paiement, et se ferme si le mois suivant n'est pas payé.
 - Chaque enseignant a **sa classe : 20 élèves au maximum**. L'élève **paie son enseignant** (Wave / Orange Money) : 1000 F la 1re fois, puis 500 F par mois ; l'enseignant confirme le paiement reçu.
 - Discussions texte + vocal : élève ↔ son enseignant, chacun ↔ direction, enseignant ↔ direction.
 - **Appel de groupe** : l'enseignant démarre un appel (Jitsi Meet, gratuit, audio ou vidéo) ; ses élèves voient « Rejoindre ».

@@ -335,11 +335,14 @@ function mockSupabase(state){
     await pt.goto(BASE+'#/p/devenir-enseignant'); await pt.waitForTimeout(1500);
     await pt.click('#apg .chip:has-text("Coran")'); await pt.click('#apg .chip:has-text("arabe")');
     await pt.fill('#apg textarea','Diplômé en sciences islamiques, 10 ans d’enseignement du Coran.'); await pt.fill('#apg input[aria-label="Wave"]','77 111 22 33');
+    ok(/500 F/.test(await pt.textContent('#apg .fee')), 'candidat : payer 500 F à la direction avant la confirmation');
+    await pt.fill('#apg .feeph','77 999 88 77'); await pt.fill('#apg .feeref','PAY-1');
     await pt.click('#apg .btn.fill.wide'); await pt.waitForTimeout(1500);
     ok(/en attente|direction va te parler/i.test(await pt.textContent('#apg')), 'candidat : demande envoyée, en attente');
     r=await C(pt,'myclass'); ok(r.err==='not_teacher', 'pas encore enseignant avant la confirmation');
     await pa.goto(BASE+'#/p/direction'); await pa.waitForTimeout(1500);
     ok(/Oustaz Mamadou Ba/.test(await pa.textContent('#dsp')) && /10 ans/.test(await pa.textContent('#dsp')), 'direction : candidat visible avec son profil');
+    ok(/500 F/.test(await pa.textContent('#dsp .paynote')) && /PAY-1/.test(await pa.textContent('#dsp .paynote')), 'direction : voit le paiement de 500 F du candidat');
     await pa.click('#dsp .btn.fill:has-text("Parler")'); await pa.waitForTimeout(1000);
     await pa.fill('.ccomp textarea','Assalamou alaykoum Oustaz, parlons de votre classe.'); await pa.click('.cbtn.send'); await pa.waitForTimeout(700);
     r=await C(pt,'me'); ok(r.ok && r.j.dir===1, 'candidat : reçoit le message de la direction');
@@ -347,7 +350,7 @@ function mockSupabase(state){
     await pa.goto(BASE+'#/p/direction'); await pa.waitForTimeout(1300);
     pa.once('dialog',d=>d.accept()); await pa.click('#dsp .btn:has-text("Accepter")'); await pa.waitForTimeout(1200);
     r=await pa.evaluate(()=>fetch('api/courses?a=list').then(x=>x.json())); const T1=r.teachers.find(t=>t.u==='oustaz.ba');
-    ok(T1 && T1.name==='Oustaz Mamadou Ba' && T1.subjects.join()==='quran,arabe' && T1.pv>0 && T1.wave==='77 111 22 33', 'direction : enseignant confirmé, visible avec son profil');
+    ok(T1 && T1.name==='Oustaz Mamadou Ba' && T1.subjects.join()==='quran,arabe' && T1.pv>0 && T1.wave==='77 111 22 33' && T1.active, 'direction : enseignant confirmé, son école ouverte 1 mois');
     r=await C(pt,'me'); ok(r.ok && r.j.teacher, 'le candidat devient enseignant');
 
     // Élève : profil, choisit l'enseignant, paie 1000 F, l'enseignant confirme
@@ -386,6 +389,22 @@ function mockSupabase(state){
     r=await C(ps,'me'); ok(r.ok && /^ArJangou-/.test(r.j.classes['oustaz.ba'].call), 'élève : voit l’appel en cours');
     await ps.goto(BASE+'#/p/ecole/oustaz.ba'); await ps.waitForTimeout(1500); ok(/Rejoindre/.test(await ps.textContent('#tpg .callb')), 'élève : bouton « Rejoindre l’appel »');
     await C(pt,'call',{stop:true}); r=await C(ps,'me'); ok(!r.j.classes['oustaz.ba'].call, 'appel terminé');
+    // Abonnement de l'enseignant : 500 F par mois à la direction
+    const until0=JSON.parse(REDIS['defteram:teachers']['oustaz.ba']).until;
+    r=await C(pt,'tpay',{method:'wave',phone:'77 999 88 77',ref:'PAY-2'}); ok(r.ok, 'enseignant : paie le mois suivant à la direction');
+    r=await C(pt,'tpay',{method:'wave',phone:'77 999 88 77'}); ok(r.err==='already_pending', 'un seul paiement en attente à la fois');
+    await pa.goto(BASE+'#/p/direction'); await pa.waitForTimeout(1000); await pa.click('#dsp .tabs2 button:nth-child(2)'); await pa.waitForTimeout(1200);
+    ok(/PAY-2/.test(await pa.textContent('#dsp')), 'direction : paiement de l’enseignant à confirmer');
+    await pa.click('#dsp .btn.fill:has-text("Reçu")'); await pa.waitForTimeout(1200);
+    const until1=JSON.parse(REDIS['defteram:teachers']['oustaz.ba']).until; ok(until1-until0>29*86400000, 'direction : école prolongée d’un mois');
+    r=await C(pt,'thread',{room:'prof'}); ok(r.ok && r.j.msgs.some(m=>/^school_ok:/.test(m.x)), 'enseignant : reçoit « école ouverte jusqu’au … »');
+    const rec=JSON.parse(REDIS['defteram:teachers']['oustaz.ba']); rec.until=Date.now()-1000; REDIS['defteram:teachers']['oustaz.ba']=JSON.stringify(rec);
+    r=await pa.evaluate(()=>fetch('api/courses?a=list').then(x=>x.json())); ok(r.teachers[0].active===false, 'mois non payé : école fermée');
+    r=await C(pt,'call',{}); ok(r.err==='school_closed', 'école fermée : pas d’appel de groupe');
+    r=await C(pt,'confirm',{student:'eleve.diallo'}); ok(r.err==='school_closed', 'école fermée : l’enseignant ne peut pas confirmer de paiement');
+    await pt.goto(BASE+'#/p/enseignant'); await pt.waitForTimeout(1300); ok(/école est fermée/.test(await pt.textContent('#tsp .sub')), 'Mon école : « Ton école est fermée : paie ton mois »');
+    await C(pt,'tpay',{method:'om',phone:'78 000 11 22'}); await C(pa,'tpayok',{user:'oustaz.ba'});
+    r=await pa.evaluate(()=>fetch('api/courses?a=list').then(x=>x.json())); ok(r.teachers[0].active===true, 'paiement confirmé : école rouverte');
 
     // 20 élèves au maximum (ici réglé à 1 pour le test)
     await C(pa,'school_save',{d:[1,2,3,4,5,6],from:'08:00',to:'22:00',first:1000,month:500,max:1});
