@@ -352,6 +352,11 @@ function mockSupabase(state){
     r=await pa.evaluate(()=>fetch('api/courses?a=list').then(x=>x.json())); const T1=r.teachers.find(t=>t.u==='oustaz.ba');
     ok(T1 && T1.name==='Oustaz Mamadou Ba' && T1.subjects.join()==='quran,arabe' && T1.pv>0 && T1.wave==='77 111 22 33' && T1.active, 'direction : enseignant confirmé, son école ouverte 1 mois');
     r=await C(pt,'me'); ok(r.ok && r.j.teacher, 'le candidat devient enseignant');
+    r=await C(pt,'tprofile',{subjects:['quran','arabe'],bio:'Diplômé.',wave:'77 111 22 33',slots:[{d:[1,2,3,4,5],from:'20:00',to:'22:00'},{d:[6,0],from:'08:00',to:'10:00'}]});
+    r=await pa.evaluate(()=>fetch('api/courses?a=list').then(x=>x.json())); const sl=r.teachers.find(t=>t.u==='oustaz.ba').slots;
+    ok(sl.length===2 && sl[0].from==='08:00' && sl[1].from==='20:00' && sl[0].d.join()==='0,6', 'enseignant : 2 horaires (matin le week-end, soir en semaine)');
+    await pt.goto(BASE+'#/p/enseignant'); await pt.waitForTimeout(1500);
+    ok((await pt.$$('#tsp .slot')).length===2, 'Mon école : horaires modifiables (matin, soir)');
 
     // Élève : profil, choisit l'enseignant, paie 1000 F, l'enseignant confirme
     const cs=await b.newContext({serviceWorkers:'block'}), ps=await newPage(cs,{name:'eleve',allowErr:true,allow404:true});
@@ -364,6 +369,7 @@ function mockSupabase(state){
     await ps.click('#crs .chip:has-text("Tous")'); await ps.waitForTimeout(300);
     await ps.click('#crs .tcard'); await ps.waitForTimeout(1500);
     ok(ps.url().endsWith('#/p/ecole/oustaz.ba'), 'lien direct de l’enseignant : #/p/ecole/oustaz.ba');
+    ok(/Matin/.test(await ps.textContent('#tpg .sch-hours')) && /Soir/.test(await ps.textContent('#tpg .sch-hours')), 'page de l’enseignant : horaires du matin et du soir');
     ok(/1 000 F/.test(await ps.textContent('#tpg .crs-pay')) && /77 111 22 33/.test(await ps.textContent('#tpg .crs-pay')), 'paiement : 1000 F au numéro de l’enseignant');
     await ps.fill('#crPh','77 123 45 67'); await ps.fill('#crRef','TX-1'); await ps.click('#tpg .crs-pay .btn.fill.wide'); await ps.waitForTimeout(1500);
     ok(/En attente/.test(await ps.textContent('#tpg')), 'élève : demande en attente');

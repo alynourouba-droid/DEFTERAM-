@@ -82,10 +82,14 @@ const cleanSched = (s, def) => { s = s || {}; const d = [...new Set((Array.isArr
   return { d: d.length ? d : def.d, from: HM.test(s.from) ? s.from : def.from, to: HM.test(s.to) ? s.to : def.to }; };
 const cleanNum = s => String(s || '').replace(/[^\d+ ]/g, '').trim().slice(0, 20);
 const status = e => !e ? null : e.s === 'a' ? (e.until > Date.now() ? 'a' : 'x') : e.s;   // a actif · p en attente · r refusé · x expiré
+// Horaires de l'enseignant : jusqu'à 4 créneaux (matin, après-midi, soir…), chacun avec ses jours et ses heures
+const cleanSlots = b => { const def = { d: [1, 3, 5], from: '20:00', to: '21:00' };
+  let arr = (Array.isArray(b.slots) ? b.slots : (b.sched ? [b.sched] : [])).slice(0, 4).map(x => cleanSched(x, def)).filter(x => x.from < x.to);
+  if (!arr.length) arr = [def]; return arr.sort((x, y) => x.from < y.from ? -1 : 1); };
 const cleanTeacher = b => ({
   subjects: (Array.isArray(b.subjects) ? b.subjects : []).filter(x => CIDS.indexOf(x) > -1).slice(0, 4),
   bio: String(b.bio || '').trim().slice(0, 1500),
-  sched: cleanSched(b.sched, { d: [1, 3, 5], from: '20:00', to: '21:00' }),
+  slots: cleanSlots(b), sched: cleanSlots(b)[0],
   wave: cleanNum(b.wave), om: cleanNum(b.om),
 });
 
@@ -119,7 +123,7 @@ module.exports = async (req, res) => {
       const [pr, cn] = await Promise.all([profiles(TU), counts(TU)]);
       return send(200, {
         school, subjects: COURSES.map(x => ({ id: x.id, icon: x.icon, color: x.color, title: x.title, desc: x.desc, program: x.program })),
-        teachers: TU.map(u => Object.assign({ u, count: cn[u] || 0 }, pr[u], { subjects: teachers[u].subjects, bio: teachers[u].bio, sched: teachers[u].sched, wave: teachers[u].wave, om: teachers[u].om, t: teachers[u].t || 0, active: tActive(teachers[u]) }))
+        teachers: TU.map(u => Object.assign({ u, count: cn[u] || 0 }, pr[u], { subjects: teachers[u].subjects, bio: teachers[u].bio, sched: teachers[u].sched, slots: teachers[u].slots || [teachers[u].sched], wave: teachers[u].wave, om: teachers[u].om, t: teachers[u].t || 0, active: tActive(teachers[u]) }))
           .sort((x, y) => x.t - y.t),
       });
     }

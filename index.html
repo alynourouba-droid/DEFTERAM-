@@ -413,6 +413,10 @@ body.inchat nav{display:none}body.inchat .wrap{padding-bottom:16px}
 .paynote{font-weight:700;color:var(--accent);background:rgba(226,192,113,.18);border-radius:10px;padding:8px 10px;margin:6px 0}
 .fee{margin-top:12px}
 
+.slots{display:grid;gap:10px;margin:6px 0}.slot{border:1.5px solid var(--sun);border-radius:16px;padding:10px 12px;background:rgba(226,192,113,.08)}
+.slh{display:flex;align-items:center;justify-content:space-between}.slh b{font-size:1rem}.slh .btn{padding:4px 10px}
+.th,.slt{white-space:pre-line}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.hero,.hero *,.hero::before,body::before{translate:none!important}.rv{opacity:1!important}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -1420,6 +1424,9 @@ function openPill(){var o=isOpen(CRS.school),p=gel('span','opill '+(o?'on':'off'
 function subj(id){return (CRS.subjects||[]).filter(function(c){return c.id===id})[0]||{icon:'🎓',title:{fr:id}}}
 function tById(u){return (CRS.teachers||[]).filter(function(t){return t.u===u})[0]}
 function avatar(u,pv,name,cls){var w=gel('span','av '+(cls||''));if(pv){var im=gel('img');im.src='api/auth?a=photo&u='+encodeURIComponent(u)+'&v='+pv;im.alt='';im.loading='lazy';im.decoding='async';w.appendChild(im)}else w.textContent=(name||u||'?').charAt(0).toUpperCase();return w}
+function slotsOf(t){return t&&t.slots&&t.slots.length?t.slots:(t&&t.sched?[t.sched]:[])}
+function slotName(s){var h=+String(s.from).split(':')[0];return h<12?'☀️ '+T('Matin','Morning','صباحا'):h<17?'🌤️ '+T('Après-midi','Afternoon','بعد الظهر'):'🌙 '+T('Soir','Evening','مساء')}
+function slotsText(t,sep){return slotsOf(t).map(function(s){return slotName(s)+' · '+sched(s)}).join(sep||'\n')}
 function priceLine(){var s=CRS.school||{first:1000,month:500};return fcfa(s.first)+' '+T('la 1re fois, puis ','the 1st time, then ','أول مرة، ثم ')+fcfa(s.month)+' / '+T('mois','month','شهر')}
 function cmeCount(){var m=CRS.me;if(!m)return 0;return (m.unread||0)+(m.dir||0)+(m.prof||0)+(m.tc?m.tc.pending+m.tc.unread:0)+(m.adm?m.adm.apps+m.adm.dir+m.adm.prof:0)}
 function liveCalls(){var m=CRS.me,o=[];if(m&&m.classes)Object.keys(m.classes).forEach(function(t){if(m.classes[t].call)o.push({t:t,room:m.classes[t].call})});return o}
@@ -1464,7 +1471,7 @@ function coursesPage(){
   ts.forEach(function(t){var b=gel('button','tcard'),max=(s&&s.max)||20,full=t.count>=max;b.appendChild(avatar(t.u,t.pv,t.name,'big'));
    var tx=gel('span','tx');tx.appendChild(gel('b','',t.name));tx.appendChild(gel('span','ts',t.subjects.map(function(id){return subj(id).icon}).join(' ')+' '+t.subjects.map(function(id){return L(subj(id).title).replace(/^Cours (de |d’)/,'')}).join(', ')));
    tx.appendChild(gel('span','tp',!t.active?'🔒 '+T('École fermée pour le moment','School closed for now','المدرسة مغلقة حاليا'):full?'🔴 '+T('Classe complète','Class full','الفصل ممتلئ'):'🟢 '+(max-t.count)+' '+T('places libres','places left','أماكن متاحة')+' · '+t.count+'/'+max));
-   tx.appendChild(gel('span','th','🗓️ '+sched(t.sched)));b.appendChild(tx);b.onclick=function(){teacherPage(t.u)};gr.appendChild(b)});
+   tx.appendChild(gel('span','th',slotsText(t)));b.appendChild(tx);b.onclick=function(){teacherPage(t.u)};gr.appendChild(b)});
   g.appendChild(gr);
   var hw=gel('div','card sch-how');hw.appendChild(gel('b','',T('Comment ça marche ?','How does it work?','كيف يعمل؟')));
   var st=gel('div','sch-steps');[['🧑‍🏫',T('Choisis ton enseignant','Choose your teacher','اختر معلّمك')],['📲',T('Paie-le : ','Pay them: ','ادفع له: ')+fcfa((s||{}).first||1000)+T(', puis ',', then ','، ثم ')+fcfa((s||{}).month||500)+T('/mois','/month','/شهر')],['✅',T('Il confirme ton paiement','They confirm your payment','يؤكّد الدفع')],['📞',T('Cours, messages et appel de groupe','Lessons, messages and group calls','دروس ورسائل ومكالمات جماعية')]].forEach(function(x){var d=gel('div','');d.innerHTML='<i></i><span></span>';d.firstChild.textContent=x[0];d.lastChild.textContent=x[1];st.appendChild(d)});
@@ -1481,7 +1488,7 @@ function teacherPage(u,again){
  tx.appendChild(gel('span','ts',t.subjects.map(function(id){return subj(id).icon+' '+L(subj(id).title)}).join(' · ')));
  tx.appendChild(gel('span','tp',(full?'🔴 '+T('Classe complète','Class full','الفصل ممتلئ'):'🟢 '+(s.max-t.count)+' '+T('places libres','places left','أماكن متاحة'))+' · '+t.count+'/'+s.max+' '+T('élèves','students','طالبا')));hd.appendChild(tx);g.appendChild(hd);
  if(t.bio)g.appendChild(gel('p','card tbio',t.bio));
- var hr=gel('div','card sch-hours');hr.appendChild(gel('b','','🗓️ '+T('Heures de cours','Class times','أوقات الدرس')));hr.appendChild(gel('p','big1',sched(t.sched)));
+ var hr=gel('div','card sch-hours');hr.appendChild(gel('b','','🗓️ '+T('Heures de cours','Class times','أوقات الدرس')));slotsOf(t).forEach(function(x){hr.appendChild(gel('p','big1',slotName(x)+' · '+sched(x)))});
  hr.appendChild(gel('p','note','💰 '+priceLine()));g.appendChild(hr);
  if(c&&c.s==='a'){if(c.call)g.appendChild(callBanner({t:u,room:c.call}));
   g.appendChild(gel('div','cst big ok','✅ '+T('Inscrit jusqu’au ','Enrolled until ','مسجّل حتى ')+cDate(c.until)));
@@ -1525,15 +1532,23 @@ function teacherForm(g,v,action,done){var f=gel('div','card');v=v||{};
  f.appendChild(gel('label','fld',T('Ce que tu enseignes','What you teach','ما تدرّسه')));
  var cks=gel('div','chips');(CRS.subjects||[]).forEach(function(c){var b=gel('button','chip'+((v.subjects||[]).indexOf(c.id)>-1?' on':''),c.icon+' '+L(c.title));b.type='button';b.dataset.id=c.id;b.onclick=function(){b.classList.toggle('on')};cks.appendChild(b)});f.appendChild(cks);
  f.appendChild(gel('label','fld',T('Présente-toi (études, expérience)','Introduce yourself (studies, experience)','عرّف بنفسك (الدراسة والخبرة)')));var bio=gel('textarea');bio.value=v.bio||'';bio.maxLength=1500;bio.style.minHeight='110px';bio.setAttribute('aria-label','bio');f.appendChild(bio);
- f.appendChild(gel('label','fld',T('Jours et heures de cours','Class days and times','أيام وأوقات الدرس')));var sc=v.sched||{d:[1,3,5],from:'20:00',to:'21:00'},dp=dayPick(sc.d);f.appendChild(dp);
- var tr=gel('div','trow'),f1=timeIn(sc.from,'Début'),f2=timeIn(sc.to,'Fin');tr.appendChild(gel('span','',T('De','From','من')));tr.appendChild(f1);tr.appendChild(gel('span','',T('à','to','إلى')));tr.appendChild(f2);f.appendChild(tr);
+ f.appendChild(gel('label','fld',T('Mes horaires de cours : jours et heures (matin, après-midi, soir)','My class times: days and hours (morning, afternoon, evening)','أوقات دروسي: الأيام والساعات')));
+ var sl=gel('div','slots');f.appendChild(sl);var rows=[];
+ function addSlot(x){if(rows.length>=4)return;var r=gel('div','slot'),hd=gel('div','slh'),nm3=gel('b','');hd.appendChild(nm3);var rm=gel('button','btn danger','✕');rm.type='button';rm.setAttribute('aria-label',T('Enlever cet horaire','Remove this time','إزالة'));hd.appendChild(rm);r.appendChild(hd);
+  var dp=dayPick(x.d);r.appendChild(dp);var tr=gel('div','trow'),f1=timeIn(x.from,T('Début','Start','البداية')),f2=timeIn(x.to,T('Fin','End','النهاية'));tr.appendChild(gel('span','',T('De','From','من')));tr.appendChild(f1);tr.appendChild(gel('span','',T('à','to','إلى')));tr.appendChild(f2);r.appendChild(tr);
+  function lab(){nm3.textContent=slotName({from:f1.value||'08:00'})}lab();f1.oninput=f1.onchange=lab;
+  var o={el:r,val:function(){return {d:dp.val(),from:f1.value,to:f2.value}}};rm.onclick=function(){if(rows.length<2)return;rows.splice(rows.indexOf(o),1);r.remove();upd()};rows.push(o);sl.appendChild(r);upd()}
+ var qa=gel('div','chips slq');[['☀️ '+T('Matin','Morning','صباحا'),'08:00','10:00'],['🌤️ '+T('Après-midi','Afternoon','بعد الظهر'),'15:00','17:00'],['🌙 '+T('Soir','Evening','مساء'),'20:00','22:00']].forEach(function(x){var b=gel('button','chip','+ '+x[0]);b.type='button';b.onclick=function(){addSlot({d:[1,2,3,4,5],from:x[1],to:x[2]})};qa.appendChild(b)});
+ function upd(){qa.classList.toggle('hide',rows.length>=4)}
+ f.appendChild(gel('p','note',T('Ajoute un horaire :','Add a time:','أضف وقتا:')));f.appendChild(qa);
+ slotsOf(v).length?slotsOf(v).forEach(addSlot):addSlot({d:[1,3,5],from:'20:00',to:'21:00'});
  f.appendChild(gel('label','fld','🌊 '+T('Ton numéro Wave (les élèves te paient ici)','Your Wave number (students pay you here)','رقمك في Wave')));var w=gel('input');w.type='tel';w.value=v.wave||'';w.setAttribute('aria-label','Wave');f.appendChild(w);
  f.appendChild(gel('label','fld','🟠 '+T('Ton numéro Orange Money','Your Orange Money number','رقمك في Orange Money')));var om=gel('input');om.type='tel';om.value=v.om||'';om.setAttribute('aria-label','Orange Money');f.appendChild(om);
  var fee=action==='apply'?feeBox(f,T('Paiement du 1er mois à la direction','First month payment to the direction','دفع الشهر الأول للإدارة')):null;
  var er=gel('div','err');f.appendChild(er);
  var go=gel('button','btn fill wide',action==='apply'?'📨 '+T('J’ai payé, envoyer ma demande','I have paid, send my request','لقد دفعت، أرسل طلبي'):'💾 '+T('Enregistrer','Save','حفظ'));
  go.onclick=function(){go.disabled=true;er.textContent='';var subs=[].filter.call(cks.children,function(b){return b.classList.contains('on')}).map(function(b){return b.dataset.id});
-  var fv=fee?fee():{};apiC(action,{body:{subjects:subs,bio:bio.value,sched:{d:dp.val(),from:f1.value,to:f2.value},wave:w.value,om:om.value,paym:fv.method,payph:fv.phone,payref:fv.ref}}).then(function(){done()},function(e){go.disabled=false;er.textContent=cErr(e)})};
+  var fv=fee?fee():{};apiC(action,{body:{subjects:subs,bio:bio.value,slots:rows.map(function(o){return o.val()}),wave:w.value,om:om.value,paym:fv.method,payph:fv.phone,payref:fv.ref}}).then(function(){done()},function(e){go.disabled=false;er.textContent=cErr(e)})};
  f.appendChild(go);g.appendChild(f)}
 function applyPage(){
  page('🧑‍🏫 '+T('Devenir enseignant','Become a teacher','كن معلّما'),'<div id="apg"></div>');$('pg').dataset.k='cand';$('pgB').onclick=bk(coursesPage);
@@ -1661,7 +1676,7 @@ function directionSpace(){
   if(DIRT==='ca'){box.appendChild(gel('p','note',T('Parle avec chaque candidat (💬) avant de l’accepter.','Talk with each applicant (💬) before accepting them.','تحدّث مع كل مرشح قبل قبوله.')));
    if(!j.apps.length)box.appendChild(gel('p','note',T('Aucune demande pour le moment.','No requests yet.','لا توجد طلبات.')));
    j.apps.forEach(function(a){var c=gel('div','tsp-req');var hd=gel('div','prow');hd.appendChild(avatar(a.u,a.pv,a.name,'big'));var tx=gel('div','');tx.appendChild(gel('b','',a.name));tx.appendChild(gel('p','note',a.subjects.map(function(id){return subj(id).icon+' '+L(subj(id).title)}).join(' · ')));hd.appendChild(tx);c.appendChild(hd);
-    if(a.bio)c.appendChild(gel('p','tbio',a.bio));c.appendChild(gel('p','note','🗓️ '+sched(a.sched)+' · 🌊 '+(a.wave||'—')+' · 🟠 '+(a.om||'—')+' · '+cTime(a.t)));
+    if(a.bio)c.appendChild(gel('p','tbio',a.bio));c.appendChild(gel('p','note slt',slotsText(a)));c.appendChild(gel('p','note','🌊 '+(a.wave||'—')+' · 🟠 '+(a.om||'—')+' · '+cTime(a.t)));
     if(a.pay)c.appendChild(gel('p','paynote','💰 '+fcfa(j.school.tfee)+' '+T('payé par','paid by','دفع عبر')+' '+(a.pay.m==='om'?'Orange Money':'Wave')+' · 📞 '+a.pay.ph+(a.pay.ref?' · Réf. '+a.pay.ref:'')+' — '+T('vérifie que tu as reçu l’argent avant d’accepter.','check that you received the money before accepting.','تحقق من استلام المال قبل القبول.')));
     var br=gel('div','bar');br.style.flexWrap='wrap';var tk=gel('button','btn fill','💬 '+T('Parler avec lui / elle','Talk with them','تحدّث معه'));tk.onclick=function(){chatPage('dir',a.u,a.name)};
     var ok=gel('button','btn','✅ '+T('Accepter','Accept','قبول'));ok.onclick=function(){if(!confirm(T('Accepter ','Accept ','قبول ')+a.name+T(' comme enseignant ?',' as a teacher?',' كمعلّم؟')))return;apiC('tapprove',{body:{user:a.u}}).then(function(){toast('✓');CRS.teachers=null;directionSpace()},function(e){toast(cErr(e))})};
