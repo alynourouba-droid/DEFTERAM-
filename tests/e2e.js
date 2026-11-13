@@ -439,7 +439,8 @@ function mockSupabase(state){
     const th=await p.textContent('#list'); ok(/Sahi imtati/.test(th) && /Wa la-tala/.test(th) && /Amin tahayyuji/.test(th) && !/Taala ishtiyaqi/.test(th), 'ses 3 poèmes (sans ceux d’un autre auteur)');
     await p.goto(BASE); await p.waitForTimeout(500); await p.click('.tile >> text=Ahmadou Tidiane'); await p.waitForTimeout(500);
     ok(/Thierno Ahmadou Tidiane Ba/.test(await p.textContent('#cHead')) && await p.isVisible('#cHead img[src="img/ahmad-ba.jpg"]'), 'Poèmes de Thierno Ahmadou Tidiane Ba : photo et présentation');
-    const ta=await p.textContent('#list'); ok(/Tawassuliyya/.test(ta) && /Taala ishtiyaqi/.test(ta) && !/Sahi imtati/.test(ta), 'ses 2 poèmes (Tawassuliyya et Taala ishtiyaqi)');
+    const ta=await p.textContent('#list'); ok(/Tawassuliyya/.test(ta) && /Taala ishtiyaqi/.test(ta) && /Sal mâ li-Salmâ/.test(ta) && !/Sahi imtati/.test(ta), 'ses 3 poèmes (Tawassuliyya, Taala ishtiyaqi, Sal mâ li-Salmâ)');
+    await p.goto(BASE+'#/t/ah2'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===46, 'Sal mâ li-Salmâ : 46 vers');
     await p.goto(BASE+'#/t/ah1'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===16 && await p.isVisible('#rAv[src="img/ahmad-ba-face.jpg"]'), 'Tawassuliyya : 16 vers, avec sa photo');
     await p.goto(BASE+'#/t/hb1'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===46 && await p.isVisible('#rAv[src="img/habib-ba-face.jpg"]'), 'nouveau poème : 46 vers, avec sa photo');
     await p.goto(BASE+'#/t/p6'); await p.waitForTimeout(500); ok(await p.isVisible('#rAv[src="img/habib-ba-face.jpg"]'), 'sa photo en haut de son poème');
