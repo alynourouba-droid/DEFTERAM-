@@ -417,6 +417,13 @@ body.inchat nav{display:none}body.inchat .wrap{padding-bottom:16px}
 .slh{display:flex;align-items:center;justify-content:space-between}.slh b{font-size:1rem}.slh .btn{padding:4px 10px}
 .th,.slt{white-space:pre-line}
 
+.fbar{position:sticky;top:calc(6px + env(safe-area-inset-top,0px));z-index:15;display:flex;align-items:center;gap:6px;margin:10px 0 0;padding:8px;border-radius:18px;border:1.5px solid var(--sun);background:var(--surface);box-shadow:0 8px 20px rgba(0,0,0,.18)}
+.fbar input{flex:1;min-width:0;margin:0;padding:9px 12px;border-radius:12px}
+.fbar #fc{flex:none;font-weight:800;font-size:.85rem;color:var(--accent);min-width:46px;text-align:center}
+.fbar .btn{padding:7px 10px}
+mark.fm{background:rgba(255,213,79,.55);color:inherit;border-radius:4px;padding:0 1px}
+mark.fm.cur{background:#ff9f1c;color:#1b1b1b;box-shadow:0 0 0 2px #ff9f1c}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.hero,.hero *,.hero::before,body::before{translate:none!important}.rv{opacity:1!important}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -473,9 +480,10 @@ body.inchat nav{display:none}body.inchat .wrap{padding-bottom:16px}
 
 <div id="reader" class="hide">
 <div class="bar"><button class="btn" id="back2"></button><span class="sp"></span>
-<button class="btn hide" id="tk" aria-label="Harakat">حَرَكات</button><button class="btn hide" id="cp" aria-label="Copy">📋</button><button class="btn" id="fav" aria-pressed="false">♡</button><button class="btn" id="shr" aria-label="Partager">📤</button><button class="btn hide danger" id="del" aria-label="Supprimer">🗑</button><button class="btn" id="minus" aria-label="Texte plus petit">A−</button><button class="btn" id="plus" aria-label="Texte plus grand">A+</button></div>
+<button class="btn hide" id="tk" aria-label="Harakat">حَرَكات</button><button class="btn hide" id="cp" aria-label="Copy">📋</button><button class="btn" id="fnd" aria-label="Chercher dans le texte">🔎</button><button class="btn" id="fav" aria-pressed="false">♡</button><button class="btn" id="shr" aria-label="Partager">📤</button><button class="btn hide danger" id="del" aria-label="Supprimer">🗑</button><button class="btn" id="minus" aria-label="Texte plus petit">A−</button><button class="btn" id="plus" aria-label="Texte plus grand">A+</button></div>
 <h2 id="rTitle"></h2><div id="rSub" class="ar"></div><div id="rStat" class="note hide" aria-live="polite"></div>
 <div class="cnt hide" id="cnt"><button class="big" id="tap" aria-live="polite">0</button><small id="goal"></small><button class="btn" id="reset"></button></div>
+<div id="fbar" class="fbar hide" role="search"><input id="fq" type="search" enterkeyhint="search" autocomplete="off"><span id="fc" aria-live="polite"></span><button class="btn" id="fp" aria-label="Précédent">▲</button><button class="btn" id="fn" aria-label="Suivant">▼</button><button class="btn" id="fx" aria-label="Fermer">✕</button></div>
 <div class="text" id="rText"></div>
 </div>
 
@@ -705,7 +713,7 @@ function sheet(){
 function setLang(){var h=document.documentElement;if($('back4'))$('back4').textContent='\u2190 '+t('back');h.lang=lang;h.dir=lang==='ar'?'rtl':'ltr';
  $('tag').textContent=t('tag');$('sbt').textContent=t('search');$('back1').textContent=$('back2').textContent=$('cancel').textContent='\u2190 '+t('back');
  $('addBtn').textContent=t('add');$('reset').textContent=$('zreset').textContent=t('reset');$('save').textContent=t('save');
- $('fT').textContent=t('newt');$('fTitle').placeholder=t('ttl');$('fAu').placeholder=T('Auteur / poète (facultatif)','Author / poet (optional)','الشاعر / المؤلف (اختياري)');$('fBody').placeholder=t('body');$('fH').textContent=t('hint');$('q').placeholder=t('search');$('zT').textContent='📿 '+t('zikr');
+ $('fT').textContent=t('newt');$('fTitle').placeholder=t('ttl');$('fAu').placeholder=T('Auteur / poète (facultatif)','Author / poet (optional)','الشاعر / المؤلف (اختياري)');$('fBody').placeholder=t('body');$('fH').textContent=t('hint');$('q').placeholder=t('search');$('zT').textContent='📿 '+t('zikr');$('fq').placeholder=T('Chercher un mot ou une lettre…','Find a word or a letter…','ابحث عن كلمة أو حرف…');$('fq').setAttribute('aria-label',$('fq').placeholder);$('fnd').setAttribute('aria-label',T('Chercher dans le texte','Find in text','ابحث في النص'));
  ['q','fTitle','fAu','fBody'].forEach(function(i){$(i).setAttribute('aria-label',$(i).placeholder)});$('fCat').setAttribute('aria-label',T('Catégorie','Category','الفئة'));$('fLang').setAttribute('aria-label',t('lang'));
  $('shr').setAttribute('aria-label',T('Partager','Share','مشاركة'));$('del').setAttribute('aria-label',T('Supprimer','Delete','حذف'));$('minus').setAttribute('aria-label',T('Texte plus petit','Smaller text','خط أصغر'));$('plus').setAttribute('aria-label',T('Texte plus grand','Larger text','خط أكبر'));$('fav').setAttribute('aria-label',t('favs'));$('tap').setAttribute('aria-label',T('Compter','Count','عدّ'))}
 var HAY={};function hay(b){if(HAY[b.id]!==undefined&&b.id.charAt(0)!=='c')return HAY[b.id];var tt=TT[b.id]||{},x=[b.title,b.ar,b.au];Object.keys(tt).forEach(function(k){x.push(tt[k])});(b.lines||[]).forEach(function(l){x.push(l)});(b.items||[]).forEach(function(i){x.push(i.a,i.fr,i.en)});(b.bayts||[]).concat(b.pre||[],b.chorus?[b.chorus]:[],b.post?b.post.v:[]).forEach(function(v){x.push(v.join(' '))});(b.secs||[]).forEach(function(z){x.push(z[1])});(b.tl||[]).forEach(function(z){x.push(z)});var h=x.filter(Boolean).join(' ');h=(h+' '+noTash(h)).toLowerCase();HAY[b.id]=h;return h}
@@ -793,11 +801,45 @@ function openBook(b){
   if(p[1]){var r=document.createElement('div');r.className='tr';r.textContent=p[1];d.appendChild(r)}box.appendChild(d)});
  $('cnt').classList.toggle('hide',!b.count);
  if(b.count){$('tap').textContent='0';$('goal').textContent=t('goal')+' : '+b.count}
- $('fav').textContent=favs.indexOf(b.id)>-1?'♥':'♡';show('reader');nav('');libAv(b);audioBar(b)
+ $('fav').textContent=favs.indexOf(b.id)>-1?'♥':'♡';show('reader');nav('');libAv(b);audioBar(b);if(FND.id!==b.id){FND.on=false;FND.q='';FND.i=0;FND.id=b.id}findRun(false)
 }
 
 var tash=true;try{tash=localStorage.getItem('defteram_tash')!=='0'}catch(e){}
 function noTash(s){return s.replace(/[ً-ْٰ]/g,'')}
+/* ===== Recherche dans le texte ouvert (poème, douao…) : sans tenir compte des harakat ni des accents ===== */
+var FND={on:false,q:'',marks:[],i:0};
+function fnorm(c){
+ if(/[ً-ْٰـۡ]/.test(c))return '';
+ if(/[أإآٱ]/.test(c))return 'ا';if(c==='ى'||c==='ئ')return 'ي';if(c==='ؤ')return 'و';if(c==='ة')return 'ه';
+ var d=c.normalize('NFD').replace(/[̀-ͯ]/g,'');if(!d)return '';
+ return d.toLowerCase().charAt(0)}
+function fclear(){[].forEach.call($('rText').querySelectorAll('mark.fm'),function(m){var t=document.createTextNode(m.textContent);m.parentNode.replaceChild(t,m)});$('rText').normalize();FND.marks=[]}
+function findRun(jump){
+ var bar=$('fbar');if(!bar)return;bar.classList.toggle('hide',!FND.on);fclear();var c=$('fc');
+ var q=FND.on?FND.q:'';var nq='';for(var k=0;k<q.length;k++)nq+=q.charAt(k)===' '?' ':fnorm(q.charAt(k));nq=nq.replace(/\s+/g,' ').trim();
+ if(!nq){c.textContent='';return}
+ var w=document.createTreeWalker($('rText'),NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentNode;return p.closest('.bn,sup,button,summary')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}}),nodes=[],n;
+ while((n=w.nextNode()))nodes.push(n);
+ nodes.forEach(function(node){var t=node.nodeValue,norm='',map=[];
+  for(var i=0;i<t.length;i++){var ch=t.charAt(i),f=/\s/.test(ch)?' ':fnorm(ch);if(f){if(f===' '&&norm.slice(-1)===' ')continue;norm+=f;map.push(i)}}
+  var hits=[],from=0,at;while((at=norm.indexOf(nq,from))>-1){hits.push([map[at],map[at+nq.length-1]+1]);from=at+nq.length}
+  if(!hits.length)return;
+  // étendre la fin pour garder les harakat collées à la dernière lettre
+  hits.forEach(function(h){while(h[1]<t.length&&/[ً-ْٰـ]/.test(t.charAt(h[1])))h[1]++});
+  var frag=document.createDocumentFragment(),last=0;
+  hits.forEach(function(h){if(h[0]>last)frag.appendChild(document.createTextNode(t.slice(last,h[0])));var m=document.createElement('mark');m.className='fm';m.textContent=t.slice(h[0],h[1]);frag.appendChild(m);FND.marks.push(m);last=h[1]});
+  if(last<t.length)frag.appendChild(document.createTextNode(t.slice(last)));node.parentNode.replaceChild(frag,node)});
+ if(!FND.marks.length){c.textContent=T('0 trouvé','0 found','لا نتائج');return}
+ if(FND.i>=FND.marks.length)FND.i=0;fgo(jump!==false)}
+function fgo(scroll){var m=FND.marks;if(!m.length)return;m.forEach(function(x,k){x.classList.toggle('cur',k===FND.i)});
+ $('fc').textContent=(FND.i+1)+' / '+m.length;if(scroll){var e=m[FND.i],dd=e.closest('details');if(dd)dd.open=true;var r=e.getBoundingClientRect();window.scrollTo({top:Math.max(0,r.top+scrollY-innerHeight*0.35),behavior:'smooth'})}}
+$('fnd').onclick=function(){FND.on=!FND.on;if(FND.on){findRun(false);var q=$('fq');q.value=FND.q;setTimeout(function(){try{q.focus()}catch(e){}},50)}else findRun(false)};
+$('fq').oninput=function(){FND.q=this.value;FND.i=0;findRun(true)};
+$('fq').onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();if(FND.marks.length){FND.i=(FND.i+(e.shiftKey?FND.marks.length-1:1))%FND.marks.length;fgo(true)}}else if(e.key==='Escape'){FND.on=false;findRun(false)}};
+$('fn').onclick=function(){if(FND.marks.length){FND.i=(FND.i+1)%FND.marks.length;fgo(true)}};
+$('fp').onclick=function(){if(FND.marks.length){FND.i=(FND.i+FND.marks.length-1)%FND.marks.length;fgo(true)}};
+$('fx').onclick=function(){FND.on=false;FND.q='';findRun(false)};
+
 function adig(n){return lang==='ar'?String(n).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d]}):String(n)}
 function renderPoem(b,box){
  function tx(s){return tash?s:noTash(s)}

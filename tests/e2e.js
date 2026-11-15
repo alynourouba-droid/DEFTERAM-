@@ -437,6 +437,13 @@ function mockSupabase(state){
     await p.goto(BASE); await p.waitForTimeout(500); await p.click('.tile >> text=Habibou Ba'); await p.waitForTimeout(500);
     ok(/Thierno Mouhammad Habibou Ba/.test(await p.textContent('#cHead')) && await p.isVisible('#cHead img[src="img/habib-ba.jpg"]'), 'Poèmes de Thierno M. Habibou Ba : photo et présentation');
     const th=await p.textContent('#list'); ok(/Sahi imtati/.test(th) && /Wa la-tala/.test(th) && /Amin tahayyuji/.test(th) && /Abâ Allâhu/.test(th) && !/Taala ishtiyaqi/.test(th), 'ses 4 poèmes (sans ceux d’un autre auteur)');
+    await p.goto(BASE+'#/t/kz1'); await p.waitForTimeout(800); await p.click('#fnd'); await p.fill('#fq','الذهب'); await p.waitForTimeout(400);
+    const fc=await p.textContent('#fc'); ok(/^1 \/ \d+$/.test(fc) && (await p.$$('#rText mark.fm')).length>0, 'recherche dans le poème : mot sans harakat trouvé', fc);
+    await p.click('#fn'); await p.waitForTimeout(300); ok(/^2 \//.test(await p.textContent('#fc')) || /^1 \/ 1$/.test(fc), 'recherche : passer au résultat suivant');
+    await p.fill('#fq','zzzz'); await p.waitForTimeout(200); ok(/0/.test(await p.textContent('#fc')) && !(await p.$('#rText mark.fm')), 'recherche : 0 trouvé');
+    await p.click('#fx'); ok(!(await p.isVisible('#fbar')), 'recherche : fermer');
+    await p.goto(BASE+'#/t/rz1'); await p.waitForTimeout(800); await p.click('#fnd'); await p.fill('#fq','ala ya'); await p.waitForTimeout(300); ok((await p.$$('#rText mark.fm')).length>0, 'recherche en lettres latines (sans accents)');
+    await p.click('#fx');
     await p.goto(BASE+'#/t/hb2'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===34 && /ماءه/.test(await p.textContent('#rText')), 'Abâ Allâhu : 34 vers, avec la note « ماءه »');
     await p.goto(BASE); await p.waitForTimeout(500); await p.click('.tile >> text=Ahmadou Tidiane'); await p.waitForTimeout(500);
     ok(/Thierno Ahmadou Tidiane Ba/.test(await p.textContent('#cHead')) && await p.isVisible('#cHead img[src="img/ahmad-ba.jpg"]'), 'Poèmes de Thierno Ahmadou Tidiane Ba : photo et présentation');
