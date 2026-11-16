@@ -25,6 +25,7 @@ global.fetch = async (u, o) => {
       if(op==='SADD'){ const S=REDIS[k]=REDIS[k]||new Set(); a.forEach(x=>S.add(x)); return {result:1}; }
       if(op==='SREM'){ const S=REDIS[k]; if(S) a.forEach(x=>S.delete(x)); return {result:1}; }
       if(op==='SMEMBERS') return {result:REDIS[k]?[...REDIS[k]]:[]};
+      if(op==='SISMEMBER') return {result:REDIS[k]&&REDIS[k].has&&REDIS[k].has(a[0])?1:0};
       if(op==='LPUSH'){ const L=REDIS[k]=REDIS[k]||[]; L.unshift(...a); return {result:L.length}; }
       const rng=(L,x,y)=>{ x=+x; y=+y; if(x<0) x=Math.max(0,L.length+x); if(y<0) y=L.length+y; return L.slice(x,y+1); };
       if(op==='LTRIM'){ if(REDIS[k]) REDIS[k]=rng(REDIS[k],a[0],a[1]); return {result:'OK'}; }
@@ -57,6 +58,7 @@ const guidesFn = require(path.join(ROOT, 'api', 'guides.js'));
 const uploadFn = require(path.join(ROOT, 'api', 'upload.js'));
 const coursesFn = require(path.join(ROOT, 'api', 'courses.js'));
 const audioFn = require(path.join(ROOT, 'api', 'audio.js'));
+const editsFn = require(path.join(ROOT, 'api', 'edits.js'));
 
 function serve(){
   return new Promise(res=>{
@@ -64,6 +66,10 @@ function serve(){
       if(q.url.startsWith('/api/guides')||q.url.startsWith('/api/upload')){
         if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; }
         q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return (q.url.startsWith('/api/guides')?guidesFn:uploadFn)(q, r);
+      }
+      if(q.url.startsWith('/api/edits')){
+        if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; }
+        q.query = Object.fromEntries(new URL(q.url,'http://x').searchParams); return editsFn(q, r);
       }
       if(q.url.startsWith('/api/audio')){
         if(STATS_ON){ process.env.KV_REST_API_URL='https://fake-redis.test'; process.env.KV_REST_API_TOKEN='t'; }
@@ -489,6 +495,41 @@ function mockSupabase(state){
     await pa.goto(BASE+'#/t/p2'); await pa.waitForTimeout(700); await pa.click('#aud .audbtn'); pa.once('dialog',d=>d.accept()); await pa.click('#aud .audm .btn.danger'); await pa.waitForTimeout(1200);
     ok(!(REDIS['defteram:audios']||{}).p2 && !REDIS['defteram:auc:'+rec.id+':0'], 'audio supprimé (et ses morceaux)');
     REDIS['defteram:admin']=oldAdmin; await ca.close(); await cv.close();
+  }
+
+  console.log('\n7f. Correcteurs des poèmes');
+  { STATS_ON=true; Object.keys(REDIS).filter(k=>k.startsWith('defteram:rl:')).forEach(k=>delete REDIS[k]);
+    const up=async(pg,id)=>{ await pg.goto(BASE+'#/p/compte'); await pg.waitForSelector('#acc .tabs2 button:nth-child(2)',{timeout:8000}); await pg.click('.tabs2 button:nth-child(2)'); await pg.fill('#aId',id); await pg.fill('#aPw','123456'); await pg.fill('#aPw2','123456'); await pg.click('#acc [type=submit]'); await pg.waitForTimeout(1000); };
+    const E=(pg,a,body)=>pg.evaluate(([a,body])=>apiEd(a,body).then(j=>({ok:1,j}),e=>({err:e.code})),[a,body]);
+    const ca=await b.newContext({serviceWorkers:'block'}), pa=await newPage(ca,{name:'ed-admin',allowErr:true,allow404:true});
+    await up(pa,'chef.ed'); const old=REDIS['defteram:admin']; REDIS['defteram:admin']='chef.ed';
+    const ce=await b.newContext({serviceWorkers:'block'}), pe=await newPage(ce,{name:'correcteur',allowErr:true,allow404:true});
+    await up(pe,'correcteur.un');
+    let r=await E(pe,'save',{item:'hb3',idx:14,verse:['x','y']}); ok(r.err==='not_editor', 'sans accès : correction refusée');
+    r=await E(pa,'editor_add',{user:'inconnu.zz'}); ok(r.err==='no_user', 'accès correcteur : le compte doit exister');
+    await pa.reload(); await pa.waitForTimeout(1500); await pa.evaluate(()=>{ADM.tab='ed';admin()}); await pa.waitForTimeout(800);
+    await pa.fill('#adm input[aria-label="Nom d’utilisateur"]','correcteur.un'); await pa.click('#adm .btn.fill.wide:has-text("correcteur")'); await pa.waitForTimeout(900);
+    ok(REDIS['defteram:editors'] && REDIS['defteram:editors'].has('correcteur.un'), 'administration : accès correcteur donné');
+    await pe.reload(); await pe.waitForTimeout(1500); await pe.goto(BASE+'#/t/hb3'); await pe.waitForTimeout(900);
+    ok(await pe.isVisible('#edt'), 'correcteur : bouton ✏️ sur le poème');
+    await pe.click('#edt'); await pe.waitForTimeout(600);
+    const btns=await pe.$$('#rText .bedit'); ok(btns.length===15, 'mode correction : ✏️ sur chaque vers');
+    await btns[14].click(); await pe.waitForTimeout(300);
+    const tas=await pe.$$('#rText .vedit textarea'); await tas[0].fill('مْ - مُحَمَّدٌ الْمَحْبُوبُ مَن كَانَ رَحْمَةً');
+    await pe.click('#rText .vedit .btn.fill'); await pe.waitForTimeout(1200);
+    ok(/الْمَحْبُوبُ/.test(JSON.parse(REDIS['defteram:edits'].hb3)['14'][0]), 'vers 15 corrigé et enregistré');
+    const cv=await b.newContext({serviceWorkers:'block'}), pv=await newPage(cv,{name:'ed-visiteur',allowErr:true,allow404:true});
+    await pv.goto(BASE+'#/t/hb3'); await pv.waitForTimeout(1500);
+    ok(/الْمَحْبُوبُ/.test(await pv.textContent('#rText')) && !(await pv.isVisible('#edt')), 'visiteur : voit le vers corrigé, sans bouton ✏️');
+    r=await pv.evaluate(()=>fetch('api/edits?a=save',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"item":"hb3","idx":0,"verse":["a"]}'}).then(r=>r.status)); ok(r===401, 'visiteur : ne peut pas corriger');
+    await pa.evaluate(()=>{ADM.tab='ed';admin()}); await pa.waitForTimeout(900);
+    ok(/correcteur\.un/.test(await pa.textContent('#adm')) && /الْمَحْبُوبُ/.test(await pa.textContent('#adm')), 'administration : historique des corrections');
+    pa.once('dialog',d=>d.accept()); await pa.click('#adm .btn:has-text("Annuler cette correction")'); await pa.waitForTimeout(900);
+    ok(!REDIS['defteram:edits'] || !REDIS['defteram:edits'].hb3, 'administration : correction annulée (texte d’origine)');
+    r=await E(pe,'save',{item:'hb3',idx:2,verse:['عَلِيمٌ','إلَيكَ']}); ok(r.ok, 'correcteur : 2e correction');
+    r=await E(pe,'revert',{item:'hb3',idx:2}); ok(r.ok && (!REDIS['defteram:edits'] || !REDIS['defteram:edits'].hb3), 'correcteur : remettre l’original');
+    await E(pa,'editor_del',{user:'correcteur.un'}); r=await E(pe,'save',{item:'hb3',idx:2,verse:['a','b']}); ok(r.err==='not_editor', 'accès retiré : plus de correction possible');
+    REDIS['defteram:admin']=old; await ca.close(); await ce.close(); await cv.close();
   }
 
   console.log('\n8. Affichage mobile / tablette / ordinateur');

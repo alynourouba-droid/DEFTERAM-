@@ -424,6 +424,12 @@ body.inchat nav{display:none}body.inchat .wrap{padding-bottom:16px}
 mark.fm{background:rgba(255,213,79,.55);color:inherit;border-radius:4px;padding:0 1px}
 mark.fm.cur{background:#ff9f1c;color:#1b1b1b;box-shadow:0 0 0 2px #ff9f1c}
 
+.bedit{display:block;margin:10px auto 0;padding:6px 14px;border-radius:999px;border:1.5px dashed var(--sun);background:var(--surface);color:var(--accent);font:700 .8rem Nunito,system-ui,sans-serif;cursor:pointer;direction:ltr}
+.bayt.edited{box-shadow:inset 0 0 0 4px var(--surface),inset 0 0 0 5px #2ecc71,0 4px 12px rgba(0,0,0,.08)}
+.bayt.edited::after{content:"✓";position:absolute;top:6px;inset-inline-start:10px;color:#2ecc71;font:800 .7em Nunito,sans-serif}
+.vedit{direction:ltr;text-align:start}.vedit textarea{min-height:60px;font:1.1em/1.8 Amiri,serif;text-align:right}
+.vold{text-decoration:line-through;opacity:.6;margin:4px 0}.vnew{color:var(--accent);font-weight:700;margin:4px 0}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.hero,.hero *,.hero::before,body::before{translate:none!important}.rv{opacity:1!important}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -480,7 +486,7 @@ mark.fm.cur{background:#ff9f1c;color:#1b1b1b;box-shadow:0 0 0 2px #ff9f1c}
 
 <div id="reader" class="hide">
 <div class="bar"><button class="btn" id="back2"></button><span class="sp"></span>
-<button class="btn hide" id="tk" aria-label="Harakat">حَرَكات</button><button class="btn hide" id="cp" aria-label="Copy">📋</button><button class="btn" id="fnd" aria-label="Chercher dans le texte">🔎</button><button class="btn" id="fav" aria-pressed="false">♡</button><button class="btn" id="shr" aria-label="Partager">📤</button><button class="btn hide danger" id="del" aria-label="Supprimer">🗑</button><button class="btn" id="minus" aria-label="Texte plus petit">A−</button><button class="btn" id="plus" aria-label="Texte plus grand">A+</button></div>
+<button class="btn hide" id="tk" aria-label="Harakat">حَرَكات</button><button class="btn hide" id="cp" aria-label="Copy">📋</button><button class="btn" id="fnd" aria-label="Chercher dans le texte">🔎</button><button class="btn hide" id="edt" aria-label="Corriger le poème">✏️</button><button class="btn" id="fav" aria-pressed="false">♡</button><button class="btn" id="shr" aria-label="Partager">📤</button><button class="btn hide danger" id="del" aria-label="Supprimer">🗑</button><button class="btn" id="minus" aria-label="Texte plus petit">A−</button><button class="btn" id="plus" aria-label="Texte plus grand">A+</button></div>
 <h2 id="rTitle"></h2><div id="rSub" class="ar"></div><div id="rStat" class="note hide" aria-live="polite"></div>
 <div class="cnt hide" id="cnt"><button class="big" id="tap" aria-live="polite">0</button><small id="goal"></small><button class="btn" id="reset"></button></div>
 <div id="fbar" class="fbar hide" role="search"><input id="fq" type="search" enterkeyhint="search" autocomplete="off"><span id="fc" aria-live="polite"></span><button class="btn" id="fp" aria-label="Précédent">▲</button><button class="btn" id="fn" aria-label="Suivant">▼</button><button class="btn" id="fx" aria-label="Fermer">✕</button></div>
@@ -803,7 +809,7 @@ function openBook(b){
   if(p[1]){var r=document.createElement('div');r.className='tr';r.textContent=p[1];d.appendChild(r)}box.appendChild(d)});
  $('cnt').classList.toggle('hide',!b.count);
  if(b.count){$('tap').textContent='0';$('goal').textContent=t('goal')+' : '+b.count}
- $('fav').textContent=favs.indexOf(b.id)>-1?'♥':'♡';show('reader');nav('');libAv(b);audioBar(b);if(FND.id!==b.id){FND.on=false;FND.q='';FND.i=0;FND.id=b.id}findRun(false)
+ $('fav').textContent=favs.indexOf(b.id)>-1?'♥':'♡';show('reader');nav('');libAv(b);audioBar(b);$('edt').classList.toggle('hide',!(AUTH.editor&&b.bayts&&!/^c\d/.test(b.id)));$('edt').classList.toggle('fill',EDT.on);if(FND.id!==b.id){EDT.on=false;$('edt').classList.remove('fill');FND.on=false;FND.q='';FND.i=0;FND.id=b.id}findRun(false)
 }
 
 var tash=true;try{tash=localStorage.getItem('defteram_tash')!=='0'}catch(e){}
@@ -872,7 +878,7 @@ function renderPoem(b,box){
  var si=0;
  b.bayts.forEach(function(v,i){
   while(si<secs.length&&secs[si][0]===i+1){box.appendChild(fasl(secs[si][1],'fasl'+si));si++}
-  var bb=bayt(v,i+1);if(b.tl&&b.tl[i]&&lang!=='ar'){var tl=el('div','btl',b.tl[i]);tl.lang='en';tl.dir='ltr';bb.appendChild(tl)}box.appendChild(bb)});
+  var bb=bayt(v,i+1);if(b._o&&(i in b._o)&&AUTH.editor)bb.classList.add('edited');if(EDT.on&&AUTH.editor){(function(bb,i){var eb=el('button','bedit','✏️ '+T('Corriger ce vers','Correct this verse','صحّح هذا البيت'));eb.type='button';eb.onclick=function(){editVerse(b,i,bb)};bb.appendChild(eb)})(bb,i)}if(b.tl&&b.tl[i]&&lang!=='ar'){var tl=el('div','btl',b.tl[i]);tl.lang='en';tl.dir='ltr';bb.appendChild(tl)}box.appendChild(bb)});
  if(b.post){box.appendChild(fasl(b.post.t,'faslP'));if(b.post.n)box.appendChild(el('p','pm-note',b.post.n));b.post.v.forEach(function(v){box.appendChild(bayt(v,0,'pre'))})}
  box.appendChild(el('div','pm-end',tx(b.end)))}
 $('tk').onclick=function(){tash=!tash;try{localStorage.setItem('defteram_tash',tash?'1':'0')}catch(e){}if(window.syncSoon)syncSoon();openBook(cur)};
@@ -1267,7 +1273,7 @@ function authErr(e){var c=String(e.code||'');
 function signIn(id,pw){return apiAuth('login',{method:'POST',body:{id:id,password:pw}}).then(keepSession)}
 function signUp(id,pw){return apiAuth('signup',{method:'POST',body:{id:id,password:pw}}).then(keepSession)}
 function curNav(){return view==='home'?'home':view==='cat'&&cat==='fav'?'fav':view==='zikr'?'zikr':(view==='pg'&&$('pg').dataset.k==='acc')?'acc':''}
-function logoutLocal(){CRS.me=null;AUTH.admin=false;AUTH.s=null;AUTH.sync=null;try{localStorage.removeItem('defteram_auth');localStorage.removeItem('defteram_synced')}catch(e){}nav(curNav())}
+function logoutLocal(){CRS.me=null;AUTH.editor=false;EDT.on=false;AUTH.admin=false;AUTH.s=null;AUTH.sync=null;try{localStorage.removeItem('defteram_auth');localStorage.removeItem('defteram_synced')}catch(e){}nav(curNav())}
 function signOut(){clearTimeout(AUTH.tm);var p=AUTH.s?apiAuth('logout',{method:'POST'}).catch(function(){}):Promise.resolve();return p.then(function(){logoutLocal()})}
 
 /* Synchronisation des favoris, textes ajoutés et préférences */
@@ -1400,7 +1406,7 @@ function installer(){
 function apiAdmin(a,o){o=o||{};var h={'Content-Type':'application/json'};if(AUTH.s&&AUTH.s.tk)h.Authorization='Bearer '+AUTH.s.tk;
  return fetch('api/admin?a='+a,{method:o.method||(o.body?'POST':'GET'),headers:h,body:o.body?JSON.stringify(o.body):undefined,cache:'no-store'}).then(function(r){
   return r.text().then(function(x){var j=null;try{j=x?JSON.parse(x):null}catch(e){}if(!r.ok){var er=new Error((j&&j.error)||('HTTP '+r.status));er.code=(j&&j.error)||String(r.status);throw er}return j})})}
-function checkAdmin(){if(!AUTH.s||!AUTH.on)return;cMe();apiAuth('me').then(function(j){var wa=AUTH.admin;AUTH.admin=!!(j&&j.admin);var hadP=!!AUTH.profile;AUTH.profile=(j&&j.profile)||null;if(!hadP&&AUTH.profile&&view==='pg'&&$('pg').dataset.k==='acc')account();if(AUTH.admin!==wa)refreshAudBar();if(AUTH.admin)apiAdmin('overview').then(function(o){AUTH.unread=o.unread||0}).catch(function(){})}).catch(function(){})}
+function checkAdmin(){if(!AUTH.s||!AUTH.on)return;cMe();checkEditor();apiAuth('me').then(function(j){var wa=AUTH.admin;AUTH.admin=!!(j&&j.admin);var hadP=!!AUTH.profile;AUTH.profile=(j&&j.profile)||null;if(!hadP&&AUTH.profile&&view==='pg'&&$('pg').dataset.k==='acc')account();if(AUTH.admin!==wa)refreshAudBar();if(AUTH.admin)apiAdmin('overview').then(function(o){AUTH.unread=o.unread||0}).catch(function(){})}).catch(function(){})}
 var ADM={tab:'ov'};
 function admin(){
  page('🛠️ Administration','<div id="adm"></div>');$('pg').dataset.k='adm';
@@ -1416,12 +1422,13 @@ function admin(){
   var go=el('button','btn fill wide','Valider');go.onclick=function(){go.disabled=true;er.textContent='';apiAdmin('claim',{body:{code:inp.value}}).then(function(){AUTH.admin=true;toast('Tu es administrateur ✓');admin()},function(e){go.disabled=false;er.textContent=err(e).textContent})};cc.appendChild(go);
   g.appendChild(cc);return}
  var tb=el('div','tabs2');tb.style.flexWrap='wrap';
- [['ov','📊 Résumé'],['tx','👁️ Vues'],['us','👥 Comptes'],['ms','✉️ Messages'+(AUTH.unread?' ('+AUTH.unread+')':'')],['gd','🧭 Guides'],['co','🏫 École']].forEach(function(x){var b=el('button',x[0]===ADM.tab?'on':'',x[1]);b.onclick=function(){ADM.tab=x[0];admin()};tb.appendChild(b)});
+ [['ov','📊 Résumé'],['tx','👁️ Vues'],['us','👥 Comptes'],['ms','✉️ Messages'+(AUTH.unread?' ('+AUTH.unread+')':'')],['gd','🧭 Guides'],['co','🏫 École'],['ed','✍️ Correcteurs']].forEach(function(x){var b=el('button',x[0]===ADM.tab?'on':'',x[1]);b.onclick=function(){ADM.tab=x[0];admin()};tb.appendChild(b)});
  g.appendChild(tb);var box=el('div');box.appendChild(el('p','note','Chargement…'));g.appendChild(box);
  function fill(n){box.innerHTML='';box.appendChild(n)}
  function date(t){try{return new Date(t).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
  if(ADM.tab==='gd'){adminGuides(box);return}
  if(ADM.tab==='co'){adminCourses(box);return}
+ if(ADM.tab==='ed'){adminEditors(box);return}
  if(ADM.tab==='ov')apiAdmin('overview').then(function(o){AUTH.unread=o.unread||0;ADM.blob=o.blob;var d=el('div');var st=el('div','stats');
   [['👥',o.visitors,'visiteurs'],['👁️',o.visits,'visites'],['📤',o.shares,'partages'],['📲',o.installs,'installations'],['🔐',o.users,'comptes'],['✉️',o.msgs,'messages'],['🔔',o.unread,'non lus'],['🧭',o.guides,'guides'],['💾',o.blob?'✓':'—','photos/audios']].forEach(function(x){st.innerHTML+='<div class="st"><i>'+x[0]+'</i><b>'+(typeof x[1]==='string'?x[1]:fmtN(x[1]))+'</b><small>'+x[2]+'</small></div>'});
   st.style.gridTemplateColumns='repeat(3,1fr)';d.appendChild(st);d.appendChild(el('p','note','Administrateur : '+o.admin+'. Les vues et partages de chaque texte sont dans l’onglet « Vues ».'));fill(d)},function(e){fill(err(e))});
@@ -1785,6 +1792,51 @@ function profileCard(g){var p=AUTH.profile||{},u=AUTH.s.user,meU=u.email||u.name
   var er=gel('div','err');f.appendChild(er);
   var sv=gel('button','btn fill wide','💾 '+T('Enregistrer mon profil','Save my profile','حفظ ملفي'));sv.onclick=function(){sv.disabled=true;var body={name:nm2.value,bio:bi.value};if(photo)body.photo=photo.split(',')[1];
    apiAuth('profile',{method:'POST',body:body}).then(function(j){AUTH.profile=j.profile;toast(T('Profil enregistré ✓','Profile saved ✓','تم حفظ الملف ✓'));CRS.teachers=null;account()},function(e){sv.disabled=false;er.textContent=cErr(e)})};f.appendChild(sv)}}
+
+/* ===== Corrections des poèmes (correcteurs choisis par l'administrateur) ===== */
+var EDITS={},EDT={on:false};try{EDITS=JSON.parse(localStorage.getItem('defteram_edits')||'{}')||{}}catch(e){}
+function bookById(id){return all().filter(function(z){return z.id===id})[0]}
+function applyEdits(){
+ all().forEach(function(b){if(b._o){Object.keys(b._o).forEach(function(i){b.bayts[i]=b._o[i]});delete b._o;delete HAY[b.id]}});
+ Object.keys(EDITS).forEach(function(id){var b=bookById(id);if(!b||!b.bayts)return;var e=EDITS[id];
+  Object.keys(e).forEach(function(i){if(!b.bayts[i])return;b._o=b._o||{};b._o[i]=b.bayts[i];b.bayts[i]=e[i]});delete HAY[b.id]})}
+function loadEdits(cb){if(!/^https?:/.test(location.protocol)||!window.fetch)return;
+ fetch('api/edits?a=list',{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j)return;var ch=JSON.stringify(j.map||{})!==JSON.stringify(EDITS);EDITS=j.map||{};
+  try{localStorage.setItem('defteram_edits',JSON.stringify(EDITS))}catch(e){}if(ch){applyEdits();cb&&cb()}}).catch(function(){})}
+function apiEd(a,body){var h={'Content-Type':'application/json'};if(AUTH.s&&AUTH.s.tk)h.Authorization='Bearer '+AUTH.s.tk;
+ return fetch('api/edits?a='+a,{method:body?'POST':'GET',headers:h,body:body?JSON.stringify(body):undefined,cache:'no-store'}).then(function(r){return r.text().then(function(x){var j=null;try{j=x?JSON.parse(x):null}catch(e){}if(!r.ok){var er=new Error((j&&j.error)||('HTTP '+r.status));er.code=(j&&j.error)||String(r.status);throw er}return j})})}
+function checkEditor(){if(!AUTH.s||!AUTH.on){AUTH.editor=false;return}apiEd('me').then(function(j){var w=AUTH.editor;AUTH.editor=!!j.editor;if(w!==AUTH.editor&&view==='reader'&&cur){$('edt').classList.toggle('hide',!(AUTH.editor&&cur.bayts))}}).catch(function(){})}
+function reopenKeep(){var y=scrollY;openBook(cur);requestAnimationFrame(function(){scrollTo(0,y)})}
+$('edt').onclick=function(){EDT.on=!EDT.on;if(EDT.on)toast(T('Mode correction : touche « ✏️ Corriger ce vers »','Correction mode: tap “✏️ Correct this verse”','وضع التصحيح'));reopenKeep()};
+function editVerse(b,i,bb){var orig=b._o&&(i in b._o)?b._o[i]:null,curV=b.bayts[i];
+ var f=document.createElement('div');f.className='vedit';f.appendChild(gel('b','','✏️ '+T('Vers ','Verse ','البيت ')+(i+1)));
+ var tas=curV.map(function(h,k){var ta=gel('textarea');ta.value=h;ta.dir='rtl';ta.lang='ar';ta.rows=2;ta.setAttribute('aria-label',T('Demi-vers ','Half-verse ','الشطر ')+(k+1));f.appendChild(ta);return ta});
+ if(orig)f.appendChild(gel('p','note',T('Texte d’origine : ','Original text: ','النص الأصلي: ')+orig.join(' … ')));
+ var er=gel('div','err');f.appendChild(er);var br=gel('div','bar');br.style.flexWrap='wrap';
+ var sv=gel('button','btn fill','💾 '+T('Enregistrer','Save','حفظ')),cn=gel('button','btn','✕ '+T('Annuler','Cancel','إلغاء'));
+ sv.onclick=function(){sv.disabled=true;var v=tas.map(function(t){return t.value});apiEd('save',{item:b.id,idx:i,verse:v,old:orig||curV}).then(function(r){EDITS[b.id]=EDITS[b.id]||{};EDITS[b.id][i]=r.verse;try{localStorage.setItem('defteram_edits',JSON.stringify(EDITS))}catch(e){}applyEdits();toast(T('Vers corrigé ✓','Verse corrected ✓','تم التصحيح ✓'));reopenKeep()},function(e){sv.disabled=false;er.textContent=e.code==='not_editor'?T('Ce compte n’est pas correcteur.','This account is not an editor.','هذا الحساب ليس مصحّحا.'):e.code==='empty'?T('Le vers est vide.','The verse is empty.','البيت فارغ.'):'Erreur : '+e.code})};
+ cn.onclick=reopenKeep;br.appendChild(sv);br.appendChild(cn);
+ if(orig){var rv=gel('button','btn danger','↩️ '+T('Remettre l’original','Restore the original','إرجاع الأصل'));rv.onclick=function(){apiEd('revert',{item:b.id,idx:i}).then(function(){if(EDITS[b.id]){delete EDITS[b.id][i];if(!Object.keys(EDITS[b.id]).length)delete EDITS[b.id]}try{localStorage.setItem('defteram_edits',JSON.stringify(EDITS))}catch(e){}applyEdits();toast('✓');reopenKeep()},function(e){er.textContent='Erreur : '+e.code})};br.appendChild(rv)}
+ f.appendChild(br);bb.innerHTML='';bb.appendChild(f);tas[0].focus()}
+/* Administration → Correcteurs */
+function adminEditors(box){box.innerHTML='<p class="note">…</p>';
+ Promise.all([apiEd('editors'),apiEd('log')]).then(function(r){box.innerHTML='';var c=gel('div','card');
+  c.appendChild(gel('b','','✍️ '+T('Correcteurs des poèmes','Poem editors','مصحّحو القصائد')+' ('+r[0].editors.length+')'));
+  c.appendChild(gel('p','note',T('Ces comptes peuvent corriger les lettres et les mots des vers. Le texte d’origine est gardé et tu peux annuler chaque correction.','These accounts can correct the verses. The original text is kept and every correction can be undone.','يمكن لهذه الحسابات تصحيح الأبيات.')));
+  r[0].editors.forEach(function(u){var row=gel('div','prow2');row.appendChild(gel('span','',' 👤 '+u));row.firstChild.style.flex='1';var d=gel('button','btn danger','🗑️');d.setAttribute('aria-label','Retirer');d.onclick=function(){if(!confirm('Retirer '+u+' des correcteurs ?'))return;apiEd('editor_del',{user:u}).then(function(){adminEditors(box)})};row.appendChild(d);c.appendChild(row)});
+  var u=gel('input');u.placeholder=T('Nom d’utilisateur (il doit d’abord créer son compte)','Username (they must create their account first)','اسم المستخدم');u.autocapitalize='none';u.setAttribute('aria-label','Nom d’utilisateur');c.appendChild(u);
+  var er=gel('div','err');c.appendChild(er);var ad=gel('button','btn fill wide','➕ '+T('Donner l’accès correcteur','Give editor access','منح صلاحية التصحيح'));
+  ad.onclick=function(){er.textContent='';apiEd('editor_add',{user:u.value}).then(function(){toast('✓');adminEditors(box)},function(e){er.textContent=e.code==='no_user'?T('Ce compte n’existe pas : la personne doit d’abord créer son compte (☰ → Connexion).','This account does not exist.','هذا الحساب غير موجود.'):e.code==='bad_id'?T('Nom d’utilisateur invalide.','Invalid username.','اسم غير صالح.'):'Erreur : '+e.code})};c.appendChild(ad);
+  c.appendChild(gel('p','note',T('Ensuite, la personne se connecte, ouvre un poème et touche le bouton ✏️ en haut.','Then the person signs in, opens a poem and taps ✏️ at the top.','ثم يفتح القصيدة ويضغط ✏️.')));box.appendChild(c);
+  var lg=gel('div','card');lg.appendChild(gel('b','','🕘 '+T('Dernières corrections','Latest corrections','آخر التصحيحات')));
+  if(!r[1].log.length)lg.appendChild(gel('p','note',T('Aucune correction pour le moment.','No corrections yet.','لا توجد تصحيحات.')));
+  r[1].log.slice(0,60).forEach(function(e){var bk=bookById(e.item),row=gel('div','tsp-req');row.appendChild(gel('b','',(bk?nm(bk):e.item)+' · '+T('vers ','verse ','البيت ')+(e.idx+1)));
+   row.appendChild(gel('p','note','👤 '+e.by+' · '+new Date(e.t).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})+(e.undo?' · ↩️ '+T('annulation','undo','إلغاء'):e.revert?' · ↩️ '+T('original remis','original restored','أُعيد الأصل'):'')));
+   if(e.old){var o=gel('p','ar vold',(e.old||[]).join(' … '));o.dir='rtl';row.appendChild(o)}
+   if(e.new){var nn=gel('p','ar vnew',e.new.join(' … '));nn.dir='rtl';row.appendChild(nn)}
+   if(!e.undo){var un=gel('button','btn','↩️ '+T('Annuler cette correction','Undo this correction','إلغاء هذا التصحيح'));un.onclick=function(){if(!confirm(T('Annuler cette correction ?','Undo this correction?','إلغاء هذا التصحيح؟')))return;apiEd('undo',{i:e.i}).then(function(){toast('✓');loadEdits();adminEditors(box)},function(x){toast('Erreur : '+x.code)})};row.appendChild(un)}
+   lg.appendChild(row)});box.appendChild(lg)
+ }).catch(function(e){box.innerHTML='';box.appendChild(gel('p','err','Erreur : '+(e.code||e.message)))})}
 function guidesPage(){
  page(T('Nos guides','Our guides','مشايخنا'),'<div id="gds"></div>');$('pg').dataset.k='gd';
  var g=$('gds');
@@ -1882,6 +1934,7 @@ setLang();home();nav('home');
 if(!hasLang)sheet();
 try{welcome()}catch(e){}
 loadAud(refreshAudBar);
+applyEdits();loadEdits(function(){if(view==='reader'&&cur&&cur.bayts)reopenKeep()});
 requestAnimationFrame(function(){requestAnimationFrame(function(){document.documentElement.classList.add('ready')})});
 // Lien direct (#/…) : exécuté quand toute la page est lue (le lecteur du Mushaf est défini plus bas).
 document.addEventListener('DOMContentLoaded',function(){var h=location.hash;try{history.replaceState({d:0},'')}catch(e){}if(h&&h!=='#/'&&h!=='#'){RT.restoring=true;try{goRoute(h)}finally{setTimeout(function(){RT.restoring=false},0)}}});
