@@ -572,6 +572,7 @@ function mockSupabase(state){
     await p.click('#list .book .main'); await p.waitForTimeout(500);
     ok(/YA-QUTBU-YA-GHAWTHU/.test(await p.getAttribute('#pdfv a.btn','href')) && p.url().endsWith('#/t/spbabacar1'), 'PDF : lien vers SOP NABY France');
     await p.goto(BASE+'#/c/malick'); await p.waitForTimeout(600); ok(/Kifâyatour Râghibîne/.test(await p.textContent('#list')), 'Malick Sy : PDF ajoutés');
+    await p.goto(BASE+'#/t/spabass7'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===14 && /صَاحِ ارْكَبِ الْحَزْمَ/.test(await p.textContent('#rText')), 'Serigne Abass Sall : poème en texte (14 vers)');
     await ctx.close(); }
 
   console.log('\n8. Affichage mobile / tablette / ordinateur');
