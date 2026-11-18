@@ -534,6 +534,12 @@ function mockSupabase(state){
     REDIS['defteram:admin']=old; await ca.close(); await ce.close(); await cv.close();
   }
 
+  console.log('\n7g. Hadiths authentiques');
+  { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'hadiths'}); await p.goto(BASE+'#/t/hx2'); await p.waitForTimeout(900);
+    ok((await p.$$('#rText .ws')).length===79, 'Hadiths authentiques : 79 hadiths');
+    const tx=await p.textContent('#rText'); ok(/point noir se forme sur son cœur/.test(tx) && /At-Tirmidhi n°3334/.test(tx) && /Hasan sahih/.test(tx) && /Rapporté par Abu Hurayra/.test(tx), 'texte, référence, degré et contexte affichés');
+    await ctx.close(); }
+
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){
     const ctx=await b.newContext({viewport:vp,serviceWorkers:'block'}), p=await newPage(ctx,{name:n});
