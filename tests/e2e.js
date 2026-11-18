@@ -563,6 +563,17 @@ function mockSupabase(state){
     await p.click('#qs .qnav .btn:last-child'); await p.waitForTimeout(900); ok(p.url().endsWith('#/q/10'), 'sourate suivante');
     await ctx.close(); }
 
+  console.log('\n7i. Bibliothèques de Tivaouane (PDF SOP NABY)');
+  { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'tivaouane'});
+    await p.goto(BASE); await p.waitForTimeout(600);
+    ok(/Bibliothèques de Tivaouane/.test(await p.textContent('#groups')) && /Serigne Babacar Sy/.test(await p.textContent('#groups')), 'accueil : bibliothèques de Tivaouane');
+    await p.goto(BASE+'#/c/babacar'); await p.waitForTimeout(600);
+    ok((await p.$$('#list .book')).length===12 && /Ya Qutbu Ya Ghawth/.test(await p.textContent('#list')) && await p.isVisible('#cHead img'), 'Serigne Babacar Sy : photo et 12 PDF');
+    await p.click('#list .book .main'); await p.waitForTimeout(500);
+    ok(/YA-QUTBU-YA-GHAWTHU/.test(await p.getAttribute('#pdfv a.btn','href')) && p.url().endsWith('#/t/spbabacar1'), 'PDF : lien vers SOP NABY France');
+    await p.goto(BASE+'#/c/malick'); await p.waitForTimeout(600); ok(/Kifâyatour Râghibîne/.test(await p.textContent('#list')), 'Malick Sy : PDF ajoutés');
+    await ctx.close(); }
+
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){
     const ctx=await b.newContext({viewport:vp,serviceWorkers:'block'}), p=await newPage(ctx,{name:n});
