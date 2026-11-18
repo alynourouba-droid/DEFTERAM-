@@ -579,7 +579,7 @@ function mockSupabase(state){
   console.log('\n7j. Photo Dudal Faas Gunaas');
   { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'dudal'});
     await p.goto(BASE); await p.waitForTimeout(800);
-    ok(await p.isVisible('#dudal') && /Dudal Faas Gunaas/.test(await p.textContent('#dudal')) && await p.evaluate(()=>$('dudal').querySelector('img').naturalWidth)>0, 'accueil : grande photo Dudal Faas Gunaas');
+    ok(await p.isVisible('#dudal') && /Fass Gounass TV/.test(await p.textContent('#dudal')) && await p.evaluate(()=>$('dudal').querySelector('img').naturalWidth)>0, 'accueil : grande photo Dudal Faas Gunaas');
     await p.click('#dudal'); await p.waitForTimeout(500); ok(p.url().endsWith('#/c/fass'), 'photo : ouvre les poèmes de Fass Gounass');
     await ctx.close(); }
 
