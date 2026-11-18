@@ -435,7 +435,8 @@ function mockSupabase(state){
     ok(await p.isVisible('.tile .e.ph img[src="img/malick-sy-face.jpg"]'), 'accueil : case de la bibliothèque avec la photo');
     await p.click('.tile >> text=Malick Sy'); await p.waitForTimeout(500);
     ok(await p.isVisible('#cHead .mhead img') && /Tivaouane/.test(await p.textContent('#cHead')), 'bibliothèque : photo et présentation');
-    const t=await p.textContent('#list'); ok(/Khilass Zahab/.test(t) && /Riyy az-Zam/.test(t), 'bibliothèque : Khilass Zahab et la Nûniyya');
+    const t=await p.textContent('#list'); ok(/Khilass Zahab/.test(t) && /Riyy az-Zam/.test(t) && /Taïssir/.test(t), 'bibliothèque : Khilass Zahab, la Nûniyya et le Taïssir');
+    await p.goto(BASE+'#/t/ts1'); await p.waitForTimeout(800); ok((await p.$$('#rText .bayt')).length===85 && /الْفَاتِحِ لِمَا أُغْلِقَ/.test(await p.textContent('#rText')), 'Taïssir : 69 vers + 2e partie + Salât al-Fâtih');
     await p.goto(BASE+'#/t/rz1'); await p.waitForTimeout(600);
     ok((await p.$$('#rText .bayt')).length===121, 'Nûniyya : 121 vers');
     ok(/Alâ yâ dah-du/.test(await p.textContent('#rText .bayt .btl')), 'prononciation en lettres latines sous chaque vers');
