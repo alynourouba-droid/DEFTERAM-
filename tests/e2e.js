@@ -576,6 +576,13 @@ function mockSupabase(state){
     await p.goto(BASE+'#/t/spabass7'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===14 && /صَاحِ ارْكَبِ الْحَزْمَ/.test(await p.textContent('#rText')), 'Serigne Abass Sall : poème en texte (14 vers)');
     await ctx.close(); }
 
+  console.log('\n7j. Photo Dudal Faas Gunaas');
+  { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'dudal'});
+    await p.goto(BASE); await p.waitForTimeout(800);
+    ok(await p.isVisible('#dudal') && /Dudal Faas Gunaas/.test(await p.textContent('#dudal')) && await p.evaluate(()=>$('dudal').querySelector('img').naturalWidth)>0, 'accueil : grande photo Dudal Faas Gunaas');
+    await p.click('#dudal'); await p.waitForTimeout(500); ok(p.url().endsWith('#/c/fass'), 'photo : ouvre les poèmes de Fass Gounass');
+    await ctx.close(); }
+
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){
     const ctx=await b.newContext({viewport:vp,serviceWorkers:'block'}), p=await newPage(ctx,{name:n});
