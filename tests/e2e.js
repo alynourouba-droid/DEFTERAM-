@@ -540,6 +540,29 @@ function mockSupabase(state){
     const tx=await p.textContent('#rText'); ok(/point noir se forme sur son cœur/.test(tx) && /At-Tirmidhi n°3334/.test(tx) && /Hasan sahih/.test(tx) && /Rapporté par Abu Hurayra/.test(tx), 'texte, référence, degré et contexte affichés');
     await ctx.close(); }
 
+  console.log('\n7h. Coran verset par verset');
+  { const ctx=await b.newContext({serviceWorkers:'block'}); const urls=[];
+    await ctx.route('https://cdn.islamic.network/**', r=>{ urls.push(r.request().url()); r.fulfill({status:200,contentType:'audio/mpeg',body:''}); });
+    const p=await newPage(ctx,{name:'coran',allowErr:true});
+    await p.goto(BASE+'#/c/quran'); await p.waitForTimeout(500);
+    ok(/7 versets · mecquoise/.test(await p.textContent('#list')), 'liste des sourates : nombre de versets et lieu');
+    await p.click('#list .book .main'); await p.waitForTimeout(900);
+    ok(p.url().endsWith('#/q/1') && (await p.$$('#qs .qv')).length===7, 'Al-Fâtiha : 7 versets');
+    await p.goto(BASE+'#/q/112'); await p.waitForTimeout(900);
+    const tx=await p.textContent('#qs');
+    ok((await p.$$('#qs .qv')).length===4 && /أَحَدٌ/.test(tx) && /Il est Allah, Unique/.test(tx), 'Al-Ikhlâs : arabe + traduction', tx.slice(0,300));
+    ok(/بِسْمِ ٱللَّهِ/.test(await p.textContent('#qs .qbs')), 'Bismillah en tête de sourate');
+    ok((await p.$$('#qRec option')).length===18, '18 récitateurs');
+    await p.click('#qv0 .qpl'); await p.waitForTimeout(500);
+    ok(urls.includes('https://cdn.islamic.network/quran/audio/128/ar.alafasy/6222.mp3'), 'récitation du verset 112:1 (Alafasy)');
+    await p.selectOption('#qRec','ar.husary'); await p.click('#qv0 .qpl'); await p.waitForTimeout(500);
+    ok(urls.includes('https://cdn.islamic.network/quran/audio/128/ar.husary/6222.mp3') && await p.evaluate(()=>localStorage.getItem('defteram_rec'))!==null, 'changement de récitateur (Al-Husary) mémorisé');
+    await p.click('#qTr'); ok(!(await p.isVisible('#qv0 .qf')), 'masquer la traduction');
+    await p.click('#qTr'); ok(await p.isVisible('#qv0 .qf'), 'afficher la traduction');
+    await p.goto(BASE+'#/q/9'); await p.waitForTimeout(900); ok(!(await p.$('#qs .qbs')) && (await p.$$('#qs .qv')).length===129, 'At-Tawba : pas de Bismillah, 129 versets');
+    await p.click('#qs .qnav .btn:last-child'); await p.waitForTimeout(900); ok(p.url().endsWith('#/q/10'), 'sourate suivante');
+    await ctx.close(); }
+
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){
     const ctx=await b.newContext({viewport:vp,serviceWorkers:'block'}), p=await newPage(ctx,{name:n});

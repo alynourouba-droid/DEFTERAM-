@@ -432,6 +432,18 @@ mark.fm.cur{background:#ff9f1c;color:#1b1b1b;box-shadow:0 0 0 2px #ff9f1c}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.hero,.hero *,.hero::before,body::before{translate:none!important}.rv{opacity:1!important}}
 .hctx{margin:6px 0 0;font-size:.5em;line-height:1.55;color:var(--mute);font-style:italic;text-align:start;direction:ltr}
+#qs .qhd{text-align:center;margin:2px 0 10px}#qs .qar{font:700 2rem/1.6 Amiri,serif;color:var(--accent)}#qs .qmeta{color:var(--mute);font-size:.85rem}
+#qs .qtools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:8px 0}
+#qs select,#qs input{font:inherit;padding:9px 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);max-width:100%}#qs input{width:9em}
+#qs .qbs{text-align:center;font:400 1.7rem/2 Amiri,serif;color:var(--sunInk);margin:14px 0 4px}
+#qs .qv{margin:12px 0;padding:12px 14px;border:1.5px solid var(--line);border-radius:16px;background:var(--surface);transition:border-color .2s,box-shadow .2s}
+#qs .qv.on{border-color:var(--sun);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold2) 45%,transparent)}
+#qs .qa{direction:rtl;text-align:right;font-family:Amiri,'Traditional Arabic',serif;font-size:1.65rem;line-height:2.25;color:var(--ink)}
+#qs .qn{display:inline-grid;place-items:center;min-width:1.75em;height:1.75em;padding:0 .2em;border:1.5px solid var(--sun);border-radius:50%;font-size:.62em;line-height:1;color:var(--accent);vertical-align:middle}
+#qs .qsj{color:var(--sunInk)}#qs .qf{margin:6px 0 0;line-height:1.6;font-size:.95rem;color:var(--ink)}#qs.notr .qf{display:none}
+#qs .qb{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}#qs .qb .btn{padding:6px 12px;min-height:36px}
+#qs .qnav{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:16px 0}#qs .qmsg{text-align:center;color:#b3261e;font-size:.9rem;margin:4px 0}#qs .qmsg:empty{display:none}
+#qs .qsrc{font-size:.75rem;color:var(--mute);text-align:center;margin:18px 0 8px;line-height:1.5}.qinfo{margin:0 0 12px}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0f6b57">
@@ -708,7 +720,7 @@ function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}if(SY
 function load(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
 var SYNCK=['defteram_custom','defteram_fav','defteram_prof','defteram_page','defteram_lang','defteram_tash'];
 function toast(x){var e=$('toast');e.textContent=x;e.classList.remove('hide');setTimeout(function(){e.classList.add('hide')},1800)}
-function show(v){view=v;document.body.classList.remove('inchat');if(v!=='reader'&&typeof stopAudio==='function')stopAudio();['home','cat','reader','zikr','form','mushaf','pg'].forEach(function(x){$(x).classList.toggle('hide',x!==v)});
+function show(v){if(typeof qStop==='function'&&QR.au)qStop();view=v;document.body.classList.remove('inchat');if(v!=='reader'&&typeof stopAudio==='function')stopAudio();['home','cat','reader','zikr','form','mushaf','pg'].forEach(function(x){$(x).classList.toggle('hide',x!==v)});
  var m=v==='cat'&&cat==='fav'?'fav':v==='zikr'?'zikr':v==='home'?'home':(v==='pg'&&$('pg').dataset.k==='acc')?'acc':'';
  nav(m);window.scrollTo(0,0);Promise.resolve().then(syncRoute)}
 function nav(on){
@@ -774,13 +786,13 @@ function openCat(id,items,title){
  var hasAu=items.some(function(x){return x.au});$('gBtn').classList.toggle('hide',!hasAu);$('gBtn').textContent=grp?T('Par poèmes','By poem','حسب القصائد'):T('Par auteurs','By author','حسب الشعراء');
  var last=null,gr=grp&&hasAu;if(gr)items=items.slice().sort(function(a,b){return (a.au||'~').localeCompare(b.au||'~')});
  if(!items.length){var p=document.createElement('p');p.className='empty';p.textContent=isFav?t('emptyF'):t('emptyC');l.appendChild(p)}
- if(id==='quran'&&!title){var lp=+(load('defteram_page')||0);if(lp>1){var rb=document.createElement('button');rb.className='btn fill wide';rb.style.marginBottom='12px';rb.textContent='📍 '+T('Reprendre le Mushaf · page ','Resume the Mushaf · page ','متابعة المصحف · صفحة ')+adig(lp);rb.onclick=function(){openMushaf(lp)};l.appendChild(rb)}}
+ if(id==='quran'&&!title){var lp=+(load('defteram_page')||0);if(lp>1){var rb=document.createElement('button');rb.className='btn fill wide';rb.style.marginBottom='12px';rb.textContent='📍 '+T('Reprendre le Mushaf · page ','Resume the Mushaf · page ','متابعة المصحف · صفحة ')+adig(lp);rb.onclick=function(){openMushaf(lp)};l.appendChild(rb)}var qi=document.createElement('p');qi.className='note qinfo';qi.textContent=T('Touchez une sourate : texte arabe, traduction française verset par verset et récitation par 18 récitateurs.','Tap a surah: Arabic text, verse-by-verse French translation and recitation by 18 reciters.','اضغط على سورة: النص العربي والترجمة والاستماع إلى ١٨ قارئاً.');l.appendChild(qi)}
  items.forEach(function(b){
   if(gr&&b.au!==last){last=b.au;var hd=document.createElement('div');hd.className='author';hd.textContent=b.au||'—';l.appendChild(hd)}
   var e=document.createElement('div');e.className='book';
   var m=document.createElement('button');m.className='main';
   var s=document.createElement('span'),a=document.createElement('b'),c=document.createElement('small');
-  a.textContent=nm(b);c.textContent=(b.lang==='ff'?t('ff'):'')+(b.count?' ×'+b.count:'')+(b.bayts?b.bayts.length+' '+T('vers','verses','بيتاً'):'')+(hasAud(b)?' · 🎧':'');
+  a.textContent=nm(b);c.textContent=(b.lang==='ff'?t('ff'):'')+(b.count?' ×'+b.count:'')+(b.bayts?b.bayts.length+' '+T('vers','verses','بيتاً'):'')+(hasAud(b)?' · 🎧':'');var qm=b.cat==='quran'&&/^s(\d+)$/.exec(b.id);if(qm&&QSUR[qm[1]-1]){var QQ=QSUR[qm[1]-1];c.textContent=adig(QQ[0])+' '+T('versets','verses','آية')+' · '+qType(QQ)}
   if(ITEMS&&ITEMS.views[b.id])c.textContent+=(c.textContent?' · ':'')+'👁️ '+fmtN(ITEMS.views[b.id]);s.appendChild(a);if(c.textContent)s.appendChild(c);
   m.appendChild(s);
   if(b.ar&&lang!=='ar'){var r=document.createElement('span');r.className='t ar';r.textContent=b.ar;m.appendChild(r)}
@@ -792,7 +804,7 @@ function openCat(id,items,title){
 }
 function tog(id){var i=favs.indexOf(id);if(i>-1)favs.splice(i,1);else favs.push(id);save(FK,favs)}
 function openBook(b){
- if(b.page){openMushaf(b.page);return}
+ if(b.page){var sn=/^s(\d+)$/.exec(b.id);if(sn&&b.cat==='quran')return openSurah(+sn[1]);openMushaf(b.page);return}
  if(!b.guide&&!b.learn){save('defteram_last',{t:b.id});readerExtras(b)}
  if(!b.page)setTimeout(function(){countView(b)},0);
  if(b.guide){openGuide(b);return}
@@ -922,7 +934,7 @@ $('save').onclick=function(){
  if(!ti||!body.length){toast(t('need'));return}
  custom.push({id:'c'+Date.now(),cat:$('fCat').value,lang:$('fLang').value,title:ti,au:$('fAu').value.trim(),lines:body});
  save(KEY,custom);$('fTitle').value='';$('fAu').value='';$('fBody').value='';openCat($('fCat').value)};
-function render(){nav(view==='home'?'home':'');if(view==='home')home();else if(view==='cat'){if(cat==='search'){home();show('home')}else openCat(cat)}else if(view==='reader')openBook(cur);else if(view==='mushaf')openMushaf(mp);else if(view==='zikr')zk();else if(view==='pg'&&$('pg').dataset.k==='w'&&cur&&cur.guide)openGuide(cur);else if(view==='pg'&&$('pg').dataset.k==='l'&&cur&&cur.learn)openLearn(cur);else if(view==='pg'&&$('pg').dataset.k==='g1'&&GCUR){RT.restoring=true;guidePage(GCUR.id);setTimeout(function(){RT.restoring=false},0)}else if(view==='pg'){var F={gd:guidesPage,adm:admin,i:installer,b:badges,a:authors,r:rate,s:support,t:settings,x:about,acc:account}[$('pg').dataset.k];if(F){RT.restoring=true;F();setTimeout(function(){RT.restoring=false},0)}}}
+function render(){nav(view==='home'?'home':'');if(view==='home')home();else if(view==='cat'){if(cat==='search'){home();show('home')}else openCat(cat)}else if(view==='reader')openBook(cur);else if(view==='mushaf')openMushaf(mp);else if(view==='zikr')zk();else if(view==='pg'&&$('pg').dataset.k==='w'&&cur&&cur.guide)openGuide(cur);else if(view==='pg'&&$('pg').dataset.k==='l'&&cur&&cur.learn)openLearn(cur);else if(view==='pg'&&$('pg').dataset.k==='su'&&QR.n){RT.restoring=true;openSurah(QR.n);setTimeout(function(){RT.restoring=false},0)}else if(view==='pg'&&$('pg').dataset.k==='g1'&&GCUR){RT.restoring=true;guidePage(GCUR.id);setTimeout(function(){RT.restoring=false},0)}else if(view==='pg'){var F={gd:guidesPage,adm:admin,i:installer,b:badges,a:authors,r:rate,s:support,t:settings,x:about,acc:account}[$('pg').dataset.k];if(F){RT.restoring=true;F();setTimeout(function(){RT.restoring=false},0)}}}
 
 function surOf(p){var r=SUR[0];SUR.forEach(function(s){if(s.page<=p)r=s});return r}
 function openMushaf(p){mp=Math.max(1,Math.min(604,Math.round(p)||1));
@@ -1213,7 +1225,7 @@ function routeNow(){
  if(view==='zikr')return '#/zikr';
  if(view==='form')return '#/add/'+cat;
  if(view==='pg'&&$('pg').dataset.k==='g1'&&GCUR)return '#/g/'+GCUR.id;
- if(view==='pg'){var k=$('pg').dataset.k;if((k==='w'||k==='l')&&cur)return '#/t/'+cur.id;var P={gd:'guides',adm:'admin',i:'installer',b:'badges',a:'auteurs',r:'note',s:'soutien',t:'parametres',x:'apropos',acc:'compte',co:'cours',ens:'enseignant',dirn:'direction'};if(k==='tp'&&CRS.curT)return '#/p/ecole/'+encodeURIComponent(CRS.curT);if(k==='ch'&&CRS.chat&&CRS.chat.room.indexOf('c:')===0&&!CRS.chat.other)return '#/p/ecole/'+encodeURIComponent(CRS.chat.room.slice(2));if(k==='cand')return '#/p/devenir-enseignant';if(P[k])return '#/p/'+P[k]}
+ if(view==='pg'){var k=$('pg').dataset.k;if((k==='w'||k==='l')&&cur)return '#/t/'+cur.id;var P={gd:'guides',adm:'admin',i:'installer',b:'badges',a:'auteurs',r:'note',s:'soutien',t:'parametres',x:'apropos',acc:'compte',co:'cours',ens:'enseignant',dirn:'direction'};if(k==='tp'&&CRS.curT)return '#/p/ecole/'+encodeURIComponent(CRS.curT);if(k==='ch'&&CRS.chat&&CRS.chat.room.indexOf('c:')===0&&!CRS.chat.other)return '#/p/ecole/'+encodeURIComponent(CRS.chat.room.slice(2));if(k==='cand')return '#/p/devenir-enseignant';if(k==='su'&&QR.n)return '#/q/'+QR.n;if(P[k])return '#/p/'+P[k]}
  return '#/'}
 function setRoute(h,rep){if(RT.restoring)return;var now=location.hash||'#/';if(now===h)return;
  var d=(history.state&&history.state.d)||0,u=h==='#/'?location.pathname+location.search:h;
@@ -1227,6 +1239,7 @@ function goRoute(h){
  if(a==='c'&&(x==='fav'||NAME[x]))return openCat(x);
  if(a==='t'){var b=all().filter(function(z){return z.id===x})[0];if(b){cat=b.cat;return openBook(b)}}
  if(a==='m')return openMushaf(+x||1);
+ if(a==='q')return openSurah(parseInt(x,10)||1);
  if(a==='zikr'){zk();return show('zikr')}
  if(a==='s'){$('sb').click();if(x){var q=$('q');q.value=x;q.oninput.call(q)}return}
  if(a==='au'&&x){grp=false;return openCat('search',authorsOf(x),x)}
@@ -1239,9 +1252,61 @@ window.addEventListener('popstate',function(){RT.restoring=true;try{goRoute(loca
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!$('drawer').classList.contains('hide')){drawer(false);$('mBtn').focus()}else if(!$('sheet').classList.contains('hide'))$('sheet').classList.add('hide')}});
 $('sheet').addEventListener('click',function(e){if(e.target===this&&hasLang)this.classList.add('hide')});
 
+/* ===== Coran verset par verset (texte Tanzil, traduction Hamidullah, récitations Islamic Network) ===== */
+var QSUR=[[7,"M","Al-Fâtiha","L'Ouverture","ٱلْفَاتِحَةِ",1,1],[286,"D","Al-Baqara","La Vache","البَقَرَةِ",2,1],[200,"D","Âl ‘Imrân","La Famille d'Imrân","آلِ عِمۡرَانَ",50,3],[176,"D","An-Nisâ’","Les Femmes","النِّسَاءِ",77,4],[120,"D","Al-Mâ’ida","La Table servie","المَائـِدَةِ",106,6],[165,"M","Al-An‘âm","Les Bestiaux","الأَنۡعَامِ",128,7],[206,"M","Al-A‘râf","Les Murailles","الأَعۡرَافِ",151,8],[75,"D","Al-Anfâl","Le Butin","الأَنفَالِ",177,9],[129,"D","At-Tawba","Le Repentir","التَّوۡبَةِ",187,10],[109,"M","Yûnus","Jonas","يُونُسَ",208,11],[123,"M","Hûd","Hûd","هُودٍ",221,11],[111,"M","Yûsuf","Joseph","يُوسُفَ",235,12],[43,"D","Ar-Ra‘d","Le Tonnerre","الرَّعۡدِ",249,13],[52,"M","Ibrâhîm","Abraham","إِبۡرَاهِيمَ",255,13],[99,"M","Al-Hijr","Al-Hijr","الحِجۡرِ",262,14],[128,"M","An-Nahl","Les Abeilles","النَّحۡلِ",267,14],[111,"M","Al-Isrâ’","Le Voyage nocturne","الإِسۡرَاءِ",282,15],[110,"M","Al-Kahf","La Caverne","الكَهۡفِ",293,15],[98,"M","Maryam","Marie","مَرۡيَمَ",305,16],[135,"M","Tâ-Hâ","Tâ-Hâ","طه",312,16],[112,"M","Al-Anbiyâ’","Les Prophètes","الأَنبِيَاءِ",322,17],[78,"D","Al-Hajj","Le Pèlerinage","الحَجِّ",332,17],[118,"M","Al-Mu’minûn","Les Croyants","المُؤۡمِنُونَ",342,18],[64,"D","An-Nûr","La Lumière","النُّورِ",350,18],[77,"M","Al-Furqân","Le Discernement","الفُرۡقَانِ",359,18],[227,"M","Ash-Shu‘arâ’","Les Poètes","الشُّعَرَاءِ",367,19],[93,"M","An-Naml","Les Fourmis","النَّمۡلِ",377,19],[88,"M","Al-Qasas","Le Récit","القَصَصِ",385,20],[69,"M","Al-‘Ankabût","L'Araignée","العَنكَبُوتِ",396,20],[60,"M","Ar-Rûm","Les Romains","الرُّومِ",404,21],[34,"M","Luqmân","Luqmân","لُقۡمَانَ",411,21],[30,"M","As-Sajda","La Prosternation","السَّجۡدَةِ",415,21],[73,"D","Al-Ahzâb","Les Coalisés","الأَحۡزَابِ",418,21],[54,"M","Saba’","Saba","سَبَإٍ",428,22],[45,"M","Fâtir","Le Créateur","فَاطِرٍ",434,22],[83,"M","Yâ-Sîn","Yâ-Sîn","يسٓ",440,22],[182,"M","As-Sâffât","Les Rangés","الصَّافَّاتِ",446,23],[88,"M","Sâd","Sâd","صٓ",453,23],[75,"M","Az-Zumar","Les Groupes","الزُّمَرِ",458,23],[85,"M","Ghâfir","Le Pardonneur","غَافِرٍ",467,24],[54,"M","Fussilat","Les Versets détaillés","فُصِّلَتۡ",477,24],[53,"M","Ash-Shûrâ","La Consultation","الشُّورَىٰ",483,25],[89,"M","Az-Zukhruf","L'Ornement","الزُّخۡرُفِ",489,25],[59,"M","Ad-Dukhân","La Fumée","الدُّخَانِ",496,25],[37,"M","Al-Jâthiya","L'Agenouillée","الجَاثِيَةِ",499,25],[35,"M","Al-Ahqâf","Al-Ahqâf","الأَحۡقَافِ",502,26],[38,"D","Muhammad","Muhammad","مُحَمَّدٍ",507,26],[29,"D","Al-Fath","La Victoire éclatante","الفَتۡحِ",511,26],[18,"D","Al-Hujurât","Les Appartements","الحُجُرَاتِ",515,26],[45,"M","Qâf","Qâf","قٓ",518,26],[60,"M","Adh-Dhâriyât","Qui éparpillent","الذَّارِيَاتِ",520,26],[49,"M","At-Tûr","At-Tûr","الطُّورِ",523,27],[62,"M","An-Najm","L'Étoile","النَّجۡمِ",526,27],[55,"M","Al-Qamar","La Lune","القَمَرِ",528,27],[78,"D","Ar-Rahmân","Le Tout Miséricordieux","الرَّحۡمَٰن",531,27],[96,"M","Al-Wâqi‘a","L'Événement","الوَاقِعَةِ",534,27],[29,"D","Al-Hadîd","Le Fer","الحَدِيدِ",537,27],[22,"D","Al-Mujâdala","La Discussion","المُجَادلَةِ",542,28],[24,"D","Al-Hashr","L'Exode","الحَشۡرِ",545,28],[13,"D","Al-Mumtahana","L'Éprouvée","المُمۡتَحنَةِ",549,28],[14,"D","As-Saff","Le Rang","الصَّفِّ",551,28],[11,"D","Al-Jumu‘a","Le Vendredi","الجُمُعَةِ",553,28],[11,"D","Al-Munâfiqûn","Les Hypocrites","المُنَافِقُونَ",554,28],[18,"D","At-Taghâbun","La Grande Perte","التَّغَابُنِ",556,28],[12,"D","At-Talâq","Le Divorce","الطَّلَاقِ",558,28],[12,"D","At-Tahrîm","L'Interdiction","التَّحۡرِيمِ",560,28],[30,"M","Al-Mulk","La Royauté","المُلۡكِ",562,29],[52,"M","Al-Qalam","La Plume","القَلَمِ",564,29],[52,"M","Al-Hâqqa","Celle qui montre la vérité","الحَاقَّةِ",566,29],[44,"M","Al-Ma‘ârij","Les Voies d'ascension","المَعَارِجِ",568,29],[28,"M","Nûh","Noé","نُوحٍ",570,29],[28,"M","Al-Jinn","Les Djinns","الجِنِّ",572,29],[20,"M","Al-Muzzammil","L'Enveloppé","المُزَّمِّلِ",574,29],[56,"M","Al-Muddaththir","Le Revêtu d'un manteau","المُدَّثِّرِ",575,29],[40,"M","Al-Qiyâma","La Résurrection","القِيَامَةِ",577,29],[31,"D","Al-Insân","L'Homme","الإِنسَانِ",578,29],[50,"M","Al-Mursalât","Les Envoyés","المُرۡسَلَاتِ",580,29],[40,"M","An-Naba’","La Nouvelle","النَّبَإِ",582,30],[46,"M","An-Nâzi‘ât","Les Anges qui arrachent les âmes","النَّازِعَاتِ",583,30],[42,"M","‘Abasa","Il s'est renfrogné","عَبَسَ",585,30],[29,"M","At-Takwîr","L'Obscurcissement","التَّكۡوِيرِ",586,30],[19,"M","Al-Infitâr","La Rupture","الانفِطَارِ",587,30],[36,"M","Al-Mutaffifîn","Les Fraudeurs","المُطَفِّفِينَ",587,30],[25,"M","Al-Inshiqâq","La Déchirure","الانشِقَاقِ",589,30],[22,"M","Al-Burûj","Les Constellations","البُرُوجِ",590,30],[17,"M","At-Târiq","L'Astre nocturne","الطَّارِقِ",591,30],[19,"M","Al-A‘lâ","Le Très-Haut","الأَعۡلَىٰ",591,30],[26,"M","Al-Ghâshiya","L'Enveloppante","الغَاشِيَةِ",592,30],[30,"M","Al-Fajr","L'Aube","الفَجۡرِ",593,30],[20,"M","Al-Balad","La Cité","البَلَدِ",594,30],[15,"M","Ash-Shams","Le Soleil","الشَّمۡسِ",595,30],[21,"M","Al-Layl","La Nuit","اللَّيۡلِ",595,30],[11,"M","Ad-Duhâ","Le Jour montant","الضُّحَىٰ",596,30],[8,"M","Ash-Sharh","L'Ouverture de la poitrine","الشَّرۡحِ",596,30],[8,"M","At-Tîn","Le Figuier","التِّينِ",597,30],[19,"M","Al-‘Alaq","L'Adhérence","العَلَقِ",597,30],[5,"M","Al-Qadr","La Destinée","القَدۡرِ",598,30],[8,"D","Al-Bayyina","La Preuve","البَيِّنَةِ",598,30],[8,"D","Az-Zalzala","La Secousse","الزَّلۡزَلَةِ",599,30],[11,"M","Al-‘Âdiyât","Les Coursiers","العَادِيَاتِ",599,30],[11,"M","Al-Qâri‘a","Le Fracas","القَارِعَةِ",600,30],[8,"M","At-Takâthur","La Course aux richesses","التَّكَاثُرِ",600,30],[3,"M","Al-‘Asr","Le Temps","العَصۡرِ",601,30],[9,"M","Al-Humaza","Les Calomniateurs","الهُمَزَةِ",601,30],[5,"M","Al-Fîl","L'Éléphant","الفِيلِ",601,30],[4,"M","Quraysh","Quraysh","قُرَيۡشٍ",602,30],[7,"M","Al-Mâ‘ûn","L'Ustensile","المَاعُونِ",602,30],[3,"M","Al-Kawthar","L'Abondance","الكَوۡثَرِ",602,30],[6,"M","Al-Kâfirûn","Les Infidèles","الكَافِرُونَ",603,30],[3,"D","An-Nasr","Le Secours","النَّصۡرِ",603,30],[5,"M","Al-Masad","Les Fibres","المَسَدِ",603,30],[4,"M","Al-Ikhlâs","Le Monothéisme pur","الإِخۡلَاصِ",604,30],[5,"M","Al-Falaq","L'Aube naissante","الفَلَقِ",604,30],[6,"M","An-Nâs","Les Hommes","النَّاسِ",604,30]];
+var RECS=[["ar.alafasy",128,"Mishary Rashid Alafasy","مشاري راشد العفاسي"],["ar.husary",128,"Mahmoud Khalil Al-Husary","محمود خليل الحصري"],["ar.husarymujawwad",128,"Al-Husary (mujawwad)","الحصري (مجود)"],["ar.minshawi",128,"Mohamed Siddiq Al-Minshawi","محمد صديق المنشاوي"],["ar.minshawimujawwad",64,"Al-Minshawi (mujawwad)","المنشاوي (مجود)"],["ar.abdulbasitmurattal",64,"Abdul Basit Abdus-Samad","عبد الباسط عبد الصمد"],["ar.abdurrahmaansudais",64,"Abdur-Rahman As-Sudais","عبد الرحمن السديس"],["ar.saoodshuraym",64,"Saud Ash-Shuraim","سعود الشريم"],["ar.mahermuaiqly",128,"Maher Al-Muaiqly","ماهر المعيقلي"],["ar.hudhaify",128,"Ali Al-Hudhaify","علي الحذيفي"],["ar.muhammadayyoub",128,"Muhammad Ayyub","محمد أيوب"],["ar.muhammadjibreel",128,"Muhammad Jibril","محمد جبريل"],["ar.abdullahbasfar",64,"Abdullah Basfar","عبد الله بصفر"],["ar.shaatree",128,"Abu Bakr Ash-Shatri","أبو بكر الشاطري"],["ar.ahmedajamy",128,"Ahmad Al-Ajmi","أحمد العجمي"],["ar.hanirifai",64,"Hani Ar-Rifai","هاني الرفاعي"],["ar.ibrahimakhbar",32,"Ibrahim Al-Akhdar","إبراهيم الأخضر"],["ar.aymanswoaid",64,"Ayman Suwayd","أيمن سويد"]];
+var QR={n:0,d:null,i:-1,all:false,au:null,rec:load('defteram_rec')||'ar.alafasy'};
+function qel(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e}
+function qOff(n){var o=0;for(var i=0;i<n-1;i++)o+=QSUR[i][0];return o}
+function qName(n){var q=QSUR[n-1];return lang==='ar'?'سُورَةُ '+q[4]:n+'. '+q[2]+(lang==='en'?'':' · '+q[3])}
+function qType(q){return q[1]==='M'?T('mecquoise','Meccan','مكية'):T('médinoise','Medinan','مدنية')}
+function qRec(){for(var i=0;i<RECS.length;i++)if(RECS[i][0]===QR.rec)return RECS[i];return RECS[0]}
+function qMark(){var w=$('qs');if(!w)return;w.querySelectorAll('.qv').forEach(function(c,i){c.classList.toggle('on',i===QR.i);var b=c.querySelector('.qpl');if(b)b.textContent=i===QR.i?'⏸':'▶'});var a=$('qAll');if(a)a.textContent=QR.all?'⏹ '+T('Arrêter','Stop','إيقاف'):'▶ '+T('Écouter la sourate','Listen to the surah','الاستماع إلى السورة')}
+function qStop(){if(QR.au){try{QR.au.pause()}catch(e){}QR.au.onended=null;QR.au.onerror=null;QR.au=null}QR.i=-1;QR.all=false;qMark()}
+function qPlay(i){var d=QR.d;if(!d||i<0||i>=d.a.length){qStop();return}
+ if(QR.au){QR.au.onended=null;QR.au.onerror=null;try{QR.au.pause()}catch(e){}}
+ var r=qRec(),au=new Audio('https://cdn.islamic.network/quran/audio/'+r[1]+'/'+r[0]+'/'+(qOff(QR.n)+i+1)+'.mp3');QR.au=au;QR.i=i;qMark();
+ var c=$('qv'+i);if(c&&QR.all)c.scrollIntoView({behavior:'smooth',block:'center'});
+ au.onended=function(){if(QR.all&&QR.i+1<QR.d.a.length)qPlay(QR.i+1);else qStop()};
+ au.onerror=function(){var n=$('qmsg');if(n)n.textContent=T('Récitation indisponible : vérifiez votre connexion Internet.','Recitation unavailable: check your Internet connection.','التلاوة غير متاحة: تحقق من الاتصال بالإنترنت.');qStop()};
+ var pr=au.play();if(pr&&pr.catch)pr.catch(function(){})}
+function openSurah(n){n=Math.max(1,Math.min(114,Math.round(+n)||1));qStop();QR.n=n;QR.d=null;var q=QSUR[n-1];
+ page(qName(n),'<div id="qs"></div>');$('pg').dataset.k='su';$('pgB').onclick=bk(function(){openCat('quran')});
+ save('defteram_last',{q:n});var w=$('qs');
+ var hd=qel('div','qhd');hd.appendChild(qel('div','qar','سُورَةُ '+q[4]));
+ hd.appendChild(qel('div','qmeta',adig(q[0])+' '+T('versets','verses','آية')+' · '+qType(q)+' · '+T('Juz’ ','Juz ','الجزء ')+adig(q[6])+' · '+T('page ','page ','صفحة ')+adig(q[5])));w.appendChild(hd);
+ var tl=qel('div','qtools'),se=qel('select');se.id='qRec';se.setAttribute('aria-label',T('Récitateur','Reciter','القارئ'));
+ RECS.forEach(function(r){var o=qel('option','',lang==='ar'?r[3]:r[2]);o.value=r[0];if(r[0]===QR.rec)o.selected=true;se.appendChild(o)});
+ se.onchange=function(){QR.rec=se.value;save('defteram_rec',QR.rec);if(QR.i>-1)qPlay(QR.i)};tl.appendChild(se);
+ var ab=qel('button','btn fill');ab.id='qAll';ab.onclick=function(){if(QR.all){qStop();return}if(!QR.d)return;QR.all=true;qPlay(QR.i>-1?QR.i:0)};tl.appendChild(ab);
+ var mb=qel('button','btn','📖 '+t('mush'));mb.onclick=function(){openMushaf(q[5])};tl.appendChild(mb);w.appendChild(tl);
+ var gt=qel('div','qtools'),gi=qel('input');gi.type='number';gi.min=1;gi.max=q[0];gi.id='qGo';gi.placeholder=T('Verset n°','Verse no.','رقم الآية');gi.setAttribute('aria-label',gi.placeholder);
+ gi.onchange=function(){var v=Math.round(+gi.value)-1,c=$('qv'+v);if(c)c.scrollIntoView({behavior:'smooth',block:'center'})};gt.appendChild(gi);
+ var tb=qel('button','btn',T('Traduction','Translation','الترجمة'));tb.id='qTr';var hide=load('defteram_qtr')==='0';tb.setAttribute('aria-pressed',!hide);
+ tb.onclick=function(){hide=!hide;save('defteram_qtr',hide?'0':'1');tb.setAttribute('aria-pressed',!hide);w.classList.toggle('notr',hide)};w.classList.toggle('notr',hide);gt.appendChild(tb);w.appendChild(gt);
+ var ms=qel('p','qmsg');ms.id='qmsg';ms.setAttribute('role','status');w.appendChild(ms);
+ if(n!==1&&n!==9)w.appendChild(qel('div','qbs','بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ'));
+ var box=qel('div');box.id='qvs';box.appendChild(qel('p','empty',T('Chargement…','Loading…','جارٍ التحميل…')));w.appendChild(box);
+ var nv=qel('div','qnav');if(n>1){var pb=qel('button','btn','← '+qName(n-1));pb.onclick=function(){openSurah(n-1)};nv.appendChild(pb)}
+ if(n<114){var nb=qel('button','btn',qName(n+1)+' →');nb.onclick=function(){openSurah(n+1)};nv.appendChild(nb)}w.appendChild(nv);
+ w.appendChild(qel('p','qsrc',T('Texte arabe : Tanzil Project (CC BY 3.0, tanzil.net) · Traduction du sens : Muhammad Hamidullah · Récitations : Islamic Network (AlQuran Cloud), droits réservés aux récitateurs.','Arabic text: Tanzil Project (CC BY 3.0, tanzil.net) · French translation: Muhammad Hamidullah · Recitations: Islamic Network (AlQuran Cloud), rights reserved to the reciters.','النص العربي: مشروع تنزيل (CC BY 3.0) · الترجمة الفرنسية: محمد حميد الله · التلاوات: Islamic Network، الحقوق محفوظة للقراء.')));
+ qMark();
+ fetch('q/'+('00'+n).slice(-3)+'.json').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(d){if(QR.n!==n||!$('qvs'))return;QR.d=d;box.innerHTML='';
+  d.a.forEach(function(a,i){var c=qel('div','qv');c.id='qv'+i;
+   var ar=qel('div','qa');ar.appendChild(document.createTextNode(a+' '));ar.appendChild(qel('span','qn',adig(i+1)));if(d.sj.indexOf(i+1)>-1)ar.appendChild(qel('span','qsj',' ۩'));c.appendChild(ar);
+   var fr=qel('p','qf');fr.lang='fr';fr.textContent=(i+1)+'. '+d.f[i];c.appendChild(fr);
+   var bt=qel('div','qb'),pl=qel('button','btn qpl','▶');pl.setAttribute('aria-label',T('Écouter le verset ','Listen to verse ','استمع إلى الآية ')+(i+1));
+   pl.onclick=function(){if(QR.i===i){qStop();return}QR.all=false;qPlay(i)};bt.appendChild(pl);
+   var pg=qel('button','btn','📖 '+adig(d.p[i]));pg.setAttribute('aria-label',T('Page du Mushaf ','Mushaf page ','صفحة المصحف ')+d.p[i]);pg.onclick=function(){openMushaf(d.p[i])};bt.appendChild(pg);
+   var cp=qel('button','btn','⧉');cp.setAttribute('aria-label',T('Copier le verset','Copy the verse','نسخ الآية'));cp.onclick=function(){if(navigator.clipboard)navigator.clipboard.writeText(a+'\n'+d.f[i]+'\n('+qName(n)+', '+(i+1)+')').then(function(){toast(T('Verset copié','Verse copied','تم نسخ الآية'))}).catch(function(){})};bt.appendChild(cp);
+   c.appendChild(bt);box.appendChild(c)});qMark();
+  var m=/^#\/q\/\d+\/(\d+)/.exec(location.hash);if(m){var c=$('qv'+(+m[1]-1));if(c)c.scrollIntoView({block:'center'})}
+ }).catch(function(){if(QR.n!==n||!$('qvs'))return;box.innerHTML='';box.appendChild(qel('p','empty',T('Sourate indisponible hors connexion. Ouvrez-la une fois avec Internet pour la garder.','Surah unavailable offline. Open it once online to keep it.','السورة غير متاحة دون اتصال.')))})}
+
 /* ===== Reprise de lecture, partage, suppression ===== */
 function lastRead(){var l=load('defteram_last');if(!l)return null;
  if(l.m)return function(){openMushaf(l.m)};
+ if(l.q)return function(){openSurah(l.q)};
  var b=l.t&&all().filter(function(z){return z.id===l.t})[0];return b?function(){cat=b.cat;openBook(b)}:null}
 function readerExtras(b){
  var mine=custom.some(function(c){return c.id===b.id});$('del').classList.toggle('hide',!mine);
