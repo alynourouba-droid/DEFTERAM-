@@ -569,8 +569,9 @@ function mockSupabase(state){
     ok(/Bibliothèques de Tivaouane/.test(await p.textContent('#groups')) && /Serigne Babacar Sy/.test(await p.textContent('#groups')), 'accueil : bibliothèques de Tivaouane');
     await p.goto(BASE+'#/c/babacar'); await p.waitForTimeout(600);
     ok((await p.$$('#list .book')).length===12 && /Ya Qutbu Ya Ghawth/.test(await p.textContent('#list')) && await p.isVisible('#cHead img'), 'Serigne Babacar Sy : photo et 12 PDF');
-    await p.click('#list .book .main'); await p.waitForTimeout(500);
-    ok(/YA-QUTBU-YA-GHAWTHU/.test(await p.getAttribute('#pdfv a.btn','href')) && p.url().endsWith('#/t/spbabacar1'), 'PDF : lien vers SOP NABY France');
+    await p.goto(BASE+'#/t/spbabacar8'); await p.waitForTimeout(500);
+    ok(/DIWAN-MAM-BABACAR/.test(await p.getAttribute('#pdfv a.btn','href')), 'PDF : lien vers SOP NABY France');
+    await p.goto(BASE+'#/t/spbabacar1'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===19 && /Yâ qutbu yâ ghawthu/.test(await p.textContent('#rText')), 'Ya Qutbu Ya Ghawth : texte + transcription');
     await p.goto(BASE+'#/c/malick'); await p.waitForTimeout(600); ok(/Kifâyatour Râghibîne/.test(await p.textContent('#list')), 'Malick Sy : PDF ajoutés');
     await p.goto(BASE+'#/t/spabass7'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===14 && /صَاحِ ارْكَبِ الْحَزْمَ/.test(await p.textContent('#rText')), 'Serigne Abass Sall : poème en texte (14 vers)');
     await ctx.close(); }
