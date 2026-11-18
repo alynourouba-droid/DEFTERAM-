@@ -445,19 +445,22 @@ mark.fm.cur{background:#ff9f1c;color:#1b1b1b;box-shadow:0 0 0 2px #ff9f1c}
 #qs .qnav{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:16px 0}#qs .qmsg{text-align:center;color:#b3261e;font-size:.9rem;margin:4px 0}#qs .qmsg:empty{display:none}
 #qs .qsrc{font-size:.75rem;color:var(--mute);text-align:center;margin:18px 0 8px;line-height:1.5}.qinfo{margin:0 0 12px}
 #pdfv .pdfc{text-align:center;padding:18px;border:1.5px solid var(--line);border-radius:20px;background:var(--surface)}#pdfv .pdfa{width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--gold2)}#pdfv .pdfn{font-weight:700;color:var(--accent);margin:8px 0 14px}#pdfv .btn{margin:6px 0}#pdfv .note{margin-top:12px}
-.dudal{position:relative;display:block;width:100%;margin:16px 0 4px;padding:0;border:0;border-radius:26px;overflow:hidden;aspect-ratio:auto;background:#120804;cursor:pointer;box-shadow:0 14px 34px rgba(0,0,0,.35),0 0 0 2px var(--gold2);isolation:isolate;font:inherit;color:#fff;text-align:center}
-.dudal .dph{position:relative;display:block;aspect-ratio:1170/942;overflow:hidden}.dudal .dph img{width:100%;height:100%;object-fit:cover;display:block;transform-origin:42% 48%;animation:dkb 14s ease-in-out infinite alternate}
-@keyframes dkb{0%{transform:scale(1)}100%{transform:scale(1.05)}}
-.dudal .dglow{position:absolute;left:0;right:0;top:0;bottom:46px;background:radial-gradient(circle at 42% 46%,rgba(255,170,60,.55),rgba(255,110,20,.18) 22%,transparent 45%);mix-blend-mode:screen;animation:dfl 1.6s ease-in-out infinite alternate}
+.dudal{position:relative;display:block;width:100%;margin:16px 0 4px;padding:0;border:0;border-radius:26px;overflow:hidden;aspect-ratio:1090/645;min-height:220px;background:#120804;cursor:pointer;box-shadow:0 14px 34px rgba(0,0,0,.35),0 0 0 2px var(--gold2);isolation:isolate;font:inherit;color:#fff;text-align:center}
+.dudal .dph{position:absolute;inset:0;overflow:hidden}.dudal .dph img{width:100%;height:100%;object-fit:cover;display:block;transform-origin:42% 45%;animation:dkb 18s ease-in-out infinite alternate}
+@keyframes dkb{0%{transform:scale(1.04) translate(0,0)}100%{transform:scale(1.22) translate(-2%,1%)}}
+.dudal .dglow{position:absolute;inset:0;background:radial-gradient(circle at 42% 42%,rgba(255,170,60,.55),rgba(255,110,20,.18) 22%,transparent 45%);mix-blend-mode:screen;animation:dfl 1.6s ease-in-out infinite alternate}
 @keyframes dfl{0%{opacity:.55}35%{opacity:.95}60%{opacity:.7}100%{opacity:1}}
-.dudal .dsp i{position:absolute;left:var(--x);bottom:calc(46px + 48%);width:4px;height:4px;border-radius:50%;background:#ffd27a;box-shadow:0 0 8px 2px #ff9d2e;opacity:0;animation:dsp var(--t) linear var(--d) infinite}
+.dudal .dsp i{position:absolute;left:var(--x);bottom:50%;width:4px;height:4px;border-radius:50%;background:#ffd27a;box-shadow:0 0 8px 2px #ff9d2e;opacity:0;animation:dsp var(--t) linear var(--d) infinite}
 @keyframes dsp{0%{transform:translate(0,0) scale(1);opacity:0}10%{opacity:1}100%{transform:translate(18px,-160px) scale(.2);opacity:0}}
-.dudal .dvig{position:absolute;left:0;right:0;top:0;bottom:46px;box-shadow:inset 0 0 40px rgba(0,0,0,.5)}
+.dudal .dvig{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),transparent 30%,transparent 55%,rgba(0,0,0,.8));box-shadow:inset 0 0 70px rgba(0,0,0,.65)}
 .dudal .dtx{position:absolute;left:0;right:0;bottom:0;padding:16px 14px 18px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.dudal .dtx b{font:700 clamp(1.6rem,6.5vw,2.6rem)/1.1 'Playfair Display',Georgia,serif;letter-spacing:.02em;color:#fff6e0;text-shadow:0 0 18px rgba(255,150,40,.85),0 2px 6px #000;animation:dup 1.4s cubic-bezier(.2,.8,.2,1) both .2s,dgl 3s ease-in-out infinite alternate 1.6s}
+.dudal .dtx>span{font-size:clamp(.85rem,3.4vw,1.1rem);color:#ffe6b8;text-shadow:0 2px 6px #000;animation:dup 1.4s cubic-bezier(.2,.8,.2,1) both .6s}
+.dudal .dtx small{display:flex;align-items:center;gap:7px;margin-top:6px;padding:4px 12px 4px 4px;border-radius:99px;background:rgba(0,0,0,.45);border:1px solid rgba(255,210,122,.6);color:#ffd27a;font-size:.75rem;animation:dup 1.4s both 1s}
+@keyframes dup{from{opacity:0;transform:translateY(18px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+@keyframes dgl{from{text-shadow:0 0 12px rgba(255,150,40,.6),0 2px 6px #000}to{text-shadow:0 0 28px rgba(255,170,60,1),0 2px 6px #000}}
 .dudal:active{transform:scale(.99)}
-.dudal .dtv{position:relative;margin:0 auto;height:46px;width:max-content;max-width:100%;display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;background:none;border:0;animation:dup 1.2s both .8s}
-.dudal .dtv img{width:28px;height:28px;border-radius:7px}.dudal .dtv b{font:700 .72rem/1 'Playfair Display',Georgia,serif;letter-spacing:.08em;color:#e2c071}.dudal .dtv em{font:600 .7rem/1 Inter,system-ui,sans-serif;font-style:normal;color:#fff;padding-left:6px;border-left:1px solid rgba(226,192,113,.6)}
-@keyframes dup{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.dudal .dtv img{width:26px;height:26px;border-radius:7px;box-shadow:0 0 0 1px rgba(255,210,122,.6)}.dudal .dtv b{font:700 .72rem/1 'Playfair Display',Georgia,serif;letter-spacing:.1em;color:#e2c071}.dudal .dtv em{font:600 .72rem/1 Inter,system-ui,sans-serif;font-style:normal;color:#fff;padding-left:7px;border-left:1px solid rgba(226,192,113,.6)}
 @media (prefers-reduced-motion:reduce){.dudal *{animation:none!important}.dudal .dsp{display:none}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -501,7 +504,7 @@ mark.fm.cur{background:#ff9f1c;color:#1b1b1b;box-shadow:0 0 0 2px #ff9f1c}
 <div class="bsm ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div><div id="logoH" style="margin-bottom:6px"></div><h1>DEFTERAM</h1><p id="tag"></p>
 <button class="sb" id="sb">🔍 <span id="sbt"></span></button>
 <div id="school"></div></div>
-<button type="button" class="dudal" id="dudal" aria-label="Dudal Faas Gunaas — Poèmes de Fass Gounass"><span class="dph"><img src="img/dudal-fass.jpg" alt="Dudal faas gunaas — Woni bulirde gannde ahmadiyankooje" width="1170" height="942" decoding="async" fetchpriority="high"></span><span class="dglow"></span><span class="dsp"><i style="--x:38%;--d:0.0s;--t:3.2s"></i><i style="--x:44%;--d:0.6s;--t:2.6s"></i><i style="--x:41%;--d:1.2s;--t:3.6s"></i><i style="--x:47%;--d:1.8s;--t:2.9s"></i><i style="--x:36%;--d:2.3s;--t:3.4s"></i><i style="--x:43%;--d:0.3s;--t:3.0s"></i><i style="--x:40%;--d:2.7s;--t:2.4s"></i><i style="--x:46%;--d:1.5s;--t:3.8s"></i><i style="--x:39%;--d:3.1s;--t:2.8s"></i><i style="--x:45%;--d:0.9s;--t:3.3s"></i></span><span class="dvig"></span><span class="dtv"><img src="icons/icon-192.png" alt="" width="28" height="28"><b>DEFTERAM</b><em>Fass Gounass TV</em></span></button>
+<button type="button" class="dudal" id="dudal" aria-label="Dudal Faas Gunaas — Poèmes de Fass Gounass"><span class="dph"><img src="img/dudal-fass.jpg" alt="" width="1090" height="645" decoding="async" fetchpriority="high"></span><span class="dglow"></span><span class="dsp"><i style="--x:38%;--d:0.0s;--t:3.2s"></i><i style="--x:44%;--d:0.6s;--t:2.6s"></i><i style="--x:41%;--d:1.2s;--t:3.6s"></i><i style="--x:47%;--d:1.8s;--t:2.9s"></i><i style="--x:36%;--d:2.3s;--t:3.4s"></i><i style="--x:43%;--d:0.3s;--t:3.0s"></i><i style="--x:40%;--d:2.7s;--t:2.4s"></i><i style="--x:46%;--d:1.5s;--t:3.8s"></i><i style="--x:39%;--d:3.1s;--t:2.8s"></i><i style="--x:45%;--d:0.9s;--t:3.3s"></i></span><span class="dvig"></span><span class="dtx"><b>Dudal Faas Gunaas</b><span>Woni bulirde gannde ahmadiyankooje</span><small class="dtv"><img src="icons/icon-192.png" alt="" width="26" height="26"><b>DEFTERAM</b><em>Fass Gounass TV</em></small></span></button>
 <div class="quick" id="quick"></div>
 <div class="stats hide" id="hstats" aria-label="Statistiques"></div>
 <div id="groups"></div>
