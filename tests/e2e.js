@@ -583,6 +583,13 @@ function mockSupabase(state){
     await p.click('#dudal'); await p.waitForTimeout(500); ok(p.url().endsWith('#/c/fass'), 'photo : ouvre les poèmes de Fass Gounass');
     await ctx.close(); }
 
+  console.log('\n7k. Jimɗi Dudal Gunaas');
+  { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'dudal-lib'});
+    await p.goto(BASE+'#/c/dudal'); await p.waitForTimeout(600);
+    ok(/Hamdan mi yeetti/.test(await p.textContent('#list')) && await p.isVisible('#cHead img'), 'bibliothèque Jimɗi Dudal Gunaas : photo + poème');
+    await p.goto(BASE+'#/t/dd1'); await p.waitForTimeout(600); ok(/Ceerno men Tijjaani/.test(await p.textContent('#rText')), 'Hamdan mi yeetti : texte Pulaar');
+    await ctx.close(); }
+
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){
     const ctx=await b.newContext({viewport:vp,serviceWorkers:'block'}), p=await newPage(ctx,{name:n});
