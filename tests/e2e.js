@@ -586,7 +586,7 @@ function mockSupabase(state){
   console.log('\n7k. Jimɗi Dudal Gunaas');
   { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'dudal-lib'});
     await p.goto(BASE+'#/c/dudal'); await p.waitForTimeout(600);
-    ok(/Hamdan mi yeetti/.test(await p.textContent('#list')) && await p.isVisible('#cHead img'), 'bibliothèque Jimɗi Dudal Gunaas : photo + poème');
+    ok(/Hamdan mi yeetti/.test(await p.textContent('#list')) && /Dental Gounass/.test(await p.textContent('#cHead')) && await p.isVisible('#cHead img'), 'bibliothèque Jimɗi Dental Gounass : photo + poème');
     await p.goto(BASE+'#/t/dd1'); await p.waitForTimeout(600); ok(/Ceerno men Tijjaani/.test(await p.textContent('#rText')) && (await p.$$('#rText .jv')).length===26 && !/Dudal/.test(await p.textContent('#rTitle')), 'Hamdan mi yeetti : 26 vers dans un cadre, sans « Dudal » dans le titre');
     await ctx.close(); }
 
