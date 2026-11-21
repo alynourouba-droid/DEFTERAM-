@@ -606,6 +606,12 @@ function mockSupabase(state){
     delete REDIS['defteram:mqaudio'];
     await ctx.close(); }
 
+  console.log('\n7m. Bibliothèque Cheikh Ibrahima Niass');
+  { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'niass'});
+    await p.goto(BASE+'#/c/niass'); await p.waitForTimeout(600); ok(/Nâla t-Tijânî/.test(await p.textContent('#list')) && /Ibrahima Niass/.test(await p.textContent('#cHead')), 'bibliothèque Cheikh Ibrahima Niass');
+    await p.goto(BASE+'#/t/ni1'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===11, 'poème de la lettre Tâ’ : 11 vers');
+    await ctx.close(); }
+
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){
     const ctx=await b.newContext({viewport:vp,serviceWorkers:'block'}), p=await newPage(ctx,{name:n});
