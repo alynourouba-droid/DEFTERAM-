@@ -593,10 +593,10 @@ function mockSupabase(state){
   console.log('\n7l. Leçons audio (YouTube)');
   { const ctx=await b.newContext({serviceWorkers:'block'}); await ctx.route('https://www.youtube-nocookie.com/**', r=>r.fulfill({status:200,contentType:'text/html',body:'<html></html>'}));
     const p=await newPage(ctx,{name:'audios'});
-    await p.goto(BASE+'#/c/ecole'); await p.waitForTimeout(600); ok(/Maqâmât al-Harîrî/.test(await p.textContent('#list')) && /66 leçons audio/.test(await p.textContent('#list')), 'Espace scolaire : 66 leçons audio');
+    await p.goto(BASE+'#/c/ecole'); await p.waitForTimeout(600); ok(/Maqâmât al-Harîrî/.test(await p.textContent('#list')) && /66 maqâmât en audio/.test(await p.textContent('#list')), 'Espace scolaire : 66 maqâmât en audio');
     await p.goto(BASE+'#/t/mh1'); await p.waitForTimeout(800);
     ok((await p.$$('#ytv .ytl button')).length===66 && /embed\/C-uKF72Ema4/.test(await p.getAttribute('#ytv iframe','src')), 'lecteur : leçon 1 et liste des 66 leçons');
-    await p.click('#ytv .ytnav .btn.fill'); await p.waitForTimeout(300); ok(/embed\/liN8RW2-K_4/.test(await p.getAttribute('#ytv iframe','src')) && /Leçon 2/.test(await p.textContent('#ytv .ytnow')), 'bouton Suivant : leçon 2');
+    await p.click('#ytv .ytnav .btn.fill'); await p.waitForTimeout(300); ok(/embed\/liN8RW2-K_4/.test(await p.getAttribute('#ytv iframe','src')) && /Maqâma 02/.test(await p.textContent('#ytv .ytnow')) && /الْمَقَامَةُ ٠٢/.test(await p.textContent('#ytv .ytnow')) && !/Houdallahi|YouTube/.test(await p.textContent('#ytv')), 'bouton Suivant : Maqâma 02 (arabe + français), sans nom de chaîne');
     await ctx.close(); }
 
   console.log('\n8. Affichage mobile / tablette / ordinateur');
