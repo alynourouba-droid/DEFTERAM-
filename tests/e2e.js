@@ -590,6 +590,15 @@ function mockSupabase(state){
     await p.goto(BASE+'#/t/dd1'); await p.waitForTimeout(600); ok(/Ceerno men Tijjaani/.test(await p.textContent('#rText')) && (await p.$$('#rText .jv')).length===26 && !/Dudal/.test(await p.textContent('#rTitle')), 'Hamdan mi yeetti : 26 vers dans un cadre, sans « Dudal » dans le titre');
     await ctx.close(); }
 
+  console.log('\n7l. Leçons audio (YouTube)');
+  { const ctx=await b.newContext({serviceWorkers:'block'}); await ctx.route('https://www.youtube-nocookie.com/**', r=>r.fulfill({status:200,contentType:'text/html',body:'<html></html>'}));
+    const p=await newPage(ctx,{name:'audios'});
+    await p.goto(BASE+'#/c/ecole'); await p.waitForTimeout(600); ok(/Maqâmât al-Harîrî/.test(await p.textContent('#list')) && /66 leçons audio/.test(await p.textContent('#list')), 'Espace scolaire : 66 leçons audio');
+    await p.goto(BASE+'#/t/mh1'); await p.waitForTimeout(800);
+    ok((await p.$$('#ytv .ytl button')).length===66 && /embed\/C-uKF72Ema4/.test(await p.getAttribute('#ytv iframe','src')), 'lecteur : leçon 1 et liste des 66 leçons');
+    await p.click('#ytv .ytnav .btn.fill'); await p.waitForTimeout(300); ok(/embed\/liN8RW2-K_4/.test(await p.getAttribute('#ytv iframe','src')) && /Leçon 2/.test(await p.textContent('#ytv .ytnow')), 'bouton Suivant : leçon 2');
+    await ctx.close(); }
+
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){
     const ctx=await b.newContext({viewport:vp,serviceWorkers:'block'}), p=await newPage(ctx,{name:n});
