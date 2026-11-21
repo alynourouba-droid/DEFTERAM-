@@ -592,11 +592,18 @@ function mockSupabase(state){
 
   console.log('\n7l. Leçons audio (YouTube)');
   { const ctx=await b.newContext({serviceWorkers:'block'}); await ctx.route('https://www.youtube-nocookie.com/**', r=>r.fulfill({status:200,contentType:'text/html',body:'<html></html>'}));
-    const p=await newPage(ctx,{name:'audios'});
+    const p=await newPage(ctx,{name:'audios',allowErr:true,allow404:true});
     await p.goto(BASE+'#/c/ecole'); await p.waitForTimeout(600); ok(/Maqâmât al-Harîrî/.test(await p.textContent('#list')) && /66 maqâmât en audio/.test(await p.textContent('#list')), 'Espace scolaire : 66 maqâmât en audio');
     await p.goto(BASE+'#/t/mh1'); await p.waitForTimeout(800);
     ok((await p.$$('#ytv .ytl button')).length===66 && /embed\/C-uKF72Ema4/.test(await p.getAttribute('#ytv iframe','src')), 'lecteur : leçon 1 et liste des 66 leçons');
     await p.click('#ytv .ytnav .btn.fill'); await p.waitForTimeout(300); ok(/embed\/liN8RW2-K_4/.test(await p.getAttribute('#ytv iframe','src')) && /Maqâma 02/.test(await p.textContent('#ytv .ytnow')) && /الْمَقَامَةُ ٠٢/.test(await p.textContent('#ytv .ytnow')) && !/Houdallahi|YouTube/.test(await p.textContent('#ytv')), 'bouton Suivant : Maqâma 02 (arabe + français), sans nom de chaîne');
+    STATS_ON=true; REDIS['defteram:mqaudio']={'2':JSON.stringify({url:'https://abc.public.blob.vercel-storage.com/maqama/mq02.mp3',size:1000,t:1})};
+    await ctx.route('https://abc.public.blob.vercel-storage.com/**', r=>r.fulfill({status:200,contentType:'audio/mpeg',body:''}));
+    await p.evaluate(()=>{MQA=null}); await p.goto(BASE+'#/c/ecole'); await p.goto(BASE+'#/t/mh1'); await p.waitForTimeout(1500);
+    ok(await p.getAttribute('#ytv .ytp audio','src')==='https://abc.public.blob.vercel-storage.com/maqama/mq02.mp3' && !(await p.$('#ytv iframe')), 'Maqâma 02 : lecteur audio seul (sans YouTube) quand l’audio est envoyé');
+    ok(!(await p.$('#ytv .ytad')), 'visiteur : pas de bouton d’envoi');
+    let r=await p.evaluate(()=>fetch('api/audio?a=mqset',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"n":3,"url":"https://abc.public.blob.vercel-storage.com/maqama/x.mp3"}'}).then(r=>r.status)); ok(r===403, 'visiteur : ne peut pas enregistrer un audio de maqâma');
+    delete REDIS['defteram:mqaudio'];
     await ctx.close(); }
 
   console.log('\n8. Affichage mobile / tablette / ordinateur');

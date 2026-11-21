@@ -473,6 +473,10 @@ mark.fm.cur{background:#ff9f1c;color:#1b1b1b;box-shadow:0 0 0 2px #ff9f1c}
 #ytv .ythd{text-align:center;padding:16px;border-radius:22px;color:var(--onhero);background:radial-gradient(circle at 20% 0,var(--hero),var(--hero2));border:3px double var(--gold2);margin-bottom:14px}
 #ytv .ythd b{display:block;font:700 1.6rem/1.6 Amiri,serif;color:var(--gold2)}#ytv .ythd span{display:block;font-weight:600}#ytv .ythd small{display:block;margin-top:6px;opacity:.85}
 #ytv .ytp{position:relative;aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#000;border:2px solid var(--sun);box-shadow:0 8px 22px rgba(0,0,0,.25)}#ytv .ytp iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+#ytv .ytp.aud{aspect-ratio:auto;padding:22px 14px 16px;background:radial-gradient(circle at 50% 0,var(--hero),var(--hero2));display:flex;flex-direction:column;align-items:center;gap:12px}
+#ytv .ytcv{display:flex;flex-direction:column;align-items:center;color:var(--gold2)}#ytv .ytcv b{font:700 2rem/1.5 Amiri,serif}#ytv .ytcv span{font-size:2.2rem;animation:dfl 1.6s ease-in-out infinite alternate}
+#ytv .ytp audio{width:100%;max-width:520px}#ytv .ytad{margin:0 0 14px;padding:12px;border:1.5px dashed var(--sun);border-radius:16px}#ytv .ytad .btn{margin:4px 0}
+#ytv .ytl button.has .ytn{background:var(--sun);color:#fff}
 #ytv .ytnow{text-align:center;font-weight:700;color:var(--accent);margin:10px 0 6px}#ytv .ytnav{display:flex;gap:8px;justify-content:center;margin-bottom:16px}#ytv .ytnav .btn:disabled{opacity:.4}
 #ytv .ytl{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media (min-width:600px){#ytv .ytl{grid-template-columns:repeat(3,1fr)}}
 #ytv .ytl button{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;text-align:start;cursor:pointer}
@@ -1327,7 +1331,8 @@ function openPdf(b){cur=b;page(nm(b),'<div id="pdfv"></div>');$('pg').dataset.k=
  var n=document.createElement('p');n.className='note';n.textContent=T('Document PDF de la Dahira SOP NABY France (sopnabyfrance.com). Il s’ouvre sur leur site ; une connexion Internet est nécessaire.','PDF document from the Dahira SOP NABY France (sopnabyfrance.com). It opens on their website; an Internet connection is needed.','ملف PDF من دائرة سوب نابي فرنسا، يُفتح على موقعهم ويحتاج إلى اتصال بالإنترنت.');c.appendChild(n);w.appendChild(c)}
 function mqN(n){return (n<10?'0':'')+n}function mqA(n){return mqN(n).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d]})}
 function ytDur(n){var h=Math.floor(n/3600),m=Math.floor(n%3600/60),x=n%60;return (h?h+' h ':'')+m+' min'}
-function openYt(b,k){cur=b;page(nm(b),'<div id="ytv"></div>');$('pg').dataset.k='yt';$('pgB').onclick=bk(function(){openCat(b.cat)});
+var MQA=null;function mqLoad(){return fetch('api/audio?a=mqlist').then(function(r){return r.ok?r.json():{map:{}}}).then(function(j){MQA=j.map||{};return MQA}).catch(function(){MQA=MQA||{};return MQA})}
+function openYt(b,k){if(MQA===null){mqLoad().then(function(){if(cur===b&&$('ytv'))openYt(b,k)})}cur=b;page(nm(b),'<div id="ytv"></div>');$('pg').dataset.k='yt';$('pgB').onclick=bk(function(){openCat(b.cat)});
  save('defteram_last',{t:b.id});var w=$('ytv'),cur0=load('defteram_yt_'+b.id);if(k===undefined)k=cur0?cur0.k:0;k=Math.max(0,Math.min(b.yt.length-1,k|0));
  var hd=document.createElement('div');hd.className='ythd';hd.innerHTML='<b class="ar" lang="ar" dir="rtl"></b><span></span><small></small>';hd.querySelector('b').textContent=b.ar;hd.querySelector('span').textContent=b.au;
  hd.querySelector('small').textContent='🎧 '+b.yt.length+' '+T('maqâmât','maqamat','مقامة');w.appendChild(hd);
@@ -1336,9 +1341,24 @@ function openYt(b,k){cur=b;page(nm(b),'<div id="ytv"></div>');$('pg').dataset.k=
  var nv=document.createElement('div');nv.className='ytnav';var pv=document.createElement('button');pv.className='btn';pv.textContent='← '+T('Précédent','Previous','السابق');var nx=document.createElement('button');nx.className='btn fill';nx.textContent=T('Suivant','Next','التالي')+' →';nv.appendChild(pv);nv.appendChild(nx);w.appendChild(nv);
  var ls=document.createElement('div');ls.className='ytl';w.appendChild(ls);
  function play(j,auto){k=j;var v=b.yt[j];save('defteram_yt_'+b.id,{k:j});
-  pl.innerHTML='';var f=document.createElement('iframe');f.src='https://www.youtube-nocookie.com/embed/'+v[1]+'?rel=0&playsinline=1'+(auto?'&autoplay=1':'');f.title='Maqâma '+mqN(v[0]);f.allow='autoplay; encrypted-media; picture-in-picture';f.allowFullscreen=true;f.loading='lazy';pl.appendChild(f);
+  pl.innerHTML='';pl.classList.remove('aud');w.querySelectorAll('.ytad').forEach(function(x){x.remove()});var A=MQA&&MQA[v[0]];
+  if(A){pl.classList.add('aud');var au=document.createElement('audio');au.controls=true;au.preload='metadata';au.src=A.url;au.setAttribute('aria-label','Maqâma '+mqN(v[0]));
+   au.onended=function(){if(k<b.yt.length-1&&MQA[b.yt[k+1][0]])play(k+1,true)};var cv=document.createElement('div');cv.className='ytcv';cv.innerHTML='<b class="ar" lang="ar" dir="rtl"></b><span>🎧</span>';cv.querySelector('b').textContent='الْمَقَامَةُ '+mqA(v[0]);pl.appendChild(cv);pl.appendChild(au);if(auto){var pr=au.play();if(pr&&pr.catch)pr.catch(function(){})}}
+  else{var f=document.createElement('iframe');f.src='https://www.youtube-nocookie.com/embed/'+v[1]+'?rel=0&playsinline=1'+(auto?'&autoplay=1':'');f.title='Maqâma '+mqN(v[0]);f.allow='autoplay; encrypted-media; picture-in-picture';f.allowFullscreen=true;f.loading='lazy';pl.appendChild(f)}
+  if(AUTH.admin){var ad=document.createElement('div');ad.className='ytad';var fi=document.createElement('input');fi.type='file';fi.accept='audio/*';fi.hidden=true;
+   var ub=document.createElement('button');ub.className='btn fill wide';ub.textContent=(A?'🔁 ':'📤 ')+T('Envoyer l’audio de la Maqâma ','Upload audio for Maqama ','رفع صوت المقامة ')+mqN(v[0]);ub.onclick=function(){fi.click()};
+   var st=document.createElement('p');st.className='note';fi.onchange=function(){var file=fi.files[0];if(!file)return;ub.disabled=true;st.textContent='⏳ 0 %';
+    var safe='mq'+mqN(v[0])+'.'+((file.name.match(/\.(\w{2,4})$/)||[0,'mp3'])[1].toLowerCase());
+    blobLib().then(function(VB){return VB.upload('maqama/'+safe,file,{access:'public',handleUploadUrl:'api/upload',clientPayload:AUTH.s.tk,multipart:file.size>8*1024*1024,onUploadProgress:function(e){st.textContent='⏳ '+Math.round(e.percentage)+' %'}})})
+    .then(function(r){return fetch('api/audio?a=mqset',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH.s.tk},body:JSON.stringify({n:v[0],url:r.url,size:file.size})}).then(function(x){if(!x.ok)throw 0;return x.json()})})
+    .then(function(jj){MQA[v[0]]=jj.audio;toast(T('Audio enregistré ✅','Audio saved ✅','تم الحفظ ✅'));play(k,false)})
+    .catch(function(){ub.disabled=false;st.textContent=T('Envoi impossible. Vérifie Internet et que le stockage Vercel Blob est activé.','Upload failed. Check the Internet and that Vercel Blob storage is enabled.','تعذر الرفع.')})};
+   ad.appendChild(ub);ad.appendChild(fi);ad.appendChild(st);
+   if(A){var db=document.createElement('button');db.className='btn wide';db.textContent='🗑 '+T('Retirer cet audio','Remove this audio','حذف الصوت');db.onclick=function(){if(!confirm(T('Retirer l’audio de la Maqâma ','Remove the audio of Maqama ','حذف صوت المقامة ')+mqN(v[0])+' ?'))return;
+    fetch('api/audio?a=mqdel',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH.s.tk},body:JSON.stringify({n:v[0]})}).then(function(){delete MQA[v[0]];play(k,false)})};ad.appendChild(db)}
+   pl.parentNode.insertBefore(ad,ls)}
   nw.innerHTML='<b class="ar" lang="ar" dir="rtl"></b><span></span>';nw.querySelector('b').textContent='الْمَقَامَةُ '+mqA(v[0]);nw.querySelector('span').textContent='Maqâma '+mqN(v[0])+' · '+ytDur(v[2]);pv.disabled=j<=0;nx.disabled=j>=b.yt.length-1;
-  ls.querySelectorAll('button').forEach(function(x,i){x.classList.toggle('on',i===j)})}
+  ls.querySelectorAll('button').forEach(function(x,i){x.classList.toggle('on',i===j);x.classList.toggle('has',!!(MQA&&MQA[b.yt[i][0]]))})}
  pv.onclick=function(){if(k>0){play(k-1,true);w.scrollIntoView({block:'start'})}};nx.onclick=function(){if(k<b.yt.length-1){play(k+1,true);w.scrollIntoView({block:'start'})}};
  b.yt.forEach(function(v,i){var x=document.createElement('button');x.type='button';x.innerHTML='<span class="ytn"></span><span class="ytt"><b class="ar" lang="ar" dir="rtl"></b><span></span></span><span class="ytd"></span>';
   x.querySelector('.ytn').textContent=mqN(v[0]);x.querySelector('.ytt b').textContent='الْمَقَامَةُ '+mqA(v[0]);x.querySelector('.ytt span').textContent='Maqâma '+mqN(v[0]);x.querySelector('.ytd').textContent=ytDur(v[2]);

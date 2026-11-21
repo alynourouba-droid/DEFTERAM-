@@ -18,10 +18,11 @@ module.exports = async (req, res) => {
       onBeforeGenerateToken: async (pathname, clientPayload) => {
         const admin = await adminFromToken(c, clientPayload);
         if (!admin) throw new Error('not_admin');
-        if (!/^guides\/[A-Za-z0-9._-]{1,120}$/.test(pathname)) throw new Error('bad_path');
+        const mq = /^maqama\/[A-Za-z0-9._-]{1,120}$/.test(pathname);
+        if (!mq && !/^guides\/[A-Za-z0-9._-]{1,120}$/.test(pathname)) throw new Error('bad_path');
         return {
           allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp', 'audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/ogg', 'audio/wav', 'audio/x-m4a', 'audio/webm'],
-          maximumSizeInBytes: 60 * 1024 * 1024,
+          maximumSizeInBytes: (mq ? 150 : 60) * 1024 * 1024,
           addRandomSuffix: true,
         };
       },

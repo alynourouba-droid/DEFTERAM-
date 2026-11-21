@@ -7,6 +7,9 @@
 //   POST /api/audio?a=chunk  { id, i, data }             (base64, 700 Ko max par morceau)
 //   POST /api/audio?a=finish { id, item }                → l'audio remplace l'ancien
 //   POST /api/audio?a=del    { item }
+// Maqâmât (fichiers sur Vercel Blob) :
+//   GET  /api/audio?a=mqlist → { map: { n: { url, size, t } } }
+//   POST /api/audio?a=mqset { n, url, size }   ·   POST /api/audio?a=mqdel { n }
 const crypto = require('crypto');
 const { P, cfg, redis, readBody, adminFromToken } = require('./_lib');
 
@@ -27,6 +30,14 @@ module.exports = async (req, res) => {
       const [h] = await redis(c, [['HGETALL', P + 'audios']]);
       const map = {};
       for (let i = 0; h && i < h.length; i += 2) { const v = parse(h[i + 1]); if (v) map[h[i]] = { id: v.id, title: v.title || '', size: v.size, m: v.m, t: v.t }; }
+      res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=20, stale-while-revalidate=120');
+      res.statusCode = 200; res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      return res.end(JSON.stringify({ map }));
+    }
+    if (a === 'mqlist') {
+      const [h] = await redis(c, [['HGETALL', P + 'mqaudio']]);
+      const map = {};
+      for (let i = 0; h && i < h.length; i += 2) { const v = parse(h[i + 1]); if (v) map[h[i]] = v; }
       res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=20, stale-while-revalidate=120');
       res.statusCode = 200; res.setHeader('Content-Type', 'application/json; charset=utf-8');
       return res.end(JSON.stringify({ map }));
@@ -70,6 +81,16 @@ module.exports = async (req, res) => {
     const item = String(b.item || '');
     const okItem = /^[A-Za-z0-9_-]{1,40}$/.test(item);
 
+    if (a === 'mqset' || a === 'mqdel') {
+      const n = Math.round(+b.n);
+      if (!(n >= 1 && n <= 200)) return send(400, { error: 'bad_n' });
+      if (a === 'mqdel') { await redis(c, [['HDEL', P + 'mqaudio', String(n)]]); return send(200, { ok: true }); }
+      const url = String(b.url || '');
+      if (!/^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\/maqama\/[A-Za-z0-9._-]+$/.test(url)) return send(400, { error: 'bad_url' });
+      const v = { url, size: Math.max(0, Math.round(+b.size || 0)), t: Date.now() };
+      await redis(c, [['HSET', P + 'mqaudio', String(n), JSON.stringify(v)]]);
+      return send(200, { ok: true, audio: v });
+    }
     if (a === 'begin') {
       const size = Math.round(+b.size), mime = String(b.mime || '');
       if (!okItem) return send(400, { error: 'bad_item' });
