@@ -92,7 +92,7 @@ textarea{min-height:150px}
 .hide{display:none!important}
 .skip{position:absolute;left:8px;top:-60px;z-index:50;background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:700}.skip:focus{top:8px}
 nav{position:fixed;inset-inline:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-around;max-width:536px;margin:0 auto;background:var(--surface);border:1.5px solid var(--sun);border-radius:26px;padding:8px 6px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
-nav button{background:none;border:0;color:var(--mute);font:inherit;font-size:.74rem;cursor:pointer;min-width:64px;padding:2px 6px;border-radius:16px;transition:background .25s}
+nav button{background:none;border:0;color:var(--mute);font:inherit;font-size:.72rem;cursor:pointer;min-width:56px;padding:2px 4px;border-radius:16px;transition:background .25s}
 nav button i{display:block;font-style:normal;font-size:1.4rem}
 nav button.on{color:var(--accent);font-weight:700;background:rgba(226,192,113,.25)}
 #sheet{position:fixed;inset:0;background:rgba(3,28,23,.7);display:flex;align-items:flex-end;justify-content:center;z-index:20}
@@ -877,14 +877,15 @@ function load(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return 
 var SYNCK=['defteram_custom','defteram_fav','defteram_prof','defteram_page','defteram_lang','defteram_tash'];
 function toast(x){var e=$('toast');e.textContent=x;e.classList.remove('hide');setTimeout(function(){e.classList.add('hide')},1800)}
 function show(v){if(typeof qStop==='function'&&QR.au)qStop();view=v;document.body.classList.remove('inchat');if(v!=='reader'&&typeof stopAudio==='function')stopAudio();['home','cat','reader','zikr','form','mushaf','pg'].forEach(function(x){$(x).classList.toggle('hide',x!==v)});
- var m=v==='cat'&&cat==='fav'?'fav':v==='zikr'?'zikr':v==='home'?'home':(v==='pg'&&$('pg').dataset.k==='acc')?'acc':'';
+ var m=v==='cat'&&cat==='fav'?'fav':v==='zikr'?'zikr':v==='home'?'home':(v==='pg'&&$('pg').dataset.k==='acc')?'acc':(v==='pg'&&/^(gd|g1)$/.test($('pg').dataset.k))?'gd':'';
  nav(m);window.scrollTo(0,0);Promise.resolve().then(syncRoute)}
 function nav(on){
- var d=[['home','🏠'],['fav','⭐'],['zikr','📿'],['lang','🌍']],h='';
- d.forEach(function(x){var lb=x[0]==='acc'?accLabel():t(x[0]==='fav'?'favs':x[0]);h+='<button data-n="'+x[0]+'" class="'+(on===x[0]?'on':'')+'"'+(on===x[0]?' aria-current="page"':'')+'><i aria-hidden="true">'+x[1]+'</i><span></span></button>'});
- $('nav').innerHTML=h;$('nav').querySelectorAll('button').forEach(function(b,i){b.lastChild.textContent=d[i][0]==='acc'?accLabel():t(d[i][0]==='fav'?'favs':d[i][0])});
+ var d=[['home','🏠'],['fav','⭐'],['gd','🧭'],['zikr','📿'],['lang','🌍']],h='';
+ function nl(k){return k==='acc'?accLabel():k==='gd'?T('Nos guides','Our guides','مشايخنا'):t(k==='fav'?'favs':k)}
+ d.forEach(function(x){h+='<button data-n="'+x[0]+'" class="'+(on===x[0]?'on':'')+'"'+(on===x[0]?' aria-current="page"':'')+'><i aria-hidden="true">'+x[1]+'</i><span></span></button>'});
+ $('nav').innerHTML=h;$('nav').querySelectorAll('button').forEach(function(b,i){b.lastChild.textContent=nl(d[i][0])});
  $('nav').querySelectorAll('button').forEach(function(b){b.onclick=function(){var k=b.dataset.n;
-  if(k==='home'){home();show('home')}else if(k==='fav')openCat('fav');else if(k==='zikr'){zk();show('zikr')}else if(k==='acc')account();else sheet()}})
+  if(k==='home'){home();show('home')}else if(k==='fav')openCat('fav');else if(k==='zikr'){zk();show('zikr')}else if(k==='acc')account();else if(k==='gd')guidesPage();else sheet()}})
 }
 function sheet(){
  var s=$('sheet');s.firstChild.innerHTML='<h2>🌍 Langue · اللغة · Language</h2>';
@@ -2132,7 +2133,7 @@ function adminEditors(box){box.innerHTML='<p class="note">…</p>';
    lg.appendChild(row)});box.appendChild(lg)
  }).catch(function(e){box.innerHTML='';box.appendChild(gel('p','err','Erreur : '+(e.code||e.message)))})}
 function guidesPage(){
- page(T('Nos guides','Our guides','مشايخنا'),'<div id="gds"></div>');$('pg').dataset.k='gd';
+ page(T('Nos guides','Our guides','مشايخنا'),'<div id="gds"></div>');$('pg').dataset.k='gd';nav('gd');
  var g=$('gds');
  if(!GUIDES.length){g.appendChild(gel('p','empty',T('Aucun guide pour le moment.','No guides yet.','لا يوجد مشايخ بعد.')));return}
  GUIDES.forEach(function(x){var c=gel('button','gcard');c.type='button';

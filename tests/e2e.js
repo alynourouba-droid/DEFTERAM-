@@ -612,6 +612,12 @@ function mockSupabase(state){
     await p.goto(BASE+'#/t/ni1'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===11 && await p.isVisible('#aud'), 'poème de la lettre Tâ’ : 11 vers + audio');
     await ctx.close(); }
 
+  console.log('\n7n. Barre du bas : Nos guides');
+  { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'nav-guides'});
+    await p.goto(BASE); await p.waitForTimeout(500); ok((await p.$$('#nav button')).length===5 && /Nos guides/.test(await p.textContent('#nav')), 'barre du bas : bouton Nos guides');
+    await p.click('#nav button[data-n="gd"]'); await p.waitForTimeout(500); ok(p.url().endsWith('#/p/guides') && await p.isVisible('#gds') && !!(await p.$('#nav button[data-n="gd"].on')), 'Nos guides : page ouverte et bouton allumé');
+    await ctx.close(); }
+
   console.log('\n8. Affichage mobile / tablette / ordinateur');
   for(const [n,vp] of [['mobile 360',{width:360,height:740}],['mobile 390',{width:390,height:844}],['tablette',{width:820,height:1180}],['ordinateur',{width:1440,height:900}]]){
     const ctx=await b.newContext({viewport:vp,serviceWorkers:'block'}), p=await newPage(ctx,{name:n});
