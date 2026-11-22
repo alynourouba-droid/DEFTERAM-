@@ -1,5 +1,6 @@
 // Page « Nos guides » : liste publique des guides + j'aime, commentaires et histoires envoyées par les visiteurs.
 //   GET  /api/guides                       → { guides: [ { id, name, role, story, photos:[url], audios:[{url,title}], t, order } ] }
+//   (j'aime et commentaires : ajouter &g=<idDuGuide> ou { g } pour la page d'un guide)
 //   GET  /api/guides?a=social&vid=<id>     → { likes, liked, comments: [ { i, name, text, t } ] }
 //   POST /api/guides?a=like    { vid, on }            → { likes, liked }
 //   POST /api/guides?a=comment { vid, name, text }    → { comments }
@@ -26,8 +27,9 @@ module.exports = async (req, res) => {
     return n > max;
   }
   const okVid = v => /^[A-Za-z0-9_-]{8,40}$/.test(v || '');
-  async function comments() {
-    const [list] = await redis(c, [['LRANGE', P + 'gcomments', 0, 199]]);
+  const gk = g => (/^[A-Za-z0-9_-]{1,40}$/.test(g || '') ? ':' + g : '');
+  async function comments(g) {
+    const [list] = await redis(c, [['LRANGE', P + 'gcomments' + gk(g), 0, 199]]);
     return (list || []).map(parse).filter(Boolean).map(x => ({ name: x.name, text: x.text, t: x.t }));
   }
   try {
@@ -40,8 +42,9 @@ module.exports = async (req, res) => {
     }
     if (a === 'social') {
       const vid = String(q.vid || '');
-      const [likes, liked] = await redis(c, [['SCARD', P + 'glikes'], ['SISMEMBER', P + 'glikes', okVid(vid) ? vid : '-']]);
-      return send(200, { likes: +likes || 0, liked: !!+liked, comments: await comments() });
+      const k = P + 'glikes' + gk(q.g);
+      const [likes, liked] = await redis(c, [['SCARD', k], ['SISMEMBER', k, okVid(vid) ? vid : '-']]);
+      return send(200, { likes: +likes || 0, liked: !!+liked, comments: await comments(q.g) });
     }
     if (req.method === 'POST' && (a === 'like' || a === 'comment' || a === 'story')) {
       const b = await readBody(req, 20000);
@@ -50,15 +53,17 @@ module.exports = async (req, res) => {
         const vid = String(b.vid || '');
         if (!okVid(vid)) return send(400, { error: 'bad_vid' });
         if (await limited('glike', 30)) return send(429, { error: 'rate_limit' });
-        const [, n] = await redis(c, [[b.on ? 'SADD' : 'SREM', P + 'glikes', vid], ['SCARD', P + 'glikes']]);
+        const k = P + 'glikes' + gk(b.g);
+        const [, n] = await redis(c, [[b.on ? 'SADD' : 'SREM', k, vid], ['SCARD', k]]);
         return send(200, { likes: +n || 0, liked: !!b.on });
       }
       if (a === 'comment') {
         const name = clean(b.name, 40) || 'Anonyme', text = clean(b.text, 600);
         if (text.length < 2) return send(400, { error: 'empty' });
         if (await limited('gcomment', 4)) return send(429, { error: 'rate_limit' });
-        await redis(c, [['LPUSH', P + 'gcomments', JSON.stringify({ name, text, t: Date.now() })], ['LTRIM', P + 'gcomments', 0, 499]]);
-        return send(200, { comments: await comments() });
+        const k = P + 'gcomments' + gk(b.g);
+        await redis(c, [['LPUSH', k, JSON.stringify({ name, text, t: Date.now() })], ['LTRIM', k, 0, 499]]);
+        return send(200, { comments: await comments(b.g) });
       }
       // a === 'story'
       const name = clean(b.name, 60), contact = clean(b.contact, 80), guide = clean(b.guide, 80), text = clean(b.text, 8000);
@@ -77,7 +82,7 @@ module.exports = async (req, res) => {
     }
     if ((a === 'del_story' || a === 'del_comment') && req.method === 'POST') {
       const b = await readBody(req, 2000);
-      const key = P + (a === 'del_story' ? 'gstories' : 'gcomments'), t = +(b && b.t);
+      const key = P + (a === 'del_story' ? 'gstories' : 'gcomments' + gk(b && b.g)), t = +(b && b.t);
       const [list] = await redis(c, [['LRANGE', key, 0, 499]]);
       const raw = (list || []).find(x => { const v = parse(x); return v && v.t === t; });
       if (raw) await redis(c, [['LREM', key, 1, raw]]);
