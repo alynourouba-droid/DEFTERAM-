@@ -483,6 +483,8 @@ mark.fm.cur{background:#ff9f1c;color:#1b1b1b;box-shadow:0 0 0 2px #ff9f1c}
 #ytv .ytl button.on{border-color:var(--sun);box-shadow:0 0 0 2px var(--gold2);background:linear-gradient(180deg,var(--surface),var(--bg))}
 #ytv .ytn{flex:none;min-width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:var(--hero);color:var(--gold2);font:700 .8rem Inter,system-ui,sans-serif}
 #ytv .ytt{flex:1;display:flex;flex-direction:column;line-height:1.25}#ytv .ytt b{font:700 1.05rem Amiri,serif;color:var(--accent)}#ytv .ytt span{font-size:.78rem;color:var(--mute);font-weight:600}#ytv .ytnow b{display:block;font:700 1.4rem/1.5 Amiri,serif}#ytv .ytnow span{display:block}#ytv .ytd{font-size:.72rem;color:var(--mute)}#ytv .note{margin-top:14px;text-align:center}
+.gdhero{position:relative;margin:0 0 16px;border-radius:24px;overflow:hidden;border:3px double var(--gold2);box-shadow:0 12px 28px rgba(0,0,0,.25)}.gdhero img{display:block;width:100%;height:auto}
+.gdhero span{display:block;padding:8px 12px 12px;text-align:center;background:linear-gradient(180deg,#06352c,#031c17)}.gdhero b{display:block;font:700 1.8rem/1.3 Amiri,serif;color:#e2c071}.gdhero em{display:block;font-style:normal;font-weight:700;color:#fbeec7;letter-spacing:.04em}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0f6b57">
@@ -2134,7 +2136,7 @@ function adminEditors(box){box.innerHTML='<p class="note">…</p>';
  }).catch(function(e){box.innerHTML='';box.appendChild(gel('p','err','Erreur : '+(e.code||e.message)))})}
 function guidesPage(){
  page(T('Nos guides','Our guides','مشايخنا'),'<div id="gds"></div>');$('pg').dataset.k='gd';nav('gd');
- var g=$('gds');
+ var g=$('gds');var gh=gel('div','gdhero');gh.innerHTML='<img src="img/guides-collage.jpg" alt="" width="1080" height="912" decoding="async"><span><b class="ar" lang="ar" dir="rtl">مَشَايِخُنَا</b><em></em></span>';gh.querySelector('img').alt=T('Nos guides','Our guides','مشايخنا');gh.querySelector('em').textContent=T('Nos guides · leur histoire','Our guides · their story','مشايخنا وسيرهم');g.appendChild(gh);
  if(!GUIDES.length){g.appendChild(gel('p','empty',T('Aucun guide pour le moment.','No guides yet.','لا يوجد مشايخ بعد.')));return}
  GUIDES.forEach(function(x){var c=gel('button','gcard');c.type='button';
   var ph=gel('div','gph');if(x.photos&&x.photos[0]){var im=gel('img');im.src=x.photos[0];im.alt=x.name;im.loading='lazy';im.decoding='async';ph.appendChild(im)}else ph.textContent='🧭';c.appendChild(ph);

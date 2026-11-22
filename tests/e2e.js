@@ -616,6 +616,7 @@ function mockSupabase(state){
   { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'nav-guides'});
     await p.goto(BASE); await p.waitForTimeout(500); ok((await p.$$('#nav button')).length===5 && /Nos guides/.test(await p.textContent('#nav')), 'barre du bas : bouton Nos guides');
     await p.click('#nav button[data-n="gd"]'); await p.waitForTimeout(500); ok(p.url().endsWith('#/p/guides') && await p.isVisible('#gds') && !!(await p.$('#nav button[data-n="gd"].on')), 'Nos guides : page ouverte et bouton allumé');
+    ok(await p.isVisible('#gds .gdhero img') && await p.evaluate(()=>document.querySelector('#gds .gdhero img').naturalWidth)>0, 'Nos guides : image de présentation (collage)');
     await ctx.close(); }
 
   console.log('\n8. Affichage mobile / tablette / ordinateur');
