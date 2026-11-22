@@ -609,7 +609,7 @@ function mockSupabase(state){
   console.log('\n7m. Bibliothèque Cheikh Ibrahima Niass');
   { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'niass'});
     await p.goto(BASE+'#/c/niass'); await p.waitForTimeout(600); ok(/Nâla t-Tijânî/.test(await p.textContent('#list')) && /Ibrahima Niass/.test(await p.textContent('#cHead')), 'bibliothèque Cheikh Ibrahima Niass');
-    await p.goto(BASE+'#/t/ni1'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===11, 'poème de la lettre Tâ’ : 11 vers');
+    await p.goto(BASE+'#/t/ni1'); await p.waitForTimeout(600); ok((await p.$$('#rText .bayt')).length===11 && await p.isVisible('#aud'), 'poème de la lettre Tâ’ : 11 vers + audio');
     await ctx.close(); }
 
   console.log('\n8. Affichage mobile / tablette / ordinateur');
