@@ -24,6 +24,7 @@ global.fetch = async (u, o) => {
       if(op==='DEL'){ let n=0; for(const x of [k,...a]){ if(REDIS[x]!=null){n++; delete REDIS[x];} } return {result:n}; }
       if(op==='SADD'){ const S=REDIS[k]=REDIS[k]||new Set(); a.forEach(x=>S.add(x)); return {result:1}; }
       if(op==='SREM'){ const S=REDIS[k]; if(S) a.forEach(x=>S.delete(x)); return {result:1}; }
+      if(op==='SCARD') return {result:REDIS[k]&&REDIS[k].size||0};
       if(op==='SMEMBERS') return {result:REDIS[k]?[...REDIS[k]]:[]};
       if(op==='SISMEMBER') return {result:REDIS[k]&&REDIS[k].has&&REDIS[k].has(a[0])?1:0};
       if(op==='LPUSH'){ const L=REDIS[k]=REDIS[k]||[]; L.unshift(...a); return {result:L.length}; }
@@ -613,10 +614,18 @@ function mockSupabase(state){
     await ctx.close(); }
 
   console.log('\n7n. Barre du bas : Nos guides');
-  { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'nav-guides'});
+  { const ctx=await b.newContext({serviceWorkers:'block'}), p=await newPage(ctx,{name:'nav-guides',allow404:true,allowErr:true});
     await p.goto(BASE); await p.waitForTimeout(500); ok((await p.$$('#nav button')).length===5 && /Nos guides/.test(await p.textContent('#nav')), 'barre du bas : bouton Nos guides');
     await p.click('#nav button[data-n="gd"]'); await p.waitForTimeout(500); ok(p.url().endsWith('#/p/guides') && await p.isVisible('#gds') && !!(await p.$('#nav button[data-n="gd"].on')), 'Nos guides : page ouverte et bouton allumé');
-    ok(await p.isVisible('#gds .gdhero img') && await p.evaluate(()=>document.querySelector('#gds .gdhero img').naturalWidth)>0, 'Nos guides : image de présentation (collage)');
+    ok(await p.isVisible('#gds .gpf img') && /Notre rôle/.test(await p.textContent('#gds .gintro')), 'Nos guides : petit profil + texte de présentation');
+    STATS_ON=true; await p.goto(BASE+'#/'); await p.goto(BASE+'#/p/guides'); await p.waitForTimeout(900);
+    await p.click('#gds .gsoc .btn:first-child'); await p.waitForTimeout(500); ok(/J’aime · 1/.test(await p.textContent('#gds .gsoc')) && REDIS['defteram:glikes'] && REDIS['defteram:glikes'].size===1, 'J’aime enregistré', await p.textContent('#gds .gsoc')+' '+JSON.stringify([...(REDIS['defteram:glikes']||[])]));
+    await p.fill('#gcom textarea','Qu’Allah les agrée'); await p.fill('#gcom input','Ali'); await p.click('#gcom .btn.fill'); await p.waitForTimeout(600);
+    ok(/Qu’Allah les agrée/.test(await p.textContent('#gcom .gcl')) && /Commenter · 1/.test(await p.textContent('#gds .gsoc')), 'commentaire publié');
+    const ins=await p.$$('#gstory input'); await ins[0].fill('Moussa'); await ins[2].fill('Thierno Saïdou'); await p.fill('#gstory textarea','Voici une histoire de notre guide, racontée par mon père.'); await p.click('#gstory .btn.fill'); await p.waitForTimeout(600);
+    ok(/Merci/.test(await p.textContent('#gstory')) && (REDIS['defteram:gstories']||[]).length===1 && /Thierno Saïdou/.test(REDIS['defteram:gstories'][0]), 'histoire envoyée à l’administrateur');
+    const r403=await p.evaluate(()=>fetch('api/guides?a=stories').then(r=>r.status)); ok(r403===403, 'visiteur : ne peut pas lire les histoires reçues');
+    delete REDIS['defteram:glikes']; delete REDIS['defteram:gcomments']; delete REDIS['defteram:gstories']; delete REDIS['defteram:gstories_new'];
     await ctx.close(); }
 
   console.log('\n8. Affichage mobile / tablette / ordinateur');

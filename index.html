@@ -485,6 +485,12 @@ mark.fm.cur{background:#ff9f1c;color:#1b1b1b;box-shadow:0 0 0 2px #ff9f1c}
 #ytv .ytt{flex:1;display:flex;flex-direction:column;line-height:1.25}#ytv .ytt b{font:700 1.05rem Amiri,serif;color:var(--accent)}#ytv .ytt span{font-size:.78rem;color:var(--mute);font-weight:600}#ytv .ytnow b{display:block;font:700 1.4rem/1.5 Amiri,serif}#ytv .ytnow span{display:block}#ytv .ytd{font-size:.72rem;color:var(--mute)}#ytv .note{margin-top:14px;text-align:center}
 .gdhero{position:relative;margin:0 0 16px;border-radius:24px;overflow:hidden;border:3px double var(--gold2);box-shadow:0 12px 28px rgba(0,0,0,.25)}.gdhero img{display:block;width:100%;height:auto}
 .gdhero span{display:block;padding:8px 12px 12px;text-align:center;background:linear-gradient(180deg,#06352c,#031c17)}.gdhero b{display:block;font:700 1.8rem/1.3 Amiri,serif;color:#e2c071}.gdhero em{display:block;font-style:normal;font-weight:700;color:#fbeec7;letter-spacing:.04em}
+.gpf{display:flex;align-items:center;gap:14px;padding:12px 14px;margin:0 0 12px;border-radius:22px;color:var(--onhero);background:radial-gradient(circle at 20% 0,var(--hero),var(--hero2));border:2px solid var(--gold2);box-shadow:0 8px 20px rgba(0,0,0,.18)}
+.gpf img{flex:none;width:84px;height:84px;border-radius:50%;box-shadow:0 0 0 3px var(--gold2),0 6px 14px rgba(0,0,0,.35)}.gpf b{display:block;font:700 1.7rem/1.3 Amiri,serif;color:var(--gold2)}.gpf strong{display:block;font-size:1rem}
+.gintro{margin:0 0 12px;padding:12px 14px;border-radius:16px;background:var(--surface);border:1.5px solid var(--line);line-height:1.6}
+.gsoc{display:flex;gap:8px;margin:0 0 16px}.gsoc .btn{flex:1;padding:10px 4px;min-height:44px;font-weight:700;white-space:nowrap;font-size:.88rem}
+.gcom h3,.gst h3{margin:0 0 8px;color:var(--accent)}.gcom input,.gcom textarea,.gst input,.gst textarea{display:block;width:100%;margin:0 0 8px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
+.gst,.gcom{margin-top:16px}.gc{padding:10px 0;border-top:1px solid var(--line)}.gc b{color:var(--accent)}.gc small{margin-left:8px;color:var(--mute)}.gc p{margin:4px 0 0;white-space:pre-line}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0f6b57">
@@ -1699,6 +1705,7 @@ function installer(){
  g.appendChild(sh)}
 
 /* ===== Espace administrateur (réservé au compte administrateur) ===== */
+function apiGd(a,b){var h={'Content-Type':'application/json'};if(AUTH.s&&AUTH.s.tk)h.Authorization='Bearer '+AUTH.s.tk;return fetch('api/guides?a='+a,b?{method:'POST',headers:h,body:JSON.stringify(b)}:{headers:h}).then(function(r){return r.json().then(function(j){if(!r.ok){var e=new Error(j&&j.error||r.status);e.code=j&&j.error;throw e}return j})})}
 function apiAdmin(a,o){o=o||{};var h={'Content-Type':'application/json'};if(AUTH.s&&AUTH.s.tk)h.Authorization='Bearer '+AUTH.s.tk;
  return fetch('api/admin?a='+a,{method:o.method||(o.body?'POST':'GET'),headers:h,body:o.body?JSON.stringify(o.body):undefined,cache:'no-store'}).then(function(r){
   return r.text().then(function(x){var j=null;try{j=x?JSON.parse(x):null}catch(e){}if(!r.ok){var er=new Error((j&&j.error)||('HTTP '+r.status));er.code=(j&&j.error)||String(r.status);throw er}return j})})}
@@ -1718,13 +1725,20 @@ function admin(){
   var go=el('button','btn fill wide','Valider');go.onclick=function(){go.disabled=true;er.textContent='';apiAdmin('claim',{body:{code:inp.value}}).then(function(){AUTH.admin=true;toast('Tu es administrateur ✓');admin()},function(e){go.disabled=false;er.textContent=err(e).textContent})};cc.appendChild(go);
   g.appendChild(cc);return}
  var tb=el('div','tabs2');tb.style.flexWrap='wrap';
- [['ov','📊 Résumé'],['tx','👁️ Vues'],['us','👥 Comptes'],['ms','✉️ Messages'+(AUTH.unread?' ('+AUTH.unread+')':'')],['gd','🧭 Guides'],['co','🏫 École'],['ed','✍️ Correcteurs']].forEach(function(x){var b=el('button',x[0]===ADM.tab?'on':'',x[1]);b.onclick=function(){ADM.tab=x[0];admin()};tb.appendChild(b)});
+ [['ov','📊 Résumé'],['tx','👁️ Vues'],['us','👥 Comptes'],['ms','✉️ Messages'+(AUTH.unread?' ('+AUTH.unread+')':'')],['gd','🧭 Guides'],['co','🏫 École'],['ed','✍️ Correcteurs'],['hs','📜 Histoires']].forEach(function(x){var b=el('button',x[0]===ADM.tab?'on':'',x[1]);b.onclick=function(){ADM.tab=x[0];admin()};tb.appendChild(b)});
  g.appendChild(tb);var box=el('div');box.appendChild(el('p','note','Chargement…'));g.appendChild(box);
  function fill(n){box.innerHTML='';box.appendChild(n)}
  function date(t){try{return new Date(t).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
  if(ADM.tab==='gd'){adminGuides(box);return}
  if(ADM.tab==='co'){adminCourses(box);return}
  if(ADM.tab==='ed'){adminEditors(box);return}
+ if(ADM.tab==='hs'){Promise.all([apiGd('stories'),fetch('api/guides?a=social').then(function(r){return r.json()})]).then(function(r){var d=el('div');
+   d.appendChild(el('h3','','📜 Histoires envoyées ('+r[0].stories.length+')'));if(!r[0].stories.length)d.appendChild(el('p','note','Aucune histoire reçue pour le moment.'));
+   r[0].stories.forEach(function(x){var c=el('div','card');c.appendChild(el('b','',x.name+(x.guide?' · '+x.guide:'')));c.appendChild(el('p','note',date(x.t)+(x.contact?' · '+x.contact:'')));var p=el('p','',x.text);p.style.whiteSpace='pre-line';c.appendChild(p);
+    var cp=el('button','btn','⧉ Copier');cp.onclick=function(){copy(x.text);toast('Copié')};var dl=el('button','btn','🗑 Supprimer');dl.onclick=function(){if(confirm('Supprimer cette histoire ?'))apiGd('del_story',{t:x.t}).then(function(){admin()})};c.appendChild(cp);c.appendChild(dl);d.appendChild(c)});
+   d.appendChild(el('h3','','💬 Commentaires ('+r[1].comments.length+') · ❤️ '+r[1].likes));
+   r[1].comments.forEach(function(x){var c=el('div','card');c.appendChild(el('b','',x.name));c.appendChild(el('p','note',date(x.t)));c.appendChild(el('p','',x.text));var dl=el('button','btn','🗑 Supprimer');dl.onclick=function(){if(confirm('Supprimer ce commentaire ?'))apiGd('del_comment',{t:x.t}).then(function(){admin()})};c.appendChild(dl);d.appendChild(c)});
+   fill(d)},function(e){fill(err(e))});return}
  if(ADM.tab==='ov')apiAdmin('overview').then(function(o){AUTH.unread=o.unread||0;ADM.blob=o.blob;var d=el('div');var st=el('div','stats');
   [['👥',o.visitors,'visiteurs'],['👁️',o.visits,'visites'],['📤',o.shares,'partages'],['📲',o.installs,'installations'],['🔐',o.users,'comptes'],['✉️',o.msgs,'messages'],['🔔',o.unread,'non lus'],['🧭',o.guides,'guides'],['💾',o.blob?'✓':'—','photos/audios']].forEach(function(x){st.innerHTML+='<div class="st"><i>'+x[0]+'</i><b>'+(typeof x[1]==='string'?x[1]:fmtN(x[1]))+'</b><small>'+x[2]+'</small></div>'});
   st.style.gridTemplateColumns='repeat(3,1fr)';d.appendChild(st);d.appendChild(el('p','note','Administrateur : '+o.admin+'. Les vues et partages de chaque texte sont dans l’onglet « Vues ».'));fill(d)},function(e){fill(err(e))});
@@ -2136,8 +2150,36 @@ function adminEditors(box){box.innerHTML='<p class="note">…</p>';
  }).catch(function(e){box.innerHTML='';box.appendChild(gel('p','err','Erreur : '+(e.code||e.message)))})}
 function guidesPage(){
  page(T('Nos guides','Our guides','مشايخنا'),'<div id="gds"></div>');$('pg').dataset.k='gd';nav('gd');
- var g=$('gds');var gh=gel('div','gdhero');gh.innerHTML='<img src="img/guides-collage.jpg" alt="" width="1080" height="912" decoding="async"><span><b class="ar" lang="ar" dir="rtl">مَشَايِخُنَا</b><em></em></span>';gh.querySelector('img').alt=T('Nos guides','Our guides','مشايخنا');gh.querySelector('em').textContent=T('Nos guides · leur histoire','Our guides · their story','مشايخنا وسيرهم');g.appendChild(gh);
- if(!GUIDES.length){g.appendChild(gel('p','empty',T('Aucun guide pour le moment.','No guides yet.','لا يوجد مشايخ بعد.')));return}
+ var g=$('gds');
+ var pf=gel('div','gpf');pf.innerHTML='<img src="img/guides-rond.png" alt="" width="96" height="96"><div><b class="ar" lang="ar" dir="rtl">مَشَايِخُنَا</b><strong></strong></div>';pf.querySelector('strong').textContent=T('Nos guides · leur histoire','Our guides · their story','مشايخنا وسيرهم');g.appendChild(pf);
+ g.appendChild(gel('p','gintro',T('Cette page présente nos guides : les maîtres de la Tijaniyya, de Fass Gounass et de toute notre tradition, qui nous ont transmis le Coran, le savoir et l’amour du Prophète ﷺ. Notre rôle est de garder vivante leur mémoire : raconter leur histoire, montrer leurs photos, faire écouter leur voix et partager leurs enseignements, pour que chacun puisse les connaître et suivre leur chemin.','This page presents our guides: the masters of the Tijaniyya, of Fass Gounass and of our whole tradition, who passed on to us the Quran, knowledge and the love of the Prophet ﷺ. Our role is to keep their memory alive: tell their story, show their photos, let their voice be heard and share their teachings, so that everyone can know them and follow their path.','تعرّف هذه الصفحة بمشايخنا، أئمة الطريقة التجانية وفاس غناس، الذين نقلوا إلينا القرآن والعلم وحب النبي ﷺ. دورنا أن نحفظ ذكراهم: نروي سيرهم، ونعرض صورهم، ونُسمع أصواتهم، وننشر تعاليمهم، ليعرفهم الجميع ويسلكوا طريقهم.')));
+ var sb=gel('div','gsoc');var lk=gel('button','btn');lk.type='button';var cm=gel('button','btn');cm.type='button';var sh=gel('button','btn');sh.type='button';sh.textContent='📤 '+T('Partager','Share','مشاركة');sb.appendChild(lk);sb.appendChild(cm);sb.appendChild(sh);g.appendChild(sb);
+ var list=gel('div');g.appendChild(list);
+ var cbox=gel('div','card gcom');cbox.id='gcom';var ch=gel('h3','',T('💬 Commentaires','💬 Comments','💬 التعليقات'));cbox.appendChild(ch);
+ var cn=gel('input');cn.placeholder=T('Ton nom','Your name','اسمك');cn.maxLength=40;cn.setAttribute('aria-label',cn.placeholder);var ct=gel('textarea');ct.rows=3;ct.maxLength=600;ct.placeholder=T('Écris ton commentaire…','Write your comment…','اكتب تعليقك…');ct.setAttribute('aria-label',ct.placeholder);
+ var cs=gel('button','btn fill wide',T('Publier le commentaire','Post the comment','نشر التعليق'));var cl=gel('div','gcl');cbox.appendChild(cn);cbox.appendChild(ct);cbox.appendChild(cs);cbox.appendChild(cl);
+ var st=gel('div','card gst');st.id='gstory';st.appendChild(gel('h3','',T('📜 Envoyer une histoire','📜 Send a story','📜 أرسل سيرة')));
+ st.appendChild(gel('p','note',T('Tu connais l’histoire d’un de nos guides ? Écris-la ici : elle est envoyée à l’administrateur de DEFTERAM, qui la lira et l’ajoutera à la page.','Do you know the story of one of our guides? Write it here: it is sent to the DEFTERAM administrator, who will read it and add it to the page.','هل تعرف سيرة أحد مشايخنا؟ اكتبها هنا وسيقرؤها مدير التطبيق ويضيفها.')));
+ var sn=gel('input');sn.placeholder=T('Ton nom *','Your name *','اسمك *');sn.maxLength=60;var sc=gel('input');sc.placeholder=T('Ton téléphone ou e-mail (pour te répondre)','Your phone or e-mail (to answer you)','هاتفك أو بريدك');sc.maxLength=80;
+ var sg=gel('input');sg.placeholder=T('Nom du guide','Guide’s name','اسم الشيخ');sg.maxLength=80;var stx=gel('textarea');stx.rows=6;stx.maxLength=8000;stx.placeholder=T('L’histoire…','The story…','السيرة…');
+ [sn,sc,sg,stx].forEach(function(x){x.setAttribute('aria-label',x.placeholder);st.appendChild(x)});var ss=gel('button','btn fill wide',T('Envoyer l’histoire','Send the story','إرسال'));var sm=gel('p','note');st.appendChild(ss);st.appendChild(sm);
+ var vid=load('defteram_liker');if(!/^[a-z0-9]{8,40}$/.test(vid||'')){vid=(Date.now().toString(36)+Math.random().toString(36).slice(2,12)).replace(/[^a-z0-9]/g,'');save('defteram_liker',vid)}
+ var SO={likes:0,liked:false,comments:[]};
+ function drawSoc(){lk.textContent=(SO.liked?'❤️ ':'🤍 ')+T('J’aime','Like','أعجبني')+(SO.likes?' · '+SO.likes:'');lk.classList.toggle('fill',SO.liked);lk.setAttribute('aria-pressed',SO.liked);
+  cm.textContent='💬 '+T('Commenter','Comment','تعليق')+(SO.comments.length?' · '+SO.comments.length:'');cl.innerHTML='';
+  if(!SO.comments.length)cl.appendChild(gel('p','note',T('Sois le premier à commenter.','Be the first to comment.','كن أول من يعلق.')));
+  SO.comments.forEach(function(x){var d=gel('div','gc');d.appendChild(gel('b','',x.name));var dt='';try{dt=new Date(x.t).toLocaleDateString(lang==='ar'?'ar':lang==='en'?'en-GB':'fr-FR')}catch(e){}d.appendChild(gel('small','',dt));d.appendChild(gel('p','',x.text));cl.appendChild(d)})}
+ function gpost(a,b){return fetch('api/guides?a='+a,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){return r.json().then(function(j){if(!r.ok)throw j;return j})})}
+ fetch('api/guides?a=social&vid='+encodeURIComponent(vid)).then(function(r){return r.ok?r.json():null}).then(function(j){if(j){SO=j;drawSoc()}}).catch(function(){});drawSoc();
+ lk.onclick=function(){var on=!SO.liked;SO.liked=on;SO.likes=Math.max(0,SO.likes+(on?1:-1));drawSoc();gpost('like',{vid:vid,on:on}).then(function(j){SO.likes=j.likes;SO.liked=j.liked;drawSoc()}).catch(function(){})};
+ cm.onclick=function(){cbox.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(function(){ct.focus()},400)};
+ sh.onclick=function(){var u=(CFG.url||location.href.split('#')[0])+'#/p/guides',tx=T('Découvre nos guides et leur histoire sur DEFTERAM','Discover our guides and their story on DEFTERAM','تعرّف على مشايخنا وسيرهم في تطبيق دفترام');
+  if(navigator.share)navigator.share({title:'DEFTERAM · '+T('Nos guides','Our guides','مشايخنا'),text:tx,url:u}).then(function(){stat('share')}).catch(function(){});else{copy(u);toast(T('Lien copié','Link copied','تم نسخ الرابط'))}};
+ cs.onclick=function(){var tx=ct.value.trim();if(tx.length<2){ct.focus();return}cs.disabled=true;gpost('comment',{name:cn.value.trim(),text:tx}).then(function(j){SO.comments=j.comments;ct.value='';drawSoc();toast(T('Commentaire publié ✓','Comment posted ✓','تم نشر التعليق ✓'))},function(e){toast(e&&e.error==='rate_limit'?T('Attends un peu avant de recommencer.','Please wait a little.','انتظر قليلاً.'):T('Envoi impossible. Vérifie Internet.','Could not send. Check the Internet.','تعذر الإرسال.'))}).then(function(){cs.disabled=false})};
+ ss.onclick=function(){if(!sn.value.trim()){sn.focus();return}if(stx.value.trim().length<10){stx.focus();return}ss.disabled=true;sm.textContent='';
+  gpost('story',{name:sn.value,contact:sc.value,guide:sg.value,text:stx.value}).then(function(){sm.textContent='✅ '+T('Merci ! Ton histoire est bien envoyée à l’administrateur.','Thank you! Your story was sent to the administrator.','شكراً! تم إرسال السيرة.');stx.value='';sg.value=''},function(e){sm.textContent=e&&e.error==='rate_limit'?T('Attends un peu avant de recommencer.','Please wait a little.','انتظر قليلاً.'):T('Envoi impossible. Vérifie Internet.','Could not send. Check the Internet.','تعذر الإرسال.')}).then(function(){ss.disabled=false})};
+ g.appendChild(st);g.appendChild(cbox);g=list;
+ if(!GUIDES.length){g.appendChild(gel('p','empty',T('Les histoires de nos guides arrivent bientôt, in shâ’ Allâh.','The stories of our guides are coming soon, in sha’ Allah.','سير مشايخنا قريباً إن شاء الله.')));return}
  GUIDES.forEach(function(x){var c=gel('button','gcard');c.type='button';
   var ph=gel('div','gph');if(x.photos&&x.photos[0]){var im=gel('img');im.src=x.photos[0];im.alt=x.name;im.loading='lazy';im.decoding='async';ph.appendChild(im)}else ph.textContent='🧭';c.appendChild(ph);
   var tx=gel('div','gtx');tx.appendChild(gel('b','',x.name));if(x.role)tx.appendChild(gel('small','',x.role));
