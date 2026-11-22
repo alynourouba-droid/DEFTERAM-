@@ -633,8 +633,8 @@ function mockSupabase(state){
     await p.evaluate(()=>[...document.querySelectorAll('.tile')].pop().scrollIntoView()); await p.waitForTimeout(900);
     ok(await p.evaluate(()=>[...document.querySelectorAll('.tile')].pop().classList.contains('in')), 'apparition au défilement');
     ok(Number(await p.evaluate(()=>getComputedStyle(document.querySelector('.hero')).getPropertyValue('--p')))>0, 'parallax du bandeau');
-    const tile = await p.$('.tile'); await tile.scrollIntoViewIfNeeded(); const bx=await tile.boundingBox();
-    await p.mouse.move(bx.x+bx.width*.9, bx.y+bx.height*.2); await p.waitForTimeout(120);
+    await p.evaluate(()=>document.querySelector('.tile').scrollIntoView({block:'center'})); await p.waitForTimeout(300); const tile = await p.$('.tile'); const bx=await tile.boundingBox();
+    await p.mouse.move(bx.x+bx.width*.5, bx.y+bx.height*.5); await p.mouse.move(bx.x+bx.width*.9, bx.y+bx.height*.2, {steps:5}); await p.waitForTimeout(400);
     ok(await p.evaluate(()=>document.querySelector('.tile').style.getPropertyValue('--ry'))!=='', 'inclinaison 3D au survol');
     const ctx2=await b.newContext({reducedMotion:'reduce',serviceWorkers:'block'}), q=await newPage(ctx2,{name:'reduit'}); await q.goto(BASE); await q.waitForTimeout(300);
     ok(!(await q.evaluate(()=>document.querySelector('.rv'))), 'animations désactivées si « réduire les animations »');
