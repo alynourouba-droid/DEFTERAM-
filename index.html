@@ -93,7 +93,7 @@ textarea{min-height:150px}
 .skip{position:absolute;left:8px;top:-60px;z-index:50;background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:700}.skip:focus{top:8px}
 nav{position:fixed;inset-inline:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-around;max-width:536px;margin:0 auto;background:var(--surface);border:1.5px solid var(--sun);border-radius:26px;padding:8px 6px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 nav button{background:none;border:0;color:var(--mute);font:inherit;font-size:.72rem;cursor:pointer;min-width:56px;padding:2px 4px;border-radius:16px;transition:background .25s}
-nav button i{display:block;font-style:normal;font-size:1.4rem}
+nav button i{display:block;font-style:normal;font-size:1.4rem;height:34px;line-height:34px}nav button i img{width:32px;height:32px;margin-top:1px!important;border-radius:50%;display:block;margin:0 auto;box-shadow:0 2px 6px rgba(0,0,0,.25)}
 nav button.on{color:var(--accent);font-weight:700;background:rgba(226,192,113,.25)}
 #sheet{position:fixed;inset:0;background:rgba(3,28,23,.7);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 #sheet>div{width:100%;max-width:560px;background:var(--bg);border-top:2px solid var(--sun);border-radius:28px 28px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom,0px));animation:rise .35s both}
@@ -882,9 +882,9 @@ function show(v){if(typeof qStop==='function'&&QR.au)qStop();view=v;document.bod
  var m=v==='cat'&&cat==='fav'?'fav':v==='zikr'?'zikr':v==='home'?'home':(v==='pg'&&$('pg').dataset.k==='acc')?'acc':(v==='pg'&&/^(gd|g1)$/.test($('pg').dataset.k))?'gd':'';
  nav(m);window.scrollTo(0,0);Promise.resolve().then(syncRoute)}
 function nav(on){
- var d=[['home','🏠'],['fav','⭐'],['gd','🧭'],['zikr','📿'],['lang','🌍']],h='';
+ var d=[['home','🏠'],['fav','⭐'],['gd','img:img/guides-rond.png'],['zikr','📿'],['lang','🌍']],h='';
  function nl(k){return k==='acc'?accLabel():k==='gd'?T('Nos guides','Our guides','مشايخنا'):t(k==='fav'?'favs':k)}
- d.forEach(function(x){h+='<button data-n="'+x[0]+'" class="'+(on===x[0]?'on':'')+'"'+(on===x[0]?' aria-current="page"':'')+'><i aria-hidden="true">'+x[1]+'</i><span></span></button>'});
+ d.forEach(function(x){h+='<button data-n="'+x[0]+'" class="'+(on===x[0]?'on':'')+'"'+(on===x[0]?' aria-current="page"':'')+'><i aria-hidden="true">'+(x[1].indexOf('img:')===0?'<img src="'+x[1].slice(4)+'" alt="" width="30" height="30">':x[1])+'</i><span></span></button>'});
  $('nav').innerHTML=h;$('nav').querySelectorAll('button').forEach(function(b,i){b.lastChild.textContent=nl(d[i][0])});
  $('nav').querySelectorAll('button').forEach(function(b){b.onclick=function(){var k=b.dataset.n;
   if(k==='home'){home();show('home')}else if(k==='fav')openCat('fav');else if(k==='zikr'){zk();show('zikr')}else if(k==='acc')account();else if(k==='gd')guidesPage();else sheet()}})
