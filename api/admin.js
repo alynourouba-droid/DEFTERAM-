@@ -3,6 +3,8 @@
 //
 // Public :
 //   POST /api/admin?a=msg  { stars, text, lang, name }  → enregistre un message / une note
+//   GET  /api/admin?a=theme            → couleurs et style choisis par l'administrateur
+//   (admin) POST /api/admin?a=theme_save { theme: { c, s, f } }
 // Compte connecté (Authorization: Bearer <token>) :
 //   POST /api/admin?a=claim { code }   → devient administrateur (une seule fois, code secret)
 // Administrateur seulement :
@@ -79,6 +81,12 @@ module.exports = async (req, res) => {
     return n > max;
   }
   try {
+    // ---- couleurs et style de l'application (public, lecture) ----
+    if (a === 'theme' && req.method === 'GET') {
+      const [t] = await redis(c, [['GET', P + 'theme']]);
+      let th = null; try { th = t ? JSON.parse(t) : null; } catch (e) {}
+      return send(200, { theme: th });
+    }
     // ---- message public ----
     if (a === 'msg' && req.method === 'POST') {
       if (await limited('msg', 5)) return send(429, { error: 'rate_limit' });
@@ -112,6 +120,16 @@ module.exports = async (req, res) => {
     }
     if (admin !== me) return send(403, { error: 'not_admin' });
 
+    if (a === 'theme_save' && req.method === 'POST') {
+      const b = await readBody(req) || {}, t = b.theme || {};
+      const th = {
+        c: Math.max(1, Math.min(7, parseInt(t.c, 10) || 1)),
+        s: ['classique', 'moderne', 'arrondi', 'elegant', 'simple'].includes(t.s) ? t.s : 'classique',
+        f: ['auto', 'light', 'dark'].includes(t.f) ? t.f : 'auto', u: Date.now(),
+      };
+      await redis(c, [['SET', P + 'theme', JSON.stringify(th)]]);
+      return send(200, { ok: true, theme: th });
+    }
     if (a === 'overview') {
       const users = await scanKeys(c, P + 'user:*');
       const r = await redis(c, [['MGET', P + 'visitors', P + 'visits', P + 'shares', P + 'installs'], ['LLEN', P + 'msgs'], ['GET', P + 'msgs_unread'], ['HLEN', P + 'guides']]);

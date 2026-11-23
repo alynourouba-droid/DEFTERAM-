@@ -178,6 +178,21 @@ details.pm-in .tr{direction:ltr;font-family:Nunito,system-ui,sans-serif;font-siz
 #flM{position:fixed;inset:0;z-index:9995;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25)}.flg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:min(300px,86vw);padding:14px;border-radius:26px;background:rgba(30,30,30,.88);backdrop-filter:blur(8px);animation:rise .2s both}.flg button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 2px;border:0;border-radius:16px;background:none;color:#fff;font:inherit;font-size:.78rem;cursor:pointer}.flg button:focus-visible,.flg button:active{background:rgba(255,255,255,.15)}.flg i{font-style:normal;font-size:1.6rem}
 #penL{position:fixed;inset:0;z-index:9980}#penL canvas{position:absolute;inset:0;touch-action:none;cursor:crosshair}.penbar{position:absolute;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border-radius:30px;background:rgba(20,20,20,.8);box-shadow:0 6px 16px rgba(0,0,0,.35)}.penbar button{width:38px;height:38px;border-radius:50%;border:2px solid transparent;background:none;color:#fff;font-size:1.15rem;cursor:pointer}.penbar .pc.on{border-color:#fff}
 .gvue{margin:-4px 0 10px;color:var(--muted,#777);font-size:.9rem;font-weight:700}
+.ath{margin:18px 0 8px;color:var(--accent)}.thgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}.thc{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:16px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}.thc i{width:46px;height:46px;border-radius:50%;box-shadow:0 0 0 3px var(--gold2)}.thc.on,.ths.on{border-color:var(--sun);box-shadow:0 0 0 3px var(--gold2)}.thsty{display:grid;gap:8px}.ths{text-align:start;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}.ths b{display:block}.ths small{color:var(--mute)}
+html[data-style=moderne] body::before,html[data-style=simple] body::before{display:none}
+html[data-style=moderne] .hero,html[data-style=moderne] .pm-head{border-radius:22px;border-width:1px;border-style:solid}
+html[data-style=moderne] .card{border-radius:12px;border-width:1px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+html[data-style=moderne] .btn{border-radius:10px;border-width:1px}
+html[data-style=arrondi] .hero,html[data-style=arrondi] .pm-head{border-radius:44px}
+html[data-style=arrondi] .card{border-radius:30px;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+html[data-style=arrondi] .btn{border-radius:999px}
+html[data-style=elegant] .card{border:1px solid var(--gold2);box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 4px var(--gold2)}
+html[data-style=elegant] .btn{border-width:1px;letter-spacing:.03em}
+html[data-style=elegant] .hero,html[data-style=elegant] .pm-head{border:1px solid var(--gold2);box-shadow:inset 0 0 0 6px transparent,inset 0 0 0 7px var(--gold2),0 10px 30px rgba(0,0,0,.25)}
+html[data-style=elegant] h2,html[data-style=elegant] h3{font-family:Amiri,serif;letter-spacing:.02em}
+html[data-style=simple] .hero,html[data-style=simple] .pm-head,html[data-style=simple] .btn.fill{background:var(--hero);box-shadow:none;border:0}
+html[data-style=simple] .card{box-shadow:none;border:1px solid var(--line);border-radius:14px}
+html[data-style=simple] .btn{border-width:1px}
 .glb{display:flex;gap:6px;margin:0 0 12px;justify-content:center}.glb .btn{flex:1;min-width:0;padding:8px 6px}.gar .gstory,.gar .gro,.gar .gintro,.gar .gqui,.gar .gtx b,.gar .gtx small{font-family:'Amiri',serif}.gar .gstory{font-size:1.18rem;line-height:2}.glb [lang=ar]{font-family:'Amiri',serif}
 .gthumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}.gth{position:relative;width:76px;height:76px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}.gth img{width:100%;height:100%;object-fit:cover}.gth button{position:absolute;top:2px;right:2px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
 .pm-note{text-align:center;font-size:.6em;color:var(--mute);margin:0 0 6px}
@@ -1323,7 +1338,20 @@ var CFG={url:'',waveLink:'',wave:'+221 710876405',om:'+221 710876405',wa:'221784
 var prof={name:'',shares:0,rate:0,theme:'auto'};
 try{prof=Object.assign(prof,JSON.parse(localStorage.getItem('defteram_prof')||'{}'))}catch(e){}
 function sp(){save('defteram_prof',prof)}
-function applyTheme(){var r=document.documentElement;if(prof.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',prof.theme)}
+/* ===== Couleurs et style choisis par l'administrateur (pour tout le monde) ===== */
+var GPAL={"1":null,"2":[{"bg":"#dce1ea","surface":"#f6f8fa","ink":"#0f2039","mute":"#5a687f","accent":"#1d3c6b","line":"#c1cbdb","hero":"#22467e","hero2":"#0e1c32"},{"bg":"#0a1423","surface":"#0f2039","ink":"#f6ead0","mute":"#9cacc5","accent":"#9cacc5","line":"#183158","hero":"#345588","hero2":"#070e19"}],"3":[{"bg":"#ecdcdf","surface":"#faf6f7","ink":"#3e1118","mute":"#845b62","accent":"#751f2d","line":"#dec2c6","hero":"#8a2535","hero2":"#370f15"},{"bg":"#270a0f","surface":"#3e1118","ink":"#f6ead0","mute":"#ca9da4","accent":"#ca9da4","line":"#611a25","hero":"#933645","hero2":"#1c070b"}],"4":[{"bg":"#e5deee","surface":"#f8f7fb","ink":"#281742","mute":"#706187","accent":"#4c2b7c","line":"#d1c6e0","hero":"#5a3392","hero2":"#24143a"},{"bg":"#190e29","surface":"#281742","ink":"#f6ead0","mute":"#b5a3ce","accent":"#b5a3ce","line":"#3f2466","hero":"#67439b","hero2":"#120a1d"}],"5":[{"bg":"#ebe6dc","surface":"#f7f7f7","ink":"#171717","mute":"#616161","accent":"#2b2b2b","line":"#c6c6c6","hero":"#333333","hero2":"#141414"},{"bg":"#121212","surface":"#1f1f1f","ink":"#f6ead0","mute":"#aaa","accent":"#e2c071","line":"#242424","hero":"#434343","hero2":"#0a0a0a"}],"6":[{"bg":"#d9ebee","surface":"#f5fafb","ink":"#083c44","mute":"#538288","accent":"#0e7180","line":"#bcdde2","hero":"#118596","hero2":"#07353c"},{"bg":"#05252a","surface":"#083c44","ink":"#f6ead0","mute":"#94c8d0","accent":"#94c8d0","line":"#0c5d69","hero":"#248f9e","hero2":"#031b1e"}],"7":[{"bg":"#ece3dc","surface":"#faf8f6","ink":"#3d2512","mute":"#826d5c","accent":"#734621","line":"#ddcfc3","hero":"#875227","hero2":"#362110"},{"bg":"#26170b","surface":"#3d2512","ink":"#f6ead0","mute":"#c9b19e","accent":"#c9b19e","line":"#5e391b","hero":"#916038","hero2":"#1b1008"}]};
+var GCOL=[[1,'Vert et or','#0f6b57'],[2,'Bleu nuit et or','#22467e'],[3,'Bordeaux et or','#8a2535'],[4,'Violet et or','#5a3392'],[5,'Noir et or','#333333'],[6,'Turquoise et or','#118596'],[7,'Marron et or','#875227']];
+var GSTY=[['classique','Classique','L’original : arches, doubles bordures dorées'],['moderne','Moderne','Coins nets, sans motif de fond, plus léger'],['arrondi','Arrondi','Tout est bien rond et doux'],['elegant','Élégant','Fines lignes dorées, très raffiné'],['simple','Simple','Couleurs unies, sans ombres ni motifs']];
+var GTH=load('defteram_gtheme')||null;
+function gThemeApply(th){th=th||{};var r=document.documentElement,c=GPAL[th.c],st=$('gthv');
+ if(!st){st=document.createElement('style');st.id='gthv';document.head.appendChild(st)}
+ function v(o){return Object.keys(o).map(function(k){return '--'+k+':'+o[k]}).join(';')}
+ st.textContent=c?':root{'+v(c[0])+'}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){'+v(c[1])+'}}:root[data-theme="dark"]{'+v(c[1])+'}':'';
+ if(th.s&&th.s!=='classique')r.setAttribute('data-style',th.s);else r.removeAttribute('data-style');
+ var mc=document.querySelector('meta[name=theme-color]');if(mc)mc.content=(GCOL[(th.c||1)-1]||GCOL[0])[2];
+ applyTheme()}
+function gThemeLoad(){fetch('api/admin?a=theme',{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j)return;var t=j.theme||null;if(JSON.stringify(t)!==JSON.stringify(GTH)){GTH=t;save('defteram_gtheme',t);gThemeApply(t)}}).catch(function(){})}
+function applyTheme(){var r=document.documentElement,f=GTH&&GTH.f&&GTH.f!=='auto'?GTH.f:prof.theme;if(f==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',f)}
 var LGN=0;function logo(s){var k=++LGN;return ('<svg width="'+s+'" height="'+s+'" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lgr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#17937a"/><stop offset="1" stop-color="#06352c"/></linearGradient><mask id="mk"><rect width="64" height="64" fill="#fff"/><circle cx="35" cy="11.5" r="6" fill="#000"/></mask></defs><rect width="64" height="64" rx="16" fill="url(#lgr)"/><path d="M32 24c-5-3-12-3-19-1v23c7-2 14-2 19 1z" fill="#fff6e0"/><path d="M32 24c5-3 12-3 19-1v23c-7-2-14-2-19 1z" fill="#f1d9a2"/><path d="M32 24v23" stroke="#d98a2b" stroke-width="1.6"/><path d="M17 30h10M17 34h10M37 30h10M37 34h10" stroke="#0e5a49" stroke-width="1.2" opacity=".45"/><circle cx="32" cy="14" r="7" fill="#f0a94c" mask="url(#mk)"/><path d="M42 10l1.2 2.6 2.8.3-2.1 1.9.6 2.8-2.5-1.4-2.5 1.4.6-2.8-2.1-1.9 2.8-.3z" fill="#f0a94c"/></svg>').replace(/lgr/g,'lgr'+k).replace(/"mk"/g,'"mk'+k+'"').replace(/#mk\)/g,'#mk'+k+')')}
 function drawer(open){var d=$('drawer');if(!open){d.classList.add('hide');return}
  var p=d.firstChild;p.innerHTML='<div class="dh">'+logo(64)+'<b>DEFTERAM</b><span>'+t('tag')+'</span></div><div class="stats dst hide" id="dstats" aria-label="Statistiques"></div>';showStats();if(!STATS)stat('');
@@ -1478,7 +1506,7 @@ var TDOT=!!load('defteram_touch');
  document.addEventListener('mousedown',function(e){if(TDOT){down=true;at(e.clientX,e.clientY)}},true);document.addEventListener('mousemove',function(e){if(TDOT&&down)at(e.clientX,e.clientY)},true);document.addEventListener('mouseup',function(){down=false;off()},true)})();
 function settings(){
  page(T('Paramètres','Settings','الإعدادات'),'<div class="card"><b>'+T('Apparence','Appearance','المظهر')+'</b><div class="bar" id="th"></div></div><div class="card"><b>'+T('Langue','Language','اللغة')+'</b><div class="bar"><button class="btn fill" id="lg">🌍</button></div></div>');
- $('pg').dataset.k='t';var th=$('th');[['auto',T('Auto','Auto','تلقائي')],['light',T('Clair','Light','فاتح')],['dark',T('Sombre','Dark','داكن')]].forEach(function(x){var b=document.createElement('button');b.className='btn'+(prof.theme===x[0]?' fill':'');b.textContent=x[1];b.onclick=function(){prof.theme=x[0];sp();applyTheme();settings()};th.appendChild(b)});$('lg').onclick=sheet;
+ $('pg').dataset.k='t';var th=$('th');if(GTH&&GTH.f&&GTH.f!=='auto')th.parentNode.classList.add('hide');[['auto',T('Auto','Auto','تلقائي')],['light',T('Clair','Light','فاتح')],['dark',T('Sombre','Dark','داكن')]].forEach(function(x){var b=document.createElement('button');b.className='btn'+(prof.theme===x[0]?' fill':'');b.textContent=x[1];b.onclick=function(){prof.theme=x[0];sp();applyTheme();settings()};th.appendChild(b)});$('lg').onclick=sheet;
  var tc=gel('div','card');tc.appendChild(gel('b','','👆 '+T('Rond blanc au toucher','White touch circle','دائرة بيضاء عند اللمس')));tc.appendChild(gel('p','note',T('Pour filmer l’écran : un rond blanc suit ton doigt, et les personnes qui regardent la vidéo voient où tu touches.','To record the screen: a white circle follows your finger so viewers see where you touch.','لتصوير الشاشة: دائرة بيضاء تتبع إصبعك ليرى المشاهدون أين تلمس.')));
  var tb=gel('div','bar');[[true,T('Activé','On','مفعّل')],[false,T('Désactivé','Off','متوقف')]].forEach(function(x){var b=gel('button','btn'+(TDOT===x[0]?' fill':''),x[1]);b.type='button';b.id=x[0]?'tdOn':'tdOff';b.onclick=function(){TDOT=x[0];save('defteram_touch',TDOT);settings()};tb.appendChild(b)});tc.appendChild(tb);$('pg').appendChild(tc);
  var pc=gel('div','card');pc.appendChild(gel('b','','⚪ '+T('Bouton qui flotte','Floating button','الزر العائم')));pc.appendChild(gel('p','note',T('Un bouton rond reste sur toutes les pages. Glisse-le où tu veux avec ton doigt. Touche-le pour ouvrir un menu : Accueil, Retour, Favoris, En haut, Stylo ✒️ pour dessiner sur l’écran, Nos guides, Langue, Partager, Paramètres.','A round button stays on every page. Drag it anywhere. Tap it to open a menu: Home, Back, Favourites, Top, Pen ✒️, Guides, Language, Share, Settings.','زر دائري يبقى في كل الصفحات، اسحبه حيث تشاء واضغطه لفتح القائمة.')));
@@ -1777,10 +1805,11 @@ function admin(){
   var go=el('button','btn fill wide','Valider');go.onclick=function(){go.disabled=true;er.textContent='';apiAdmin('claim',{body:{code:inp.value}}).then(function(){AUTH.admin=true;toast('Tu es administrateur ✓');admin()},function(e){go.disabled=false;er.textContent=err(e).textContent})};cc.appendChild(go);
   g.appendChild(cc);return}
  var tb=el('div','tabs2');tb.style.flexWrap='wrap';
- [['ov','📊 Résumé'],['tx','👁️ Vues'],['us','👥 Comptes'],['ms','✉️ Messages'+(AUTH.unread?' ('+AUTH.unread+')':'')],['gd','🧭 Guides'],['co','🏫 École'],['ed','✍️ Correcteurs'],['hs','📜 Histoires']].forEach(function(x){var b=el('button',x[0]===ADM.tab?'on':'',x[1]);b.onclick=function(){ADM.tab=x[0];admin()};tb.appendChild(b)});
+ [['ov','📊 Résumé'],['tx','👁️ Vues'],['us','👥 Comptes'],['ms','✉️ Messages'+(AUTH.unread?' ('+AUTH.unread+')':'')],['gd','🧭 Guides'],['co','🏫 École'],['ed','✍️ Correcteurs'],['hs','📜 Histoires'],['th','🎨 Couleurs']].forEach(function(x){var b=el('button',x[0]===ADM.tab?'on':'',x[1]);b.onclick=function(){ADM.tab=x[0];admin()};tb.appendChild(b)});
  g.appendChild(tb);var box=el('div');box.appendChild(el('p','note','Chargement…'));g.appendChild(box);
  function fill(n){box.innerHTML='';box.appendChild(n)}
  function date(t){try{return new Date(t).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
+ if(ADM.tab==='th'){adminTheme(box);return}
  if(ADM.tab==='gd'){adminGuides(box);return}
  if(ADM.tab==='co'){adminCourses(box);return}
  if(ADM.tab==='ed'){adminEditors(box);return}
@@ -2292,6 +2321,22 @@ function shrinkImage(file){return new Promise(function(ok){if(!/^image\/(jpeg|pn
   c.toBlob(function(b){ok(b&&b.size<file.size?new File([b],file.name.replace(/\.\w+$/,'')+'.jpg',{type:'image/jpeg'}):file)},'image/jpeg',.85)};im.onerror=function(){URL.revokeObjectURL(u);ok(file)};im.src=u})}
 function upFile(file,onp){return blobLib().then(function(VB){return shrinkImage(file).then(function(f){var safe=(f.name||'fichier').normalize('NFD').replace(/[^A-Za-z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(-80)||'fichier';
   return VB.upload('guides/'+safe,f,{access:'public',handleUploadUrl:'api/upload',clientPayload:AUTH.s.tk,multipart:f.size>8*1024*1024,onUploadProgress:function(e){onp&&onp(e.percentage)}})})}).then(function(r){return r.url})}
+function adminTheme(box){var cur=JSON.parse(JSON.stringify(GTH||{c:1,s:'classique',f:'auto'}));if(!cur.c)cur.c=1;if(!cur.s)cur.s='classique';if(!cur.f)cur.f='auto';
+ var d=gel('div');d.appendChild(gel('p','note','Choisis la couleur, le modèle de style et le fond de DEFTERAM. Tu vois l’aperçu tout de suite sur ton téléphone. Touche « Enregistrer pour tout le monde » : tous les utilisateurs auront ces couleurs.'));
+ function sec(t){d.appendChild(gel('h3','ath',t))}
+ sec('🎨 Couleur');var cg=gel('div','thgrid');d.appendChild(cg);
+ GCOL.forEach(function(x){var b=gel('button','thc'+(cur.c===x[0]?' on':''));b.type='button';b.dataset.c=x[0];var sw=gel('i');sw.style.background='radial-gradient(circle at 35% 30%,'+x[2]+','+((GPAL[x[0]]||[{hero2:'#06352c'}])[0].hero2)+' 75%)';b.appendChild(sw);b.appendChild(gel('span','',x[0]+' · '+x[1]));b.onclick=function(){cur.c=x[0];draw()};cg.appendChild(b)});
+ sec('✨ Modèle de style');var sg=gel('div','thsty');d.appendChild(sg);
+ GSTY.forEach(function(x){var b=gel('button','ths'+(cur.s===x[0]?' on':''));b.type='button';b.dataset.s=x[0];b.appendChild(gel('b','',x[1]));b.appendChild(gel('small','',x[2]));b.onclick=function(){cur.s=x[0];draw()};sg.appendChild(b)});
+ sec('🌓 Fond');var fg=gel('div','bar');d.appendChild(fg);
+ [['auto','Au choix de chacun'],['light','Toujours clair'],['dark','Toujours foncé']].forEach(function(x){var b=gel('button','btn'+(cur.f===x[0]?' fill':''),x[1]);b.type='button';b.dataset.f=x[0];b.onclick=function(){cur.f=x[0];draw()};fg.appendChild(b)});
+ var sv=gel('button','btn fill wide','💾 Enregistrer pour tout le monde');sv.id='thSave';sv.style.marginTop='16px';d.appendChild(sv);
+ var rs=gel('button','btn wide','↩ Revenir aux couleurs d’origine');rs.style.marginTop='8px';d.appendChild(rs);
+ var msg=gel('p','note');d.appendChild(msg);
+ function draw(){GTH=cur;gThemeApply(cur);[].forEach.call(cg.children,function(b){b.classList.toggle('on',+b.dataset.c===cur.c)});[].forEach.call(sg.children,function(b){b.classList.toggle('on',b.dataset.s===cur.s)});[].forEach.call(fg.children,function(b){b.classList.toggle('fill',b.dataset.f===cur.f)});msg.textContent='Aperçu seulement : pas encore enregistré.'}
+ sv.onclick=function(){sv.disabled=true;apiAdmin('theme_save',{body:{theme:cur}}).then(function(o){GTH=o.theme;save('defteram_gtheme',GTH);gThemeApply(GTH);msg.textContent='✅ Enregistré : tout le monde a maintenant ces couleurs.';toast('Couleurs enregistrées ✓')},function(e){msg.textContent='Erreur : '+(e&&e.code||'')}).then(function(){sv.disabled=false})};
+ rs.onclick=function(){cur={c:1,s:'classique',f:'auto'};draw()};
+ box.innerHTML='';box.appendChild(d)}
 function adminGuides(box){
  var d=gel('div');
  if(ADM.blob===false){var w=gel('div','wnote');w.textContent='⚠ Le stockage des photos et audios (Vercel Blob) n’est pas encore activé. Tu peux déjà enregistrer les noms et les histoires. Pour les photos et audios : Vercel → Storage → Create Database → Blob → Connect.';d.appendChild(w)}
@@ -2360,7 +2405,7 @@ function welcome(){
  if(first){var b=w.querySelector('.go');b.textContent=T('Entrer','Enter','ادخل')+' ✦';b.onclick=close}
  else{w.querySelector('.tap').textContent=T('Touchez pour entrer','Tap to enter','المس للدخول');w.onclick=close;var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;setTimeout(close,RM?2500:3700)}
  document.body.appendChild(w);var fb=w.querySelector('.go');if(fb)setTimeout(function(){try{fb.focus({preventScroll:true})}catch(e){}},2700)}
-$('logoS').innerHTML=logo(32);$('logoH').innerHTML=logo(76);applyTheme();
+$('logoS').innerHTML=logo(32);$('logoH').innerHTML=logo(76);gThemeApply(GTH);gThemeLoad();
 setLang();home();nav('home');
 if(!hasLang)sheet();
 try{welcome()}catch(e){}
