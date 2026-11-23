@@ -173,8 +173,6 @@ details.pm-in .tr{direction:ltr;font-family:Nunito,system-ui,sans-serif;font-siz
 .gau{margin:10px 0}.gau audio{width:100%}
 .gstory{white-space:pre-wrap;line-height:1.8;margin-top:8px}
 .gtrd{margin:8px 0;padding:8px 10px;border:1.5px solid var(--line);border-radius:12px}.gtrd summary{cursor:pointer;font-weight:700}
-#demoBar{position:fixed;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:8px;padding:5px 6px 5px 14px;border-radius:30px;background:#b3261e;color:#fff;font-weight:700;box-shadow:0 6px 16px rgba(0,0,0,.3)}#demoBar .btn{padding:4px 12px;min-height:0;background:#fff;color:#b3261e;border:0}
-.dtap{position:fixed;z-index:70;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:3px solid var(--gold2,#d4a63c);background:rgba(212,166,60,.35);pointer-events:none;animation:dtap .65s ease-out forwards}@keyframes dtap{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.6);opacity:0}}.recl li{margin:0 0 8px;line-height:1.6}
 .glb{display:flex;gap:6px;margin:0 0 12px;justify-content:center}.glb .btn{flex:1;min-width:0;padding:8px 6px}.gar .gstory,.gar .gro,.gar .gintro,.gar .gqui,.gar .gtx b,.gar .gtx small{font-family:'Amiri',serif}.gar .gstory{font-size:1.18rem;line-height:2}.glb [lang=ar]{font-family:'Amiri',serif}
 .gthumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}.gth{position:relative;width:76px;height:76px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}.gth img{width:100%;height:100%;object-fit:cover}.gth button{position:absolute;top:2px;right:2px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
 .pm-note{text-align:center;font-size:.6em;color:var(--mute);margin:0 0 6px}
@@ -1327,7 +1325,6 @@ function drawer(open){var d=$('drawer');if(!open){d.classList.add('hide');return
  var cm=CRS.me,cu=cm?(cm.unread||0)+(cm.dir||0):0,tu=cm&&cm.tc?cm.tc.pending+cm.tc.unread+(cm.prof||0):0,au=cm&&cm.adm?cm.adm.apps+cm.adm.dir+cm.adm.prof:0;
  (AUTH.admin?[['🛠️','Administration'+(AUTH.unread?' ('+AUTH.unread+')':''),admin]]:[]).concat(sbOn()?[['👤',AUTH.s?T('Mon compte','My account','حسابي')+' · '+AUTH.s.user.name:T('Connexion','Sign in','تسجيل الدخول'),account]]:[]).concat([['🏫',T('Cours en ligne · Ar Jangou','Online courses · Ar Jangou','دروس عن بعد · أر جانغو')+(cu?' ('+cu+')':''),coursesPage]]).concat(cm&&cm.admin?[['🗝️',T('Direction de l’école','School direction','إدارة المدرسة')+(au?' ('+au+')':''),directionSpace]]:[]).concat(cm&&cm.teacher?[['👩‍🏫',T('Mon école (enseignant)','My school (teacher)','مدرستي (معلّم)')+(tu?' ('+tu+')':''),teacherSpace]]:[]).concat([
   ['📲',T("Installer l'application",'Install the app','تثبيت التطبيق'),installer],
-  ['🎥',T('Filmer l’écran (vidéo)','Record the screen (video)','تصوير الشاشة (فيديو)'),recPage],
   ['🏅',T('Badges et partage','Badges and sharing','الأوسمة والمشاركة'),badges],
   ['✍️',T('Auteurs','Authors','الشعراء والمؤلفون'),authors],
   ['⭐',T('Laisser une note ou un message','Leave a rating or a message','قيّم التطبيق أو اكتب رسالة'),rate],
@@ -1338,42 +1335,6 @@ function drawer(open){var d=$('drawer');if(!open){d.classList.add('hide');return
   var b=document.createElement('button');b.className='mi';b.innerHTML='<i>'+x[0]+'</i><span></span>';b.lastChild.textContent=x[1];
   b.onclick=function(){drawer(false);x[2]()};p.appendChild(b)});
  d.classList.remove('hide');var f=p.querySelector('.mi');if(f)f.focus()}
-/* ===== Filmer l'écran : mode vidéo (ronds aux touchers) + enregistrement (ordinateur) ===== */
-var DEMO=false,REC=null;
-function demoMode(on){DEMO=on;document.body.classList.toggle('demo',on);var b=$('demoBar');
- if(on&&!b){b=document.createElement('div');b.id='demoBar';b.setAttribute('role','status');b.innerHTML='<span></span><button type="button" class="btn"></button>';document.body.appendChild(b);b.lastChild.onclick=function(){if(REC)recStop();demoMode(false)}}
- if(b){b.classList.toggle('hide',!on&&!REC);b.firstChild.textContent=(REC?'⏺ '+T('Enregistrement','Recording','تسجيل')+' '+(REC.tx||'0:00'):'🎥 '+T('Mode vidéo','Video mode','وضع الفيديو'));b.lastChild.textContent=REC?'⏹ '+T('Arrêter','Stop','إيقاف'):'✕'}}
-function demoTouch(e){if(!DEMO)return;var x=e.clientX,y=e.clientY;if(e.touches&&e.touches[0]){x=e.touches[0].clientX;y=e.touches[0].clientY}
- var d=document.createElement('div');d.className='dtap';d.style.left=x+'px';d.style.top=y+'px';document.body.appendChild(d);setTimeout(function(){d.remove()},650)}
-document.addEventListener('pointerdown',demoTouch,true);
-function recCan(){return !!(navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia&&window.MediaRecorder)}
-function recStart(mic){var md=navigator.mediaDevices,sc;
- return md.getDisplayMedia({video:{frameRate:30},audio:true,preferCurrentTab:true,selfBrowserSurface:'include'}).then(function(st){sc=st;
-  return mic?md.getUserMedia({audio:true}).then(function(m){m.getAudioTracks().forEach(function(t){sc.addTrack(t)});return sc},function(){return sc}):sc}).then(function(st){
-  var mt=['video/mp4','video/webm;codecs=vp9,opus','video/webm'].filter(function(m){return MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m)})[0]||'';
-  var r=new MediaRecorder(st,mt?{mimeType:mt}:{}),ch=[],t0=Date.now();REC={r:r,st:st,tm:setInterval(function(){var k=Math.floor((Date.now()-t0)/1000);REC.tx=Math.floor(k/60)+':'+('0'+k%60).slice(-2);demoMode(true)},1000)};
-  r.ondataavailable=function(e){if(e.data&&e.data.size)ch.push(e.data)};
-  r.onstop=function(){var ty=(r.mimeType||'video/webm').split(';')[0],bl=new Blob(ch,{type:ty}),nm='defteram-video-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+(ty==='video/mp4'?'.mp4':'.webm');recDone(bl,nm)};
-  st.getVideoTracks()[0].onended=function(){recStop()};r.start(1000);demoMode(true);toast(T('L’enregistrement a commencé','Recording started','بدأ التسجيل'))})}
-function recStop(){if(!REC)return;var R=REC;REC=null;clearInterval(R.tm);try{R.r.state!=='inactive'&&R.r.stop()}catch(e){}R.st.getTracks().forEach(function(t){t.stop()});demoMode(DEMO)}
-function recDone(bl,nm){var u=URL.createObjectURL(bl);recPage();var w=$('recv');if(!w)return;w.innerHTML='';
- w.appendChild(gel('h3','',T('✅ Ta vidéo est prête','✅ Your video is ready','✅ الفيديو جاهز')));var v=gel('video');v.controls=true;v.src=u;v.style.width='100%';v.style.borderRadius='14px';w.appendChild(v);
- var a=gel('a','btn fill wide','⬇️ '+T('Enregistrer la vidéo','Save the video','حفظ الفيديو'));a.href=u;a.download=nm;w.appendChild(a);
- var f=new File([bl],nm,{type:bl.type});if(navigator.canShare&&navigator.canShare({files:[f]})){var sh=gel('button','btn wide','📤 '+T('Partager la vidéo','Share the video','مشاركة الفيديو'));sh.onclick=function(){navigator.share({files:[f],title:'DEFTERAM'}).catch(function(){})};w.appendChild(sh)}}
-function recPage(){page(T('Filmer l’écran','Record the screen','تصوير الشاشة'),'<div id="recp"></div>');$('pg').dataset.k='rec';var g=$('recp');
- g.appendChild(gel('p','gintro',T('Fais une vidéo pour montrer aux gens comment utiliser DEFTERAM : ouvrir un poème, écouter un audio, chercher dans le Coran…','Make a video to show people how to use DEFTERAM: open a poem, play an audio, search the Quran…','صوّر فيديو لتُري الناس كيف يستعملون دفترام.')));
- var c1=gel('div','card');c1.appendChild(gel('h3','','1. '+T('Mode vidéo','Video mode','وضع الفيديو')));
- c1.appendChild(gel('p','note',T('Quand il est activé, un rond doré apparaît à chaque fois que tu touches l’écran : les personnes qui regardent ta vidéo voient où tu tapes.','When it is on, a golden circle appears each time you touch the screen, so viewers see where you tap.','عند تفعيله تظهر دائرة ذهبية عند كل لمسة، ليرى المشاهدون أين تضغط.')));
- var tg=gel('button','btn wide'+(DEMO?'':' fill'));tg.id='demoTg';tg.textContent=DEMO?'✕ '+T('Désactiver le mode vidéo','Turn off video mode','إيقاف وضع الفيديو'):'🎥 '+T('Activer le mode vidéo','Turn on video mode','تفعيل وضع الفيديو');tg.onclick=function(){demoMode(!DEMO);recPage()};c1.appendChild(tg);g.appendChild(c1);
- var c2=gel('div','card');c2.appendChild(gel('h3','','2. '+T('Enregistrer la vidéo','Record the video','تسجيل الفيديو')));
- if(recCan()){c2.appendChild(gel('p','note',T('Choisis « cet onglet » ou l’écran, puis utilise l’application normalement. Appuie sur « ⏹ Arrêter » en haut quand tu as fini.','Choose “this tab” or the screen, then use the app normally. Press “⏹ Stop” at the top when you are done.','اختر هذه النافذة ثم استعمل التطبيق، واضغط «إيقاف» عند الانتهاء.')));
-  var lb=gel('label','note');var mc=gel('input');mc.type='checkbox';mc.checked=true;lb.appendChild(mc);lb.appendChild(document.createTextNode(' 🎙️ '+T('Enregistrer aussi ma voix (micro)','Also record my voice (microphone)','تسجيل صوتي أيضاً')));c2.appendChild(lb);
-  var go=gel('button','btn fill wide','⏺ '+T('Commencer l’enregistrement','Start recording','ابدأ التسجيل'));go.onclick=function(){go.disabled=true;recStart(mc.checked).then(function(){goRoute('')},function(){go.disabled=false;toast(T('Enregistrement annulé','Recording cancelled','أُلغي التسجيل'))})};c2.appendChild(go)}
- else{c2.appendChild(gel('p','note',T('Sur téléphone, utilise l’enregistreur d’écran de ton téléphone (le mode vidéo reste actif pendant l’enregistrement) :','On a phone, use your phone’s screen recorder (video mode stays on while recording):','على الهاتف استعمل مسجّل الشاشة في هاتفك:')));
-  var ol=gel('ol','recl');[T('Android : fais glisser le haut de l’écran vers le bas deux fois, puis touche « Enregistrement d’écran » (ou « Enregistreur d’écran »). Coche « Son » si tu veux parler.','Android: swipe down twice from the top, then tap “Screen record”. Turn on sound to speak.','أندرويد: اسحب أعلى الشاشة مرتين ثم اضغط «تسجيل الشاشة».'),
-   T('iPhone : ouvre le Centre de contrôle (glisse depuis le coin en haut à droite), puis touche le bouton ⏺. Appui long dessus pour activer le micro.','iPhone: open Control Center (swipe from the top-right corner), then tap ⏺. Long-press it to turn on the mic.','آيفون: افتح مركز التحكم ثم اضغط زر التسجيل ⏺.'),
-   T('Reviens dans DEFTERAM et montre ce que tu veux. Pour arrêter, touche le bouton rouge en haut de l’écran : la vidéo est dans ta galerie.','Come back to DEFTERAM and show what you want. To stop, tap the red button at the top: the video is in your gallery.','ارجع إلى دفترام ثم أوقف التسجيل من الزر الأحمر؛ الفيديو في معرض الصور.')].forEach(function(x){ol.appendChild(gel('li','',x))});c2.appendChild(ol)}
- g.appendChild(c2);var rv=gel('div','card');rv.id='recv';g.appendChild(rv);if(!rv.childNodes.length)rv.classList.add('hide');var mo=new MutationObserver(function(){rv.classList.toggle('hide',!rv.childNodes.length)});mo.observe(rv,{childList:true})}
 function openPdf(b){cur=b;page(nm(b),'<div id="pdfv"></div>');$('pg').dataset.k='pdf';$('pgB').onclick=bk(function(){openCat(b.cat)});
  save('defteram_last',{t:b.id});var w=$('pdfv'),L0=LIBS[b.cat];
  var c=document.createElement('div');c.className='pdfc';
