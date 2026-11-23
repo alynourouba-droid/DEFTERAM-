@@ -155,8 +155,8 @@ module.exports = async (req, res) => {
     }
     if (a === 'guide_save') {
       const g = b.guide || {};
-      const isUrl = u => typeof u === 'string' && /^https:\/\/[a-z0-9.-]+\.public\.blob\.vercel-storage\.com\/[^\s"'<>]{1,300}$/.test(u);
-      const gid = /^[a-z0-9]{6,24}$/.test(g.id || '') ? g.id : 'g' + Date.now().toString(36) + crypto.randomBytes(3).toString('hex');
+      const isUrl = u => typeof u === 'string' && (/^img\/[A-Za-z0-9._-]{1,80}$/.test(u) || /^https:\/\/[a-z0-9.-]+\.public\.blob\.vercel-storage\.com\/[^\s"'<>]{1,300}$/.test(u));
+      const gid = /^[a-z0-9-]{3,24}$/.test(g.id || '') ? g.id : 'g' + Date.now().toString(36) + crypto.randomBytes(3).toString('hex');
       const name = String(g.name || '').trim().slice(0, 120);
       if (!name) return send(400, { error: 'name_required' });
       const clean = {
@@ -165,12 +165,16 @@ module.exports = async (req, res) => {
         audios: (Array.isArray(g.audios) ? g.audios : []).filter(x => x && isUrl(x.url)).map(x => ({ url: x.url, title: String(x.title || '').slice(0, 120) })).slice(0, 30),
         order: Number.isFinite(+g.order) ? +g.order : 0, t: +g.t || Date.now(), u: Date.now(),
       };
+      for (const l of ['ar', 'ff', 'wo']) {   // traductions (arabe, pulaar, wolof)
+        const n = String(g['name_' + l] || '').trim().slice(0, 120), r = String(g['role_' + l] || '').trim().slice(0, 200), st = String(g['story_' + l] || '').slice(0, 30000);
+        if (n) clean['name_' + l] = n; if (r) clean['role_' + l] = r; if (st.trim()) clean['story_' + l] = st;
+      }
       const [old] = await redis(c, [['HGET', P + 'guides', gid]]);
       await redis(c, [['HSET', P + 'guides', gid, JSON.stringify(clean)]]);
       if (old && blobToken()) {   // supprime du stockage les fichiers retirés de la fiche
         try {
           const o = JSON.parse(old), keep = new Set(clean.photos.concat(clean.audios.map(x => x.url)));
-          const gone = (o.photos || []).concat((o.audios || []).map(x => x.url)).filter(u => !keep.has(u));
+          const gone = (o.photos || []).concat((o.audios || []).map(x => x.url)).filter(u => !keep.has(u) && /^https:/.test(u));
           if (gone.length) await require('@vercel/blob').del(gone, { token: blobToken() });
         } catch (e) {}
       }
@@ -178,11 +182,11 @@ module.exports = async (req, res) => {
     }
     if (a === 'guide_del') {
       const gid = String(b.id || '');
-      if (!/^[a-z0-9]{6,24}$/.test(gid)) return send(400, { error: 'bad_id' });
+      if (!/^[a-z0-9-]{3,24}$/.test(gid)) return send(400, { error: 'bad_id' });
       const [old] = await redis(c, [['HGET', P + 'guides', gid]]);
       await redis(c, [['HDEL', P + 'guides', gid]]);
       if (old && blobToken()) {
-        try { const o = JSON.parse(old); const urls = (o.photos || []).concat((o.audios || []).map(x => x.url)); if (urls.length) await require('@vercel/blob').del(urls, { token: blobToken() }); } catch (e) {}
+        try { const o = JSON.parse(old); const urls = (o.photos || []).concat((o.audios || []).map(x => x.url)).filter(u => /^https:/.test(u)); if (urls.length) await require('@vercel/blob').del(urls, { token: blobToken() }); } catch (e) {}
       }
       return send(200, { ok: true });
     }
