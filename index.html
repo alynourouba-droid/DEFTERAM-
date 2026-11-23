@@ -173,6 +173,7 @@ details.pm-in .tr{direction:ltr;font-family:Nunito,system-ui,sans-serif;font-siz
 .gau{margin:10px 0}.gau audio{width:100%}
 .gstory{white-space:pre-wrap;line-height:1.8;margin-top:8px}
 .gtrd{margin:8px 0;padding:8px 10px;border:1.5px solid var(--line);border-radius:12px}.gtrd summary{cursor:pointer;font-weight:700}
+#tdot{position:fixed;left:0;top:0;z-index:9999;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 0 0 4px rgba(120,120,120,.55),0 2px 8px rgba(0,0,0,.35);pointer-events:none;opacity:0;transition:opacity .25s}#tdot.on{opacity:1;transition:opacity .05s}
 .glb{display:flex;gap:6px;margin:0 0 12px;justify-content:center}.glb .btn{flex:1;min-width:0;padding:8px 6px}.gar .gstory,.gar .gro,.gar .gintro,.gar .gqui,.gar .gtx b,.gar .gtx small{font-family:'Amiri',serif}.gar .gstory{font-size:1.18rem;line-height:2}.glb [lang=ar]{font-family:'Amiri',serif}
 .gthumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}.gth{position:relative;width:76px;height:76px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}.gth img{width:100%;height:100%;object-fit:cover}.gth button{position:absolute;top:2px;right:2px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
 .pm-note{text-align:center;font-size:.6em;color:var(--mute);margin:0 0 6px}
@@ -1430,9 +1431,20 @@ function rate(){
    .then(function(){rs.disabled=false});return}
   if(CFG.wa)window.open('https://wa.me/'+CFG.wa+'?text='+encodeURIComponent(m));else if(CFG.mail)location.href='mailto:'+CFG.mail+'?subject=DEFTERAM&body='+encodeURIComponent(m);
   toast(T('Merci pour ta note ! 🙏','Thanks for your rating! 🙏','شكرا لتقييمك 🙏'))}}
+/* ===== Rond blanc qui suit le doigt (pour filmer l'écran) ===== */
+var TDOT=!!load('defteram_touch');
+(function(){var d=null,down=false;function dot(){if(!d){d=document.createElement('div');d.id='tdot';d.setAttribute('aria-hidden','true');document.body.appendChild(d)}return d}
+ function at(x,y){var e=dot();e.style.transform='translate('+(x-22)+'px,'+(y-22)+'px)';e.classList.add('on')}
+ function off(){if(d)d.classList.remove('on')}
+ document.addEventListener('touchstart',function(e){if(TDOT&&e.touches[0])at(e.touches[0].clientX,e.touches[0].clientY)},{passive:true,capture:true});
+ document.addEventListener('touchmove',function(e){if(TDOT&&e.touches[0])at(e.touches[0].clientX,e.touches[0].clientY)},{passive:true,capture:true});
+ document.addEventListener('touchend',function(e){if(!e.touches.length)off()},{passive:true,capture:true});document.addEventListener('touchcancel',off,{passive:true,capture:true});
+ document.addEventListener('mousedown',function(e){if(TDOT){down=true;at(e.clientX,e.clientY)}},true);document.addEventListener('mousemove',function(e){if(TDOT&&down)at(e.clientX,e.clientY)},true);document.addEventListener('mouseup',function(){down=false;off()},true)})();
 function settings(){
  page(T('Paramètres','Settings','الإعدادات'),'<div class="card"><b>'+T('Apparence','Appearance','المظهر')+'</b><div class="bar" id="th"></div></div><div class="card"><b>'+T('Langue','Language','اللغة')+'</b><div class="bar"><button class="btn fill" id="lg">🌍</button></div></div>');
- $('pg').dataset.k='t';var th=$('th');[['auto',T('Auto','Auto','تلقائي')],['light',T('Clair','Light','فاتح')],['dark',T('Sombre','Dark','داكن')]].forEach(function(x){var b=document.createElement('button');b.className='btn'+(prof.theme===x[0]?' fill':'');b.textContent=x[1];b.onclick=function(){prof.theme=x[0];sp();applyTheme();settings()};th.appendChild(b)});$('lg').onclick=sheet}
+ $('pg').dataset.k='t';var th=$('th');[['auto',T('Auto','Auto','تلقائي')],['light',T('Clair','Light','فاتح')],['dark',T('Sombre','Dark','داكن')]].forEach(function(x){var b=document.createElement('button');b.className='btn'+(prof.theme===x[0]?' fill':'');b.textContent=x[1];b.onclick=function(){prof.theme=x[0];sp();applyTheme();settings()};th.appendChild(b)});$('lg').onclick=sheet;
+ var tc=gel('div','card');tc.appendChild(gel('b','','👆 '+T('Rond blanc au toucher','White touch circle','دائرة بيضاء عند اللمس')));tc.appendChild(gel('p','note',T('Pour filmer l’écran : un rond blanc suit ton doigt, et les personnes qui regardent la vidéo voient où tu touches.','To record the screen: a white circle follows your finger so viewers see where you touch.','لتصوير الشاشة: دائرة بيضاء تتبع إصبعك ليرى المشاهدون أين تلمس.')));
+ var tb=gel('div','bar');[[true,T('Activé','On','مفعّل')],[false,T('Désactivé','Off','متوقف')]].forEach(function(x){var b=gel('button','btn'+(TDOT===x[0]?' fill':''),x[1]);b.type='button';b.id=x[0]?'tdOn':'tdOff';b.onclick=function(){TDOT=x[0];save('defteram_touch',TDOT);settings()};tb.appendChild(b)});tc.appendChild(tb);$('pg').appendChild(tc)}
 function about(){page(T("À propos",'About','حول التطبيق'),'<div class="card" style="text-align:center">'+logo(84)+'<h3>DEFTERAM</h3><p></p></div>');$('pg').dataset.k='x';
  $('pg').querySelector('.card p').textContent=T("Bibliothèque islamique en arabe, français, anglais, poulaar et wolof : Coran, douao, wird, poèmes.",'Islamic library in Arabic, French, English, Pulaar and Wolof: Quran, duas, wird, poems.','مكتبة إسلامية بالعربية والفرنسية والإنجليزية والبولار والولوف: القرآن والأدعية والأوراد والقصائد.')
  var pv=document.createElement('div');pv.className='card';pv.style.textAlign='center';pv.appendChild(gel('b','','🎬 '+T('Vidéo de présentation','Presentation video','فيديو تعريفي')));
