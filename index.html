@@ -1844,7 +1844,7 @@ function installer(){
   b.onclick=function(){var e=INST;INST=null;e.prompt();(e.userChoice||Promise.resolve()).then(function(){installer()})};c.appendChild(b)}
  g.appendChild(c);
  var vl=lang==='wo'?'-wo':lang==='ff'?'-ff':'';
- var v=el('video');v.controls=true;v.playsInline=true;v.preload='none';v.poster=vl?'videos/installer-poster'+vl+'.jpg':'videos/installer-poster-v2.jpg';v.src=vl?'videos/installer-defteram'+vl+'.mp4':'videos/installer-defteram-v2.mp4';
+ var v=el('video');v.controls=true;v.playsInline=true;v.preload='none';v.poster=vl?'videos/installer-poster'+vl+'.jpg':'videos/installer-poster-v3.jpg';v.src=vl?'videos/installer-defteram'+vl+'.mp4':'videos/installer-defteram-v3.mp4';
  v.setAttribute('aria-label',T("Vidéo : ajouter DEFTERAM sur l'écran d'accueil","Video: add DEFTERAM to the home screen",'فيديو: إضافة DEFTERAM إلى الشاشة الرئيسية'));
  v.style.cssText='width:100%;max-width:420px;display:block;margin:0 auto 14px;border-radius:18px;border:2px solid var(--sun);background:#06352c;aspect-ratio:9/16';
  g.appendChild(v);
@@ -1853,7 +1853,7 @@ function installer(){
  var I=['🍏 iPhone · Safari',[T('Ouvre defteram.vercel.app dans Safari.','Open defteram.vercel.app in Safari.','افتح defteram.vercel.app في Safari.'),T('Touche le bouton Partager (carré avec une flèche vers le haut).','Tap the Share button (square with an up arrow).','المس زر المشاركة (مربع بسهم إلى الأعلى).'),T("Fais défiler et touche « Sur l'écran d'accueil ».",'Scroll and tap “Add to Home Screen”.','مرّر والمس «إضافة إلى الشاشة الرئيسية».'),T('Touche « Ajouter » en haut à droite.','Tap “Add” at the top right.','المس «إضافة» في الأعلى.')]];
  (ios?[I,A]:[A,I]).forEach(function(x){var k=el('div','card');k.appendChild(el('b','',x[0]));var ol=el('ol');ol.style.cssText='margin:8px 0 0;padding-inline-start:22px;line-height:1.7';x[1].forEach(function(s){ol.appendChild(el('li','',s))});k.appendChild(ol);g.appendChild(k)});
  var sh=el('button','btn wide','📤 '+T('Partager cette vidéo','Share this video','مشاركة الفيديو'));
- sh.onclick=function(){var u=location.origin+(vl?'/videos/installer-defteram'+vl+'.mp4':'/videos/installer-defteram-v2.mp4');if(navigator.share)navigator.share({title:'DEFTERAM',url:u}).then(function(){stat('share')}).catch(function(){});else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){toast(T('Lien copié','Link copied','تم نسخ الرابط'))}).catch(function(){prompt('',u)});else prompt('',u)};
+ sh.onclick=function(){var u=location.origin+(vl?'/videos/installer-defteram'+vl+'.mp4':'/videos/installer-defteram-v3.mp4');if(navigator.share)navigator.share({title:'DEFTERAM',url:u}).then(function(){stat('share')}).catch(function(){});else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){toast(T('Lien copié','Link copied','تم نسخ الرابط'))}).catch(function(){prompt('',u)});else prompt('',u)};
  g.appendChild(sh)}
 
 /* ===== Espace administrateur (réservé au compte administrateur) ===== */
