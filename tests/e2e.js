@@ -366,6 +366,16 @@ function mockSupabase(state){
     r=await E(pa,'amsg',{user:'eleve.diallo',text:'Wa alaykoum salam Awa'}); ok(r.ok, 'enseignant : répond à l’élève');
     r=await E(ps,'moi'); ok(r.j.msgs.some(m=>m.f==='t'&&/Wa alaykoum/.test(m.x)), 'élève : reçoit la réponse');
     await E(pa,'live',{on:false}); r=await E(ps,'moi'); ok(!r.j.live, 'cours en direct terminé');
+    ok(r.j.ins.until-Date.now()>29*86400000 && !r.j.ins.paid, '1er mois gratuit');
+    await E(pa,'profil',{name:'Oustaz Ba',bio:'',sched:'',price:1000,wave:'77 111 22 33',om:''});
+    const k0=JSON.parse(REDIS['defteram:eins']['eleve.diallo']); k0.until=Date.now()-1000; REDIS['defteram:eins']['eleve.diallo']=JSON.stringify(k0);
+    await ps.goto(BASE+'#/p/cours'); await ps.waitForTimeout(1800);
+    t=await ps.textContent('#crs'); ok(/mois gratuit est fini/.test(t) && /1\s?000 F/.test(t) && /77 111 22 33/.test(t) && !/Leçon 1/.test(t), 'mois gratuit fini : prix et numéro Wave, leçons cachées');
+    await ps.fill('#ecPayRef','TX-9'); await ps.click('#ecPaySend'); await ps.waitForTimeout(1500);
+    ok(/Paiement envoyé/.test(await ps.textContent('#crs')), 'élève : paiement envoyé');
+    r=await E(ps,'payok',{user:'eleve.diallo'}); ok(r.err==='not_admin', 'un élève ne peut pas confirmer son paiement');
+    r=await E(pa,'eleves'); ok(r.j.students.find(s=>s.u==='eleve.diallo').pay.ref==='TX-9', 'enseignant : voit le paiement (référence)');
+    r=await E(pa,'payok',{user:'eleve.diallo'}); r=await E(ps,'moi'); ok(r.j.ins.paid && r.j.ins.until>Date.now()+29*86400000 && !r.j.expired, 'paiement confirmé : un mois de plus');
     await E(pa,'statut',{user:'eleve.diallo',s:'x'}); r=await E(ps,'moi'); ok(!r.j.ins, 'enseignant : peut retirer un élève');
     await ca.close(); await cs.close();
   }

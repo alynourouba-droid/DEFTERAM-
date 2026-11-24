@@ -1,11 +1,14 @@
 // École en ligne DEFTERAM « Ar Jangou » — un seul enseignant : l'administrateur.
 // Les élèves s'inscrivent (Coran, Charia : Al-Akhdari, Al-Muqaddima, Ar-Risâla, woudou, ghousl) ; l'enseignant accepte ou refuse.
+// Le 1er mois est gratuit ; ensuite l'élève paie le prix fixé par l'enseignant, qui confirme le paiement reçu (+1 mois).
 // Public :
 //   GET  /api/ecole?a=info                  → profil de l'enseignant, horaires, matières
 // Compte connecté (Authorization: Bearer <token>) :
 //   GET  /api/ecole?a=moi                   → mon inscription ; si acceptée : cours, leçons, devoirs, annonces, messages, cours en direct
 //   POST /api/ecole?a=inscrire              { name, phone, age, subj:[…], level, slot, msg }
 //   POST /api/ecole?a=msg                   { text }   → message à l'enseignant
+//   POST /api/ecole?a=paye                  { method, phone, ref } → après le 1er mois gratuit, l'élève a payé (Wave / Orange Money)
+//   (enseignant) POST ?a=payok | payno { user } → paiement reçu : +1 mois / pas reçu
 // Enseignant (administrateur) :
 //   GET  /api/ecole?a=eleves                → demandes et élèves, cours, leçons, devoirs, annonces, direct
 //   GET  /api/ecole?a=fil&user=<id>         → messages avec un élève
@@ -29,7 +32,8 @@ const SIDS = SUBJ.map(s => s.id);
 const LEVELS = ['debutant', 'moyen', 'avance'];
 const SLOTS = ['soir', 'matin', 'weekend'];
 const KINDS = { cours: 60, lecons: 200, devoirs: 100, ann: 50 };
-const DEF = { name: 'Oustaz', bio: 'Enseignant de l’école en ligne DEFTERAM.', sched: 'Lun–Ven 20h–22h · Sam–Dim 8h–10h', photo: '' };
+const DEF = { name: 'Oustaz', bio: 'Enseignant de l’école en ligne DEFTERAM.', sched: 'Lun–Ven 20h–22h · Sam–Dim 8h–10h', photo: '', price: 0, wave: '', om: '' };
+const MONTH = 30 * 86400000;
 const parse = s => { try { return s ? JSON.parse(s) : null; } catch (e) { return null; } };
 const clean = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, n);
 const cleanML = (s, n) => String(s == null ? '' : s).replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, ' ').trim().slice(0, n);
@@ -76,10 +80,11 @@ module.exports = async (req, res) => {
     if (a === 'moi') {
       const [raw, us] = await redis(c, [['HGET', P + 'eins', me], ['HGET', P + 'eus', me]]);
       const ins = parse(raw);
-      const out = { user: nameOf(me), admin: isAdmin, ins: ins ? { s: ins.s, name: ins.name, phone: ins.phone, age: ins.age, subj: ins.subj, level: ins.level, slot: ins.slot, msg: ins.msg, t: ins.t } : null };
+      const out = { user: nameOf(me), admin: isAdmin, ins: ins ? { s: ins.s, name: ins.name, phone: ins.phone, age: ins.age, subj: ins.subj, level: ins.level, slot: ins.slot, msg: ins.msg, t: ins.t, until: ins.until || 0, paid: !!ins.paid, pay: ins.pay || null } : null };
       if (isAdmin) { const [un, all] = await redis(c, [['HVALS', P + 'eun'], ['HVALS', P + 'eins']]);
-        out.adm = { unread: (un || []).reduce((n, v) => n + (+v || 0), 0), pending: (all || []).filter(v => (parse(v) || {}).s === 'p').length }; }
-      if (ins && ins.s === 'a') {
+        out.adm = { unread: (un || []).reduce((n, v) => n + (+v || 0), 0), pending: (all || []).filter(v => { const x = parse(v) || {}; return x.s === 'p' || (x.pay && x.pay.s === 'p'); }).length }; }
+      if (ins && ins.s === 'a' && (ins.until || 0) < Date.now()) { out.expired = true; out.msgs = await fil(me); out.unread = +us || 0; if (q.read) await redis(c, [['HDEL', P + 'eus', me]]); }
+      else if (ins && ins.s === 'a') {
         const L = await lists();
         const mine = x => !x.subj || x.subj === 'all' || (ins.subj || []).includes(x.subj);
         out.cours = L.cours.filter(mine); out.lecons = L.lecons.filter(mine); out.devoirs = L.devoirs.filter(mine); out.ann = L.ann;
@@ -104,6 +109,18 @@ module.exports = async (req, res) => {
       return send(200, { ok: true });
     }
 
+    if (a === 'paye' && req.method === 'POST') {
+      const [raw] = await redis(c, [['HGET', P + 'eins', me]]);
+      const ins = parse(raw);
+      if (!ins || ins.s !== 'a') return send(403, { error: 'not_student' });
+      if (await limited('pay', 5)) return send(429, { error: 'rate_limit' });
+      const b = await readBody(req) || {};
+      const m = b.method === 'om' ? 'om' : 'wave', ph = clean(b.phone, 30);
+      if (!ph) return send(400, { error: 'missing' });
+      ins.pay = { m, ph, ref: clean(b.ref, 60), t: Date.now(), s: 'p' };
+      await redis(c, [['HSET', P + 'eins', me, JSON.stringify(ins)]]);
+      return send(200, { ok: true });
+    }
     if (a === 'msg' && req.method === 'POST') {
       const [raw] = await redis(c, [['HGET', P + 'eins', me]]);
       const ins = parse(raw);
@@ -141,10 +158,21 @@ module.exports = async (req, res) => {
       if (!ins) return send(404, { error: 'not_found' });
       if (s === 'x') { await redis(c, [['HDEL', P + 'eins', u], ['DEL', P + 'emsg:' + u], ['HDEL', P + 'eun', u], ['HDEL', P + 'eus', u]]); return send(200, { ok: true }); }
       if (s !== 'a' && s !== 'r') return send(400, { error: 'bad_status' });
-      ins.s = s; ins.ta = Date.now();
+      ins.s = s; ins.ta = Date.now(); if (s === 'a' && !ins.until) ins.until = Date.now() + MONTH;
       await redis(c, [['HSET', P + 'eins', u, JSON.stringify(ins)]]);
       if (s === 'a') await push(u, 't', 'Bienvenue ! Ton inscription est confirmée. Tu peux maintenant suivre les cours.');
       return send(200, { ok: true });
+    }
+    if (a === 'payok' || a === 'payno') {
+      const u = String(b.user || '');
+      const [raw] = await redis(c, [['HGET', P + 'eins', u]]);
+      const ins = parse(raw);
+      if (!ins) return send(404, { error: 'not_found' });
+      if (a === 'payok') { ins.until = Math.max(Date.now(), ins.until || 0) + MONTH; ins.paid = true; if (ins.pay) ins.pay.s = 'ok'; }
+      else if (ins.pay) ins.pay.s = 'no';
+      await redis(c, [['HSET', P + 'eins', u, JSON.stringify(ins)]]);
+      await push(u, 't', a === 'payok' ? 'Paiement reçu, merci ! Tes cours continuent pour un mois.' : 'Je n’ai pas reçu ton paiement. Vérifie et renvoie-le, s’il te plaît.');
+      return send(200, { ok: true, until: ins.until });
     }
     if (a === 'amsg') {
       const u = String(b.user || ''), x = cleanML(b.text, 1000);
@@ -153,7 +181,8 @@ module.exports = async (req, res) => {
       return send(200, { ok: true, msgs: await fil(u) });
     }
     if (a === 'profil') {
-      const p = { name: clean(b.name, 60) || DEF.name, bio: cleanML(b.bio, 500), sched: clean(b.sched, 120), photo: isUrl(b.photo) ? b.photo : '' };
+      const p = { name: clean(b.name, 60) || DEF.name, bio: cleanML(b.bio, 500), sched: clean(b.sched, 120), photo: isUrl(b.photo) ? b.photo : '',
+        price: Math.max(0, Math.min(1000000, parseInt(b.price, 10) || 0)), wave: clean(b.wave, 30), om: clean(b.om, 30) };
       await redis(c, [['SET', P + 'ecole', JSON.stringify(p)]]);
       return send(200, { ok: true, prof: p });
     }
