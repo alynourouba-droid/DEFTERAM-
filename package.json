@@ -3,6 +3,7 @@
   "private": true,
   "description": "DEFTERAM – bibliothèque islamique (site statique + fonctions Vercel)",
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
     "@vercel/blob": "2.8.2"
   }
 }

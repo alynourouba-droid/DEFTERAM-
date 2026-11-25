@@ -2042,11 +2042,12 @@ function admin(){
   var go=el('button','btn fill wide','Valider');go.onclick=function(){go.disabled=true;er.textContent='';apiAdmin('claim',{body:{code:inp.value}}).then(function(){AUTH.admin=true;toast('Tu es administrateur ✓');admin()},function(e){go.disabled=false;er.textContent=err(e).textContent})};cc.appendChild(go);
   g.appendChild(cc);return}
  var tb=el('div','tabs2');tb.style.flexWrap='wrap';
- [['ov','📊 Résumé'],['tx','👁️ Vues'],['us','👥 Comptes'],['ms','✉️ Messages'+(AUTH.unread?' ('+AUTH.unread+')':'')],['gd','🧭 Guides'],['co','🏫 École'],['ed','✍️ Correcteurs'],['hs','📜 Histoires'],['th','🎨 Couleurs']].forEach(function(x){var b=el('button',x[0]===ADM.tab?'on':'',x[1]);b.onclick=function(){ADM.tab=x[0];admin()};tb.appendChild(b)});
+ [['ov','📊 Résumé'],['tx','👁️ Vues'],['us','👥 Comptes'],['ms','✉️ Messages'+(AUTH.unread?' ('+AUTH.unread+')':'')],['gd','🧭 Guides'],['co','🏫 École'],['ed','✍️ Correcteurs'],['hs','📜 Histoires'],['th','🎨 Couleurs'],['ai','✨ Atelier IA']].forEach(function(x){var b=el('button',x[0]===ADM.tab?'on':'',x[1]);b.onclick=function(){ADM.tab=x[0];admin()};tb.appendChild(b)});
  g.appendChild(tb);var box=el('div');box.appendChild(el('p','note','Chargement…'));g.appendChild(box);
  function fill(n){box.innerHTML='';box.appendChild(n)}
  function date(t){try{return new Date(t).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
  if(ADM.tab==='th'){adminTheme(box);return}
+ if(ADM.tab==='ai'){adminAI(box);return}
  if(ADM.tab==='gd'){adminGuides(box);return}
  if(ADM.tab==='co'){adminEcole(box);return}
  if(ADM.tab==='ed'){adminEditors(box);return}
@@ -2705,6 +2706,25 @@ function shrinkImage(file){return new Promise(function(ok){if(!/^image\/(jpeg|pn
   c.toBlob(function(b){ok(b&&b.size<file.size?new File([b],file.name.replace(/\.\w+$/,'')+'.jpg',{type:'image/jpeg'}):file)},'image/jpeg',.85)};im.onerror=function(){URL.revokeObjectURL(u);ok(file)};im.src=u})}
 function upFile(file,onp){return blobLib().then(function(VB){return shrinkImage(file).then(function(f){var safe=(f.name||'fichier').normalize('NFD').replace(/[^A-Za-z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(-80)||'fichier';
   return VB.upload('guides/'+safe,f,{access:'public',handleUploadUrl:'api/upload',clientPayload:AUTH.s.tk,multipart:f.size>8*1024*1024,onUploadProgress:function(e){onp&&onp(e.percentage)}})})}).then(function(r){return r.url})}
+function adminAI(box){var d=gel('div','card mk-f');box.innerHTML='';box.appendChild(d);
+ d.appendChild(gel('b','ec-ok','✨ Atelier IA · écrire un poème ou un texte'));d.appendChild(gel('p','note','Décris ce que tu veux : l’IA (Claude) écrit une proposition. Tu la relis, tu la corriges, puis tu l’ajoutes dans DEFTERAM. Toi seul as accès à cet atelier.'));
+ function opts(lbl,id,L,sel){d.appendChild(gel('label','',lbl));var bx=gel('div','mk-op');bx.id=id;L.forEach(function(x){var b=gel('button',x[0]===sel?'on':'',x[1]);b.type='button';b.dataset.v=x[0];b.onclick=function(){[].forEach.call(bx.children,function(z){z.classList.remove('on')});b.classList.add('on')};bx.appendChild(b)});d.appendChild(bx);return function(){var o=bx.querySelector('.on');return o?o.dataset.v:sel}}
+ var kd=opts('Quoi ?','aiKind',[['poeme','📜 Poème'],['madh','🌙 Madh du Prophète ﷺ'],['tawassul','🤲 Tawassul'],['douaa','🕋 Douʿâ'],['histoire','📖 Histoire'],['khutba','🎙️ Khutba'],['explication','💡 Explication'],['traduction','🌍 Traduction']],'poeme');
+ var lg=opts('Langue','aiLang',[['ar','العربية'],['fr','Français'],['ff','Pulaar'],['wo','Wolof'],['en','English']],'ar');
+ var ln=opts('Longueur','aiLen',[['court','Court'],['moyen','Moyen'],['long','Long']],'moyen');
+ function fld(lbl,tag,ph,id){d.appendChild(gel('label','',lbl));var i=gel(tag);i.className='in';i.placeholder=ph;i.id=id;i.setAttribute('aria-label',lbl);d.appendChild(i);return i}
+ var tp=fld('Sujet *','input','Ex. L’amour du Prophète ﷺ et le voyage vers Médine','aiTopic'),st=fld('Style ou modèle (facultatif)','input','Ex. comme la Burda, rime en « mîm »','aiStyle'),nt=fld('Notes ou texte de départ (facultatif)','textarea','Idées, noms, vers à garder, texte à expliquer ou à traduire…','aiNotes');nt.rows=4;
+ var go=gel('button','btn fill wide','✨ Écrire avec l’IA');go.id='aiGo';go.style.marginTop='12px';d.appendChild(go);var er=gel('p','err');d.appendChild(er);
+ var out=gel('div','card');out.id='aiOut';out.classList.add('hide');box.appendChild(out);
+ go.onclick=function(){if(!tp.value.trim()&&!nt.value.trim()){er.textContent='Écris au moins le sujet.';tp.focus();return}er.textContent='';go.disabled=true;go.textContent='⏳ L’IA écrit… (jusqu’à 1 minute)';
+  fetch('api/ai',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+AUTH.s.tk},body:JSON.stringify({kind:kd(),lang:lg(),length:ln(),topic:tp.value,style:st.value,notes:nt.value})}).then(function(r){return r.json().then(function(j){if(!r.ok)throw j;return j})}).then(function(j){
+   out.classList.remove('hide');out.innerHTML='';out.appendChild(gel('b','ec-ok','✅ Proposition de l’IA (à relire)'));var ti=gel('input');ti.className='in';ti.value=j.title;ti.id='aiTitle';ti.setAttribute('aria-label','Titre');out.appendChild(ti);
+   var tx=gel('textarea');tx.className='in';tx.id='aiText';tx.value=j.text;tx.rows=14;tx.style.marginTop='8px';tx.setAttribute('aria-label','Texte');if(j.lang==='ar'){tx.dir='rtl';tx.style.fontFamily='Amiri,serif';tx.style.fontSize='1.15rem';ti.dir='rtl'}out.appendChild(tx);
+   if(j.truncated)out.appendChild(gel('p','err','⚠ Le texte a été coupé : demande « Court » ou « Moyen ».'));
+   var br=gel('div','mk-bar');var cp=gel('button','btn','📋 Copier');cp.onclick=function(){copy(ti.value+'\n\n'+tx.value);toast('Copié ✓')};
+   var sv=gel('button','btn fill','💾 Ajouter dans DEFTERAM');sv.id='aiSave';sv.onclick=function(){var body=tx.value.split('\n').map(function(x){return x.replace(/\s*⁂\s*/,'   ')}).filter(function(x){return x.trim()});if(!ti.value.trim()||!body.length)return;custom.push({id:'c'+Date.now(),cat:j.kind==='histoire'||j.kind==='khutba'||j.kind==='explication'?'islam':j.kind==='douaa'?'doua':j.lang==='ff'?'jimdi':j.lang==='wo'?'wolofal':j.lang==='ar'?'parab':'pop',lang:j.lang==='en'?'fr':j.lang,title:ti.value.trim(),au:'DEFTERAM · IA',lines:body});save(KEY,custom);toast('Ajouté dans tes textes ✓')};
+   var ag=gel('button','btn','🔄 Autre version');ag.onclick=function(){go.click()};br.appendChild(cp);br.appendChild(ag);br.appendChild(sv);out.appendChild(br);out.scrollIntoView({behavior:'smooth'})},
+  function(e){var c=e&&e.error;er.textContent=c==='no_api_key'?'L’IA n’est pas encore branchée : ajoute la clé ANTHROPIC_API_KEY dans Vercel (Settings → Environment Variables), puis redéploie.':c==='bad_api_key'?'La clé ANTHROPIC_API_KEY n’est pas valide.':c==='rate_limit'?'Trop de demandes cette heure-ci (30 max). Réessaie plus tard.':c==='refusal'?'L’IA a refusé ce sujet. Reformule ta demande.':c==='not_admin'?'Réservé à l’administrateur.':'Erreur. Vérifie Internet et réessaie.'}).then(function(){go.disabled=false;go.textContent='✨ Écrire avec l’IA'})}}
 function adminTheme(box){var cur=JSON.parse(JSON.stringify(GTH||{}));cur.c=cur.c||1;cur.s=cur.s||'classique';cur.f=cur.f||'auto';cur.p=cur.p||'nunito';cur.n=cur.n||'flottant';cur.h=cur.h||'tuiles';cur.v=cur.v||'normal';cur.e=cur.e||'normal';
  var d=gel('div');d.appendChild(gel('p','note','Choisis la couleur, le modèle de style et le fond de DEFTERAM. Tu vois l’aperçu tout de suite sur ton téléphone. Touche « Enregistrer pour tout le monde » : tous les utilisateurs auront ces couleurs.'));
  function sec(t){d.appendChild(gel('h3','ath',t))}
