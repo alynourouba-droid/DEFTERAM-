@@ -2160,7 +2160,7 @@ function schoolCard(){var box=$('school');if(!box)return;box.innerHTML='';var s=
 /* ===== Live vidéo / audio : seul l'administrateur lance le live, tout le monde le suit ===== */
 var LIVE=null;
 function liveLoad(cb){fetch('api/admin?a=live',{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){var was=JSON.stringify(LIVE);LIVE=j?j.live:null;if(JSON.stringify(LIVE)!==was)liveBanner();cb&&cb()}).catch(function(){cb&&cb()})}
-function liveUrl(lv,host){var cfg=['config.prejoinConfig.enabled='+(host?'true':'false'),'userInfo.displayName=%22'+encodeURIComponent(host?'DEFTERAM':(myName()||T('Auditeur','Listener','مستمع')))+'%22'];
+function liveUrl(lv,host){var cfg=['config.disableDeepLinking=true','config.prejoinConfig.enabled='+(host?'true':'false'),'userInfo.displayName=%22'+encodeURIComponent(host?'DEFTERAM':(myName()||T('Auditeur','Listener','مستمع')))+'%22'];
  if(lv.mode==='audio')cfg.push('config.startAudioOnly=true');
  if(!host)cfg.push('config.startWithAudioMuted=true','config.startWithVideoMuted=true','config.disableSelfView=true','config.toolbarButtons=%5B%22hangup%22%2C%22chat%22%2C%22raisehand%22%2C%22fullscreen%22%2C%22tileview%22%5D');
  return 'https://meet.jit.si/'+encodeURIComponent(lv.room)+'#'+cfg.join('&')}

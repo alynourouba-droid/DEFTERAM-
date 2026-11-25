@@ -572,7 +572,7 @@ function mockSupabase(state){
  REDIS['defteram:live']=JSON.stringify({room:'DEFTERAM-Live-test',mode:'audio',title:'Lecture de la Burda',t:Date.now()}); await p.evaluate(()=>{home();show('home')}); await p.waitForTimeout(800);
  ok(await p.isVisible('#liveB') && /EN DIRECT/.test(await p.textContent('#liveB')) && /Burda/.test(await p.textContent('#liveB')), 'live : bandeau « EN DIRECT » sur l’accueil');
  await p.click('#liveB'); await p.waitForTimeout(800); ok(await p.isVisible('#liveJoin') && /Écouter le live/.test(await p.textContent('#liveJoin')), 'live : page avec « Écouter le live »');
- ok(await p.evaluate(()=>/startWithAudioMuted=true/.test(liveUrl(LIVE,false)) && /startAudioOnly=true/.test(liveUrl(LIVE,false)) && !/toolbarButtons/.test(liveUrl(LIVE,true))), 'live : spectateurs micro et caméra coupés, animateur complet');
+ ok(await p.evaluate(()=>/disableDeepLinking=true/.test(liveUrl(LIVE,true)) && /startWithAudioMuted=true/.test(liveUrl(LIVE,false)) && /startAudioOnly=true/.test(liveUrl(LIVE,false)) && !/toolbarButtons/.test(liveUrl(LIVE,true))), 'live : spectateurs micro et caméra coupés, animateur complet');
  delete REDIS['defteram:live']; await p.evaluate(()=>{LIVE=null;liveBanner();guidePage('b-saidou')}); await p.waitForTimeout(300);
     STATS_ON=true; await p.click('#gd1 .gsoc .btn:first-child'); await p.waitForTimeout(500); ok(REDIS['defteram:glikes:b-saidou'] && REDIS['defteram:glikes:b-saidou'].size===1, 'page du guide : J’aime');
     await p.fill('#gd1 .gcom textarea','Qu’Allah l’agrée'); await p.click('#gd1 .gcom .btn.fill'); await p.waitForTimeout(600); ok(/Qu’Allah l’agrée/.test(await p.textContent('#gd1 .gcl')), 'page du guide : commentaire');
