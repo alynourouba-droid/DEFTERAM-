@@ -308,29 +308,33 @@ html[data-poem=papier] #rText .bayt::before{content:"";position:absolute;top:-2p
 html[data-head=livre] .bkh{display:block;position:relative;margin:0 -14px 14px;overflow:hidden;border-radius:0 0 28px 28px;box-shadow:0 14px 30px rgba(15,60,66,.3)}
 html[data-head=livre] .hero .bsm,html[data-head=livre] .hero #logoH,html[data-head=livre] .hero h1,html[data-head=livre] .hero #tag{display:none}
 html[data-head=livre] .hero{padding-top:16px;border-radius:24px}
-.bk-top{position:relative;padding:22px 18px 6px;min-height:330px;background:linear-gradient(180deg,#b9e1dc 0%,#d6efec 35%,#f4fbfa 75%,#ffffff 100%);color:#5a2e1a}
-.bk-ayat{position:absolute;top:0;right:16px;width:54%;padding:14px 12px 18px;text-align:center;background:linear-gradient(180deg,#a8dcd5,#c6ebe6);border-radius:0 0 14px 14px;box-shadow:0 6px 16px rgba(31,92,99,.15);animation:bkDrop 1s .2s both}
+.bk-top{position:relative;padding:14px 14px 0;min-height:232px;background:linear-gradient(180deg,var(--line) 0%,var(--bg) 45%,var(--surface) 100%);color:var(--accent)}
+.bk-ayat{position:absolute;top:0;right:14px;width:52%;padding:10px 10px 14px;text-align:center;background:linear-gradient(180deg,var(--hero),var(--hero2));border-radius:0 0 14px 14px;box-shadow:0 6px 16px rgba(0,0,0,.18);animation:bkDrop 1s .2s both}
 .bk-ayat::after{content:"";position:absolute;left:10px;right:10px;bottom:8px;height:6px;background:repeating-linear-gradient(180deg,#fff 0 1.5px,transparent 1.5px 3px);opacity:.8}
-.bk-ayat small{display:block;font:400 .78rem Amiri,serif;color:#2c4f55}
-.bk-ayat b{display:block;font:700 1.12rem/1.7 Amiri,serif;color:#5a2e1a}.bk-ayat em{font-style:normal;font-size:.8em;color:#a8733e}
-.bk-rehal{position:absolute;left:10px;top:18px;width:46%;max-width:210px;filter:drop-shadow(0 10px 10px rgba(74,36,20,.3));animation:bkFloat 4.5s ease-in-out infinite,bkIn .9s both}
-.bk-sub{position:relative;margin:140px 0 0;text-align:center;font:700 .86rem Amiri,serif;color:#2c4f55;animation:bkUp .8s .5s both}
+.bk-ayat small{display:block;font:400 .7rem Amiri,serif;color:var(--gold2)}
+.bk-ayat b{display:block;font:700 .95rem/1.65 Amiri,serif;color:#fff}.bk-ayat em{font-style:normal;font-size:.8em;color:var(--gold2)}
+.bk-rehal{position:absolute;left:8px;top:10px;width:42%;max-width:170px;filter:drop-shadow(0 10px 10px rgba(74,36,20,.3));animation:bkFloat 4.5s ease-in-out infinite,bkIn .9s both}
+.bk-sub{position:relative;margin:104px 0 0;text-align:center;font:700 .8rem Amiri,serif;color:var(--mute);animation:bkUp .8s .5s both}
 .bk-title{position:relative;margin:0;text-align:center;line-height:1}
-.bk-title span{display:block;font:700 6.2rem/1.1 'Aref Ruqaa',Amiri,serif;background:linear-gradient(100deg,#6b3418 0%,#9c5a2c 30%,#e9c58a 45%,#9c5a2c 60%,#5a2e1a 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 3px 2px rgba(90,46,26,.25));animation:bkShine 5s linear infinite,bkUp .9s .3s both}
-.bk-title small{display:block;margin-top:-6px;font:700 1.05rem Amiri,serif;letter-spacing:.45em;color:#a8733e}
-.bk-wave{display:block;width:calc(100% + 60px);height:70px;margin-top:-30px;position:relative;overflow:visible}
+.bk-title span{display:block;font:700 3.9rem/1.15 'Aref Ruqaa',Amiri,serif;background:linear-gradient(100deg,var(--hero2) 0%,var(--hero) 28%,var(--gold2) 45%,var(--sun) 55%,var(--hero) 72%,var(--hero2) 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 3px 2px rgba(90,46,26,.25));animation:bkShine 5s linear infinite,bkUp .9s .3s both}
+.bk-title small{display:block;margin-top:-4px;font:700 .85rem Amiri,serif;letter-spacing:.45em;color:var(--sun)}
+.bk-wave{display:block;width:calc(100% + 60px);height:46px;margin-top:-18px;position:relative;overflow:visible}
 .bk-wv{animation:bkWave 7s ease-in-out infinite alternate}
-.bk-bot{position:relative;margin-top:-2px;padding:6px 18px 22px;text-align:center;color:#fff;background:radial-gradient(90% 70% at 50% 0,#2a6e75,#1f5c63 50%,#174a50)}
+.bk-bot{position:relative;margin-top:-2px;padding:2px 14px 14px;text-align:center;color:#fff;background:radial-gradient(90% 70% at 50% 0,var(--hero),var(--hero2) 70%)}
 .bk-bot::before{content:"";position:absolute;inset:0;opacity:.08;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' fill='none' stroke='%23fff' stroke-width='1.2'%3E%3Cpath d='M10 80 C30 40 60 70 45 45 C30 20 60 10 80 10'/%3E%3Ccircle cx='45' cy='45' r='14'/%3E%3C/svg%3E")}
-.bk-pill{position:relative;display:inline-block;padding:4px 14px;border-radius:999px;background:linear-gradient(90deg,#d9a74a,#f6e3a8,#d9a74a);color:#3b2410;font:800 .78rem Nunito,sans-serif;animation:bkUp .7s .6s both}
-.bk-pill2{margin-top:12px;background:linear-gradient(90deg,#3d8a8f,#62adb1,#3d8a8f);color:#fff}
-.bk-by{position:relative;margin:6px 0 2px;font:700 1.6rem/1.4 'Aref Ruqaa',Amiri,serif;color:#f6e3a8;animation:bkUp .7s .75s both}
-.bk-chips{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;text-align:start}
-.bk-chips span{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);font:700 .8rem/1.3 Nunito,sans-serif;animation:bkUp .6s both}
-.bk-chips span i{flex:none;font-style:normal;font-size:1.15rem}
-.bk-site{position:relative;margin-top:14px;font:800 .95rem Nunito,sans-serif;color:#f6e3a8;letter-spacing:.04em}
-.bk-tel{position:relative;display:inline-block;margin-top:6px;font:900 1.35rem Nunito,sans-serif;color:#fff;text-decoration:none;direction:ltr}
+.bk-pill{position:relative;display:inline-block;padding:3px 12px;border-radius:999px;background:linear-gradient(90deg,var(--sun),var(--gold2),var(--sun));color:var(--hero2);font:800 .7rem Nunito,sans-serif;animation:bkUp .7s .6s both}
+.bk-pill2{display:none}
+.bk-by{position:relative;margin:2px 0 0;font:700 1.15rem/1.4 'Aref Ruqaa',Amiri,serif;color:var(--gold2);animation:bkUp .7s .75s both}
+.bk-chips{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;text-align:center}
+.bk-chips span{display:flex;flex-direction:column;gap:2px;align-items:center;padding:6px 4px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);font:700 .66rem/1.25 Nunito,sans-serif;animation:bkUp .6s both}
+.bk-chips span i{flex:none;font-style:normal;font-size:1rem}
+.bk-site{position:relative;display:inline-block;margin-top:8px;font:800 .8rem Nunito,sans-serif;color:var(--gold2)}
+.bk-tel{position:relative;display:inline-block;margin:8px 0 0 12px;font:900 .85rem Nunito,sans-serif;color:#fff;text-decoration:none;direction:ltr}
 .bk-dust{position:absolute;inset:0;pointer-events:none}.bk-dust i{position:absolute;bottom:-10px;left:var(--x);width:6px;height:6px;border-radius:50%;background:radial-gradient(circle,#fff6d0,#d9a74a 50%,transparent 70%);animation:bkDust 6s var(--d) linear infinite}
+/* ouverture du livre */
+.bk-pl,.bk-pr,.bk-cv{transform-box:fill-box}.bk-pl{transform-origin:100% 50%;animation:bkOpen 12s .3s infinite both}.bk-pr{transform-origin:0% 50%;animation:bkOpen 12s .3s infinite both}.bk-cv{transform-origin:50% 50%;animation:bkCover 12s .3s infinite both}
+@keyframes bkOpen{0%,9%{transform:scaleX(0);opacity:0}11%{opacity:1}20%,88%{transform:scaleX(1);opacity:1}96%,100%{transform:scaleX(0);opacity:0}}
+@keyframes bkCover{0%,8%{opacity:1;transform:scaleX(1)}13%{opacity:1;transform:scaleX(.15)}15%,90%{opacity:0;transform:scaleX(0)}95%{opacity:1;transform:scaleX(.3)}100%{opacity:1;transform:scaleX(1)}}
 @keyframes bkFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(2deg)}}
 @keyframes bkIn{from{opacity:0;transform:translateX(-40px) scale(.8)}}
 @keyframes bkDrop{from{opacity:0;transform:translateY(-60px)}}
@@ -738,14 +742,14 @@ mark.fm.cur{background:#ff9f1c;color:#1b1b1b;box-shadow:0 0 0 2px #ff9f1c}
 <section id="bookH" class="bkh" aria-label="DEFTERAM">
 <div class="bk-top"><span class="bk-dust" aria-hidden="true"><i style="--x:12%;--d:0s"></i><i style="--x:30%;--d:1.2s"></i><i style="--x:55%;--d:.6s"></i><i style="--x:72%;--d:2s"></i><i style="--x:88%;--d:1.5s"></i></span>
 <div class="bk-ayat ar" lang="ar" dir="rtl"><small>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</small><b>وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا <em>﴿٤﴾</em></b><b>الَّذِي عَلَّمَ بِالْقَلَمِ <em>﴿٤﴾</em></b></div>
-<svg class="bk-rehal" viewBox="0 0 240 150" aria-hidden="true"><defs><linearGradient id="bkp" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#e6d8bb"/></linearGradient><linearGradient id="bkw" x1="0" x2="1"><stop offset="0" stop-color="#5a2e1a"/><stop offset=".5" stop-color="#9b5a35"/><stop offset="1" stop-color="#4a2414"/></linearGradient></defs>
-<path d="M40 140 L120 66 L200 140" stroke="url(#bkw)" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M70 140 L120 96 L170 140" stroke="#4a2414" stroke-width="6" fill="none" opacity=".7"/>
-<path d="M14 78 L120 104 L226 78 L236 92 L120 124 L4 92 Z" fill="url(#bkw)"/>
-<path d="M18 74 C58 44 100 50 120 68 L120 102 C100 86 58 80 18 96 Z" fill="url(#bkp)" stroke="#c9a24a" stroke-width="1.5"/><path d="M222 74 C182 44 140 50 120 68 L120 102 C140 86 182 80 222 96 Z" fill="url(#bkp)" stroke="#c9a24a" stroke-width="1.5"/>
-<g stroke="#9aa9b3" stroke-width="1.3" opacity=".8"><path d="M34 68 C64 52 96 56 112 70"/><path d="M34 75 C64 59 96 63 112 77"/><path d="M34 82 C64 66 96 70 112 84"/><path d="M206 68 C176 52 144 56 128 70"/><path d="M206 75 C176 59 144 63 128 77"/><path d="M206 82 C176 66 144 70 128 84"/></g></svg>
+<svg class="bk-rehal" viewBox="0 0 240 150" aria-hidden="true"><defs><linearGradient id="bkp" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#e9dcc0"/></linearGradient><linearGradient id="bkw" x1="0" x2="1"><stop offset="0" stop-color="#5a2e1a"/><stop offset=".5" stop-color="#9b5a35"/><stop offset="1" stop-color="#4a2414"/></linearGradient></defs>
+<path d="M40 140 L120 66 L200 140" stroke="url(#bkw)" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M14 78 L120 104 L226 78 L236 92 L120 124 L4 92 Z" fill="url(#bkw)"/>
+<g class="bk-pl"><path d="M18 74 C58 44 100 50 120 68 L120 102 C100 86 58 80 18 96 Z" fill="url(#bkp)" stroke="var(--sun,#c9a24a)" stroke-width="1.5"/><g stroke="#9aa9b3" stroke-width="1.3" opacity=".8"><path d="M34 68 C64 52 96 56 112 70"/><path d="M34 75 C64 59 96 63 112 77"/><path d="M34 82 C64 66 96 70 112 84"/></g></g>
+<g class="bk-pr"><path d="M222 74 C182 44 140 50 120 68 L120 102 C140 86 182 80 222 96 Z" fill="url(#bkp)" stroke="var(--sun,#c9a24a)" stroke-width="1.5"/><g stroke="#9aa9b3" stroke-width="1.3" opacity=".8"><path d="M206 68 C176 52 144 56 128 70"/><path d="M206 75 C176 59 144 63 128 77"/><path d="M206 82 C176 66 144 70 128 84"/></g></g>
+<g class="bk-cv"><path d="M40 70 L120 90 L200 70 L200 82 L120 104 L40 82 Z" fill="#efe3c6"/><path d="M36 62 L120 84 L204 62 L204 72 L120 96 L36 72 Z" style="fill:var(--hero)" stroke="var(--gold2,#e2c071)" stroke-width="2"/><path d="M36 62 L120 40 L204 62 L120 84 Z" style="fill:var(--hero2)" stroke="var(--gold2,#e2c071)" stroke-width="2"/><path d="M78 62 L120 51 L162 62 L120 73 Z" fill="none" style="stroke:var(--gold2)" stroke-width="2"/><circle cx="120" cy="62" r="6" fill="none" style="stroke:var(--gold2)" stroke-width="2"/></g></svg>
 <p class="bk-sub ar" lang="ar" dir="rtl">مكتبة إسلامية شاملة · القرآن والقصائد والأذكار والدروس</p>
 <h1 class="bk-title"><span class="ar" lang="ar" dir="rtl">دفترام</span><small>DEFTERAM</small></h1></div>
-<svg class="bk-wave" viewBox="0 0 800 90" preserveAspectRatio="none" aria-hidden="true"><g class="bk-wv"><path d="M0 40 C100 90 200 0 300 40 C400 80 500 0 600 40 C700 80 750 20 800 40 L800 90 L0 90Z" fill="#1f5c63"/><path d="M0 40 C100 90 200 0 300 40 C400 80 500 0 600 40 C700 80 750 20 800 40" fill="none" stroke="#a8733e" stroke-width="9"/><path d="M0 40 C100 90 200 0 300 40 C400 80 500 0 600 40 C700 80 750 20 800 40" fill="none" stroke="#e9cf8f" stroke-width="2.5" transform="translate(0 7)"/></g></svg>
+<svg class="bk-wave" viewBox="0 0 800 90" preserveAspectRatio="none" aria-hidden="true"><g class="bk-wv"><path d="M0 40 C100 90 200 0 300 40 C400 80 500 0 600 40 C700 80 750 20 800 40 L800 90 L0 90Z" style="fill:var(--hero2)"/><path d="M0 40 C100 90 200 0 300 40 C400 80 500 0 600 40 C700 80 750 20 800 40" fill="none" style="stroke:var(--sun)" stroke-width="8"/><path d="M0 40 C100 90 200 0 300 40 C400 80 500 0 600 40 C700 80 750 20 800 40" fill="none" style="stroke:var(--gold2)" stroke-width="2.5" transform="translate(0 6)"/></g></svg>
 <div class="bk-bot"><span class="bk-pill">✦ <span id="bkBy1"></span> ✦</span><div class="bk-by ar" lang="ar" dir="rtl" id="bkBy"></div>
 <span class="bk-pill bk-pill2" id="bkIn"></span><div class="bk-chips" id="bkChips"></div>
 <div class="bk-site">defteram.vercel.app</div><a class="bk-tel" id="bkTel" href="#">☎ <span></span></a></div></section>
@@ -1155,10 +1159,10 @@ function libAv(b){var e=$('rAv');if(!e){e=document.createElement('img');e.id='rA
  var k=Object.keys(LIBS).filter(function(x){return LIBS[x].has(b)})[0];if(!k){e.classList.add('hide');e.removeAttribute('src');return}
  e.src=LIBS[k].img.replace('.jpg','-face.jpg');e.alt=LIBS[k].name;e.title=LIBS[k].name;e.classList.remove('hide')}
 function cnt(id){if(id==='guides')return GUIDES.length;if(LIBS[id])return all().filter(LIBS[id].has).length;if(id==='cours')return CRS.list?CRS.list.length:4;return all().filter(function(b){return b.cat===id}).length}
-function bookHero(){var c=$('bkChips');if(!c)return;var n=all().length,pm=all().filter(function(b){return b.bayts||b.lines}).length;
+function bookHero(){var c=$('bkChips');if(!c)return;var pm=all().filter(function(b){return b.bayts||b.lines}).length;
  $('bkBy1').textContent=T('Créé par','Created by','من إعداد');$('bkBy').textContent=CFG.by+' · '+T('Fass Gounass','Fass Gounass','فاس غناس');$('bkIn').textContent=T('Dans DEFTERAM','In DEFTERAM','في دفترام');
- var L=[['📖',T('Le Saint Coran : 604 pages, 114 sourates','The Holy Quran: 604 pages, 114 surahs','القرآن الكريم: 604 صفحة و114 سورة')],['📜',fmtN(pm)+' '+T('poèmes et qasidas','poems and qasidas','قصيدة')],['📚',fmtN(n)+' '+T('textes en tout','texts in all','نصا في المجموع')],['🎧',T('Poèmes en audio','Poems in audio','قصائد صوتية')],['🧭',T('Nos guides : leur histoire','Our guides: their story','مشايخنا وسيرهم')],['🏫',T('École en ligne : Coran et Charia','Online school: Quran and Sharia','مدرسة عن بعد: القرآن والشريعة')],['📿',T('Zikr et wird','Zikr and wird','الأذكار والأوراد')],['🌍',T('5 langues','5 languages','5 لغات')],['📶',T('Même sans connexion','Even offline','حتى دون اتصال')],['✅',T('Gratuit','Free','مجاني')]];
- c.innerHTML='';L.forEach(function(x,i){var e=gel('span');e.style.animationDelay=(0.9+i*0.08)+'s';e.innerHTML='<i></i><b></b>';e.firstChild.textContent=x[0];e.lastChild.textContent=x[1];e.lastChild.style.fontWeight='700';c.appendChild(e)});
+ var L=[['📖',T('Coran · 604 pages','Quran · 604 pages','القرآن · 604 صفحة')],['📜',fmtN(pm)+' '+T('poèmes','poems','قصيدة')],['🎧',T('Audios','Audio','صوتيات')],['🧭',T('Nos guides','Our guides','مشايخنا')],['🏫',T('École en ligne','Online school','مدرسة عن بعد')],['🌍',T('5 langues · gratuit','5 languages · free','5 لغات · مجاني')]];
+ c.innerHTML='';L.forEach(function(x,i){var e=gel('span');e.style.animationDelay=(1.2+i*0.08)+'s';e.innerHTML='<i></i><b></b>';e.firstChild.textContent=x[0];e.lastChild.textContent=x[1];e.lastChild.style.fontWeight='700';c.appendChild(e)});
  var t=$('bkTel');t.href='tel:'+CFG.phone.replace(/\s/g,'');t.lastChild.textContent=CFG.phone}
 function home(){
  var q=$('quick');q.innerHTML='';
