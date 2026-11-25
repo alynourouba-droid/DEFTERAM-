@@ -325,7 +325,7 @@ html[data-head=livre] .hero{padding-top:16px;border-radius:24px}
 .bk-pill{position:relative;display:inline-block;padding:3px 12px;border-radius:999px;background:linear-gradient(90deg,var(--sun),var(--gold2),var(--sun));color:var(--hero2);font:800 .7rem Nunito,sans-serif;animation:bkUp .7s .6s both}
 .bk-pill2{display:none}
 .bk-by{position:relative;margin:2px 0 0;font:700 1.15rem/1.4 'Aref Ruqaa',Amiri,serif;color:var(--gold2);animation:bkUp .7s .75s both}
-.bk-chips{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;text-align:center}
+.bk-chips{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px;text-align:center}
 .bk-chips span{display:flex;flex-direction:column;gap:2px;align-items:center;padding:6px 4px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);font:700 .66rem/1.25 Nunito,sans-serif;animation:bkUp .6s both}
 .bk-chips span i{flex:none;font-style:normal;font-size:1rem}
 .bk-site{position:relative;display:inline-block;margin-top:8px;font:800 .8rem Nunito,sans-serif;color:var(--gold2)}
@@ -757,7 +757,7 @@ mark.fm.cur{background:#ff9f1c;color:#1b1b1b;box-shadow:0 0 0 2px #ff9f1c}
 <p class="bk-sub ar" lang="ar" dir="rtl">مكتبة إسلامية شاملة · القرآن والقصائد والأذكار والدروس</p>
 <h1 class="bk-title"><span class="ar" lang="ar" dir="rtl">دفترام</span><small>DEFTERAM</small></h1></div>
 <svg class="bk-wave" viewBox="0 0 800 90" preserveAspectRatio="none" aria-hidden="true"><g class="bk-wv"><path d="M0 40 C100 90 200 0 300 40 C400 80 500 0 600 40 C700 80 750 20 800 40 L800 90 L0 90Z" style="fill:var(--hero2)"/><path d="M0 40 C100 90 200 0 300 40 C400 80 500 0 600 40 C700 80 750 20 800 40" fill="none" style="stroke:var(--sun)" stroke-width="8"/><path d="M0 40 C100 90 200 0 300 40 C400 80 500 0 600 40 C700 80 750 20 800 40" fill="none" style="stroke:var(--gold2)" stroke-width="2.5" transform="translate(0 6)"/></g></svg>
-<div class="bk-bot"><span class="bk-pill">✦ <span id="bkBy1"></span> ✦</span><div class="bk-by ar" lang="ar" dir="rtl" id="bkBy"></div>
+<div class="bk-bot">
 <span class="bk-pill bk-pill2" id="bkIn"></span><div class="bk-chips" id="bkChips"></div>
 <div class="bk-site">defteram.vercel.app</div><a class="bk-tel" id="bkTel" href="#">☎ <span></span></a></div></section>
 <div class="hero"><svg aria-hidden="true"><defs><pattern id="p" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M24 4l5 10 11-1-7 9 7 9-11-1-5 10-5-10-11 1 7-9-7-9 11 1z" fill="none" stroke="#fff" stroke-width="1.2"/></pattern></defs><rect width="100%" height="100%" fill="url(#p)"/></svg>
@@ -1175,7 +1175,7 @@ function bookShow(){var box=$('bkShow');if(!box)return;clearInterval(BKT);[].sli
   [].forEach.call(dots.children,function(d,i){d.classList.toggle('on',i===k)});cap.classList.remove('in');void cap.offsetWidth;cap.classList.add('in');cap.firstChild.textContent=L[k].t||'';cap.lastChild.textContent=L[k].a||'';}
  go();if(L.length>1)BKT=setInterval(go,5000)}
 function bookHero(){var c=$('bkChips');if(!c)return;bookShow();var pm=all().filter(function(b){return b.bayts||b.lines}).length;
- $('bkBy1').textContent=T('Créé par','Created by','من إعداد');$('bkBy').textContent=CFG.by+' · '+T('Fass Gounass','Fass Gounass','فاس غناس');$('bkIn').textContent=T('Dans DEFTERAM','In DEFTERAM','في دفترام');
+ $('bkIn').textContent=T('Dans DEFTERAM','In DEFTERAM','في دفترام');
  var L=[['📖',T('Coran · 604 pages','Quran · 604 pages','القرآن · 604 صفحة')],['📜',fmtN(pm)+' '+T('poèmes','poems','قصيدة')],['🎧',T('Audios','Audio','صوتيات')],['🧭',T('Nos guides','Our guides','مشايخنا')],['🏫',T('École en ligne','Online school','مدرسة عن بعد')],['🌍',T('5 langues · gratuit','5 languages · free','5 لغات · مجاني')]];
  c.innerHTML='';L.forEach(function(x,i){var e=gel('span');e.style.animationDelay=(1.2+i*0.08)+'s';e.innerHTML='<i></i><b></b>';e.firstChild.textContent=x[0];e.lastChild.textContent=x[1];e.lastChild.style.fontWeight='700';c.appendChild(e)});
  var t=$('bkTel');t.href='tel:'+CFG.phone.replace(/\s/g,'');t.lastChild.textContent=CFG.phone}
