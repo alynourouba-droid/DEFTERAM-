@@ -129,7 +129,7 @@ module.exports = async (req, res) => {
         p: ['nunito', 'poppins', 'lora', 'cairo', 'tajawal', 'amiri'].includes(t.p) ? t.p : 'nunito',
         n: ['flottant', 'plein', 'fonce', 'icones', 'bulle'].includes(t.n) ? t.n : 'flottant',
         h: ['tuiles', 'liste', 'grandes', 'compact', 'defile'].includes(t.h) ? t.h : 'tuiles',
-        v: ['normal', 'papier'].includes(t.v) ? t.v : 'normal', u: Date.now(),
+        v: ['normal', 'papier'].includes(t.v) ? t.v : 'normal', e: ['normal', 'livre'].includes(t.e) ? t.e : 'normal', u: Date.now(),
       };
       await redis(c, [['SET', P + 'theme', JSON.stringify(th)]]);
       return send(200, { ok: true, theme: th });
