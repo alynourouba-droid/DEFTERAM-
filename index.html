@@ -393,6 +393,12 @@ html[data-home=defile] #groups .tile{flex:0 0 42%;scroll-snap-align:start}
 .ec-go{font-size:1.1rem;padding:14px;margin-bottom:12px}.ec-le{padding:10px 0;border-bottom:1px solid var(--line)}.ec-le summary{font-weight:700;cursor:pointer}.ec-tx{white-space:pre-wrap;line-height:1.7}.ec-ph a{color:var(--accent);font-weight:700;margin-inline-end:14px}
 .ec-free{display:inline-block;margin-top:10px;padding:6px 14px;border-radius:999px;background:#d8f3e6;color:#0e5a49;font-weight:800}.ec-until{margin-top:6px;font-weight:700;color:var(--gold2)}.ec-num{font-size:1.15rem;font-weight:800;color:var(--accent);margin:4px 0}.mk-tag.ec-ex{background:#fde2e1;color:#b3261e}
 .ec-msgs{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto;margin:10px 0}.ec-tabs{flex-wrap:wrap}.ec-tabs button{flex:1 1 30%}
+.liveb{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 12px;padding:12px 14px;border:0;border-radius:18px;background:linear-gradient(135deg,#c62828,#8e1414);color:#fff;font:inherit;text-align:start;cursor:pointer;box-shadow:0 10px 24px rgba(198,40,40,.35);animation:lvPulse 2s ease-in-out infinite}
+.liveb span{flex:1}.liveb b{display:block;font-weight:900}.liveb small{opacity:.9}.liveb em{font-style:normal;font-weight:900;background:#fff;color:#c62828;border-radius:12px;padding:8px 14px}
+.ldot{flex:none;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 0 0 rgba(255,255,255,.8);animation:lvDot 1.4s infinite}
+.lvcard.on{border-color:#c62828}.lvbig{font-size:3.4rem;line-height:1.2}.lvtag{display:inline-block;margin:6px 0;padding:4px 12px;border-radius:999px;background:#c62828;color:#fff;font-weight:900;font-size:.8rem;animation:lvBlink 1.2s infinite}.lvgo{font-size:1.1rem;padding:14px;margin-top:10px}
+@keyframes lvDot{70%{box-shadow:0 0 0 10px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+@keyframes lvPulse{50%{box-shadow:0 10px 30px rgba(198,40,40,.6)}}@keyframes lvBlink{50%{opacity:.55}}
 .glb{display:flex;gap:6px;margin:0 0 12px;justify-content:center}.glb .btn{flex:1;min-width:0;padding:8px 6px}.gar .gstory,.gar .gro,.gar .gintro,.gar .gqui,.gar .gtx b,.gar .gtx small{font-family:'Amiri',serif}.gar .gstory{font-size:1.18rem;line-height:2}.glb [lang=ar]{font-family:'Amiri',serif}
 .gthumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}.gth{position:relative;width:76px;height:76px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}.gth img{width:100%;height:100%;object-fit:cover}.gth button{position:absolute;top:2px;right:2px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
 .pm-note{text-align:center;font-size:.6em;color:var(--mute);margin:0 0 6px}
@@ -1185,7 +1191,7 @@ function home(){
  var lr=lastRead();qi.push(lr?['📍',T('Reprendre','Resume','متابعة'),lr]:['🧼',T('Apprendre','Learn','تعلّم'),function(){openCat('pratique')}]);
  qi.forEach(function(x){
   var b=document.createElement('button');b.className='qk';b.innerHTML='<i>'+x[0]+'</i>'+x[1];b.onclick=x[2];q.appendChild(b)});
- bookHero();showStats();schoolCard();if(!EC.fetched){EC.fetched=1;eLoad(schoolCard)}var g=$('groups');g.innerHTML='';
+ bookHero();showStats();schoolCard();liveLoad();liveBanner();if(!EC.fetched){EC.fetched=1;eLoad(schoolCard)}var g=$('groups');g.innerHTML='';
  G.forEach(function(grp){
   var h=document.createElement('h2');h.className='gh';h.textContent=L(grp.t);g.appendChild(h);
   var d=document.createElement('div');d.className='grid';
@@ -1587,6 +1593,7 @@ function drawer(open){var d=$('drawer');if(!open){d.classList.add('hide');return
  var p=d.firstChild;p.innerHTML='<div class="dh">'+logo(64)+'<b>DEFTERAM</b><span>'+t('tag')+'</span></div><div class="stats dst hide" id="dstats" aria-label="Statistiques"></div>';showStats();if(!STATS)stat('');
  var cm=CRS.me,cu=cm?(cm.unread||0)+(cm.dir||0):0,tu=cm&&cm.tc?cm.tc.pending+cm.tc.unread+(cm.prof||0):0,au=cm&&cm.adm?cm.adm.apps+cm.adm.dir+cm.adm.prof:0;
  (AUTH.admin?[['🛠️','Administration'+(AUTH.unread?' ('+AUTH.unread+')':''),admin]]:[]).concat(sbOn()?[['👤',AUTH.s?T('Mon compte','My account','حسابي')+' · '+AUTH.s.user.name:T('Connexion','Sign in','تسجيل الدخول'),account]]:[]).concat([['🏫',T('Cours en ligne · Ar Jangou','Online courses · Ar Jangou','دروس عن بعد · أر جانغو')+(eCount()?' ('+eCount()+')':''),coursesPage]]).concat([
+  ['🔴',T('Live','Live','البث المباشر')+(LIVE?' · '+T('en direct','on air','مباشر'):''),livePage],
   ['📲',T("Installer l'application",'Install the app','تثبيت التطبيق'),installer],
   ['🏅',T('Badges et partage','Badges and sharing','الأوسمة والمشاركة'),badges],
   ['✍️',T('Auteurs','Authors','الشعراء والمؤلفون'),authors],
@@ -1787,7 +1794,7 @@ function goRoute(h){
  if(a==='add'){openCat(NAME[x]?x:'daara');return $('addBtn').click()}
  if(a==='g'&&x)return guidePage(x);
  if(a==='p'&&/^ecole\/./.test(x))return teacherPage(x.slice(6));
- if(a==='p'){var F={cours:coursesPage,ecole:coursesPage,enseignant:coursesPage,direction:coursesPage,'devenir-enseignant':coursesPage,guides:guidesPage,admin:admin,installer:installer,badges:badges,auteurs:authors,note:rate,soutien:support,parametres:settings,apropos:about,compte:account}[x];if(F)return F()}
+ if(a==='p'){var F={live:livePage,cours:coursesPage,ecole:coursesPage,enseignant:coursesPage,direction:coursesPage,'devenir-enseignant':coursesPage,guides:guidesPage,admin:admin,installer:installer,badges:badges,auteurs:authors,note:rate,soutien:support,parametres:settings,apropos:about,compte:account}[x];if(F)return F()}
  home();show('home')}
 window.addEventListener('popstate',function(){RT.restoring=true;try{goRoute(location.hash)}finally{setTimeout(function(){RT.restoring=false},0)}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!$('drawer').classList.contains('hide')){drawer(false);$('mBtn').focus()}else if(!$('sheet').classList.contains('hide'))$('sheet').classList.add('hide')}});
@@ -2150,6 +2157,36 @@ function schoolCard(){var box=$('school');if(!box)return;box.innerHTML='';var s=
  var sl=b.querySelector('.sl');if(EC.moi&&EC.moi.live)sl.appendChild(gel('span','opill on','🔴 '+T('Cours en direct','Live class','درس مباشر')));else if(EC.info&&EC.info.prof&&EC.info.prof.sched)sl.appendChild(gel('span','sh','🕗 '+EC.info.prof.sched));
  if(n)b.querySelector('.sbd').textContent=n;b.onclick=coursesPage;box.appendChild(b)}
 
+/* ===== Live vidéo / audio : seul l'administrateur lance le live, tout le monde le suit ===== */
+var LIVE=null;
+function liveLoad(cb){fetch('api/admin?a=live',{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){var was=JSON.stringify(LIVE);LIVE=j?j.live:null;if(JSON.stringify(LIVE)!==was)liveBanner();cb&&cb()}).catch(function(){cb&&cb()})}
+function liveUrl(lv,host){var cfg=['config.prejoinConfig.enabled='+(host?'true':'false'),'userInfo.displayName=%22'+encodeURIComponent(host?'DEFTERAM':(myName()||T('Auditeur','Listener','مستمع')))+'%22'];
+ if(lv.mode==='audio')cfg.push('config.startAudioOnly=true');
+ if(!host)cfg.push('config.startWithAudioMuted=true','config.startWithVideoMuted=true','config.disableSelfView=true','config.toolbarButtons=%5B%22hangup%22%2C%22chat%22%2C%22raisehand%22%2C%22fullscreen%22%2C%22tileview%22%5D');
+ return 'https://meet.jit.si/'+encodeURIComponent(lv.room)+'#'+cfg.join('&')}
+function liveOpen(lv,host){var u=liveUrl(lv,host),w=window.open(u,'_blank','noopener');if(!w)location.href=u}
+function liveBanner(){var h=$('home');if(!h)return;var b=$('liveB');if(!LIVE){if(b)b.remove();return}
+ if(!b){b=gel('button','liveb');b.id='liveB';b.type='button';h.insertBefore(b,h.firstChild)}
+ b.innerHTML='<i class="ldot"></i><span><b></b><small></small></span><em></em>';b.querySelector('b').textContent=(LIVE.mode==='audio'?'🎙️ ':'🎥 ')+T('EN DIRECT','LIVE','مباشر')+(LIVE.title?' · '+LIVE.title:'');
+ b.querySelector('small').textContent=LIVE.mode==='audio'?T('Live audio sur DEFTERAM','Audio live on DEFTERAM','بث صوتي مباشر'):T('Live vidéo sur DEFTERAM','Video live on DEFTERAM','بث مباشر بالفيديو');
+ b.lastChild.textContent=LIVE.mode==='audio'?T('Écouter','Listen','استمع'):T('Regarder','Watch','شاهد');b.onclick=livePage}
+function livePage(){page('🔴 '+T('Live','Live','البث المباشر'),'<div id="lvp"></div>');$('pg').dataset.k='live';var g=$('lvp');g.appendChild(gel('p','note','…'));
+ liveLoad(function(){if(!$('lvp'))return;g.innerHTML='';var lv=LIVE;
+  var c=gel('div','card mk-c lvcard'+(lv?' on':''));
+  if(lv){c.appendChild(gel('div','lvbig',lv.mode==='audio'?'🎙️':'🎥'));c.appendChild(gel('span','lvtag','● '+T('EN DIRECT','LIVE','مباشر')));if(lv.title)c.appendChild(gel('h3','',lv.title));
+   c.appendChild(gel('p','note',(lv.mode==='audio'?T('Live audio','Audio live','بث صوتي'):T('Live vidéo','Video live','بث بالفيديو'))+' · '+T('commencé à ','started at ','بدأ على ')+new Date(lv.t).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})));
+   var j=gel('button','btn fill wide lvgo',(lv.mode==='audio'?'🎧 '+T('Écouter le live','Listen to the live','استمع إلى البث'):'▶️ '+T('Regarder le live','Watch the live','شاهد البث')));j.id='liveJoin';j.onclick=function(){liveOpen(lv,false)};c.appendChild(j);
+   c.appendChild(gel('p','note',T('Le live s’ouvre dans une nouvelle page. Ton micro et ta caméra restent coupés.','The live opens in a new page. Your mic and camera stay off.','يُفتح البث في صفحة جديدة، ويبقى الميكروفون والكاميرا مغلقين.')))}
+  else{c.appendChild(gel('div','lvbig','📡'));c.appendChild(gel('h3','',T('Pas de live pour le moment','No live right now','لا يوجد بث حاليا')));c.appendChild(gel('p','note',T('Quand un live commence, un bandeau « EN DIRECT » apparaît en haut de l’accueil. Reviens bientôt, in shâ’ Allâh.','When a live starts, a LIVE banner appears at the top of the home page.','عند بدء البث يظهر شريط «مباشر» أعلى الصفحة الرئيسية.')))}
+  g.appendChild(c);
+  if(AUTH.admin){var a=gel('div','card');a.appendChild(gel('b','','🗝️ '+T('Administrateur : mon live','Admin: my live','المسؤول: البث')));
+   if(lv){var hj=gel('button','btn fill wide','🎬 '+T('Rejoindre comme animateur','Join as host','انضم كمقدّم'));hj.onclick=function(){liveOpen(lv,true)};a.appendChild(hj);var st=gel('button','btn danger wide','⏹ '+T('Arrêter le live','Stop the live','أوقف البث'));st.id='liveStop';st.style.marginTop='8px';st.onclick=function(){if(!confirm(T('Arrêter le live pour tout le monde ?','Stop the live for everyone?','إيقاف البث للجميع؟')))return;apiAdmin('live_stop',{body:{}}).then(function(){LIVE=null;liveBanner();livePage()})};a.appendChild(st)}
+   else{a.appendChild(gel('label','fld',T('Titre du live (facultatif)','Live title (optional)','عنوان البث (اختياري)')));var ti=gel('input');ti.className='in';ti.id='liveTitle';ti.maxLength=120;ti.placeholder=T('Ex. Lecture de la Burda','E.g. Reading the Burda','مثال: قراءة البردة');a.appendChild(ti);
+    var mode='video',op=gel('div','mk-op');op.style.margin='10px 0';[['video','🎥 '+T('Vidéo','Video','فيديو')],['audio','🎙️ '+T('Audio seulement','Audio only','صوت فقط')]].forEach(function(x,i){var b=gel('button',i?'':'on',x[1]);b.type='button';b.dataset.m=x[0];b.onclick=function(){mode=x[0];[].forEach.call(op.children,function(z){z.classList.remove('on')});b.classList.add('on')};op.appendChild(b)});a.appendChild(op);
+    var go=gel('button','btn fill wide lvgo','🔴 '+T('Démarrer le live','Start the live','ابدأ البث'));go.id='liveStart';go.onclick=function(){go.disabled=true;apiAdmin('live_start',{body:{mode:mode,title:ti.value}}).then(function(o){LIVE=o.live;liveBanner();liveOpen(o.live,true);livePage()},function(e){go.disabled=false;toast('Erreur : '+(e&&e.code))})};a.appendChild(go);
+    a.appendChild(gel('p','note',T('Le live s’ouvre sur Jitsi Meet. La première fois, Jitsi peut te demander de te connecter (Google) pour être l’animateur.','The live opens on Jitsi Meet. The first time, Jitsi may ask you to sign in (Google) to be the host.','يُفتح البث على Jitsi Meet وقد يطلب تسجيل الدخول أول مرة.')))}
+   g.appendChild(a)}})}
+setInterval(function(){if(!document.hidden)liveLoad()},120000);
 /* ===== École en ligne Ar Jangou : un seul enseignant (l'administrateur), les élèves s'inscrivent ===== */
 var EC={info:load('defteram_ecole')||null,moi:null,etab:'dem'};
 function apiE(a,o){o=o||{};var h={'Content-Type':'application/json'};if(AUTH.s&&AUTH.s.tk)h.Authorization='Bearer '+AUTH.s.tk;

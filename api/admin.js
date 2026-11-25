@@ -87,6 +87,13 @@ module.exports = async (req, res) => {
       let th = null; try { th = t ? JSON.parse(t) : null; } catch (e) {}
       return send(200, { theme: th });
     }
+    // ---- live vidéo / audio de l'administrateur (public, lecture) ----
+    if (a === 'live' && req.method === 'GET') {
+      const [l] = await redis(c, [['GET', P + 'live']]);
+      let lv = null; try { lv = l ? JSON.parse(l) : null; } catch (e) {}
+      if (lv && Date.now() - lv.t > 6 * 3600000) lv = null;
+      return send(200, { live: lv });
+    }
     // ---- message public ----
     if (a === 'msg' && req.method === 'POST') {
       if (await limited('msg', 5)) return send(429, { error: 'rate_limit' });
@@ -135,6 +142,17 @@ module.exports = async (req, res) => {
       };
       await redis(c, [['SET', P + 'theme', JSON.stringify(th)]]);
       return send(200, { ok: true, theme: th });
+    }
+    if (a === 'live_start' && req.method === 'POST') {
+      const b = await readBody(req) || {};
+      const lv = { room: 'DEFTERAM-Live-' + crypto.randomBytes(6).toString('hex'), mode: b.mode === 'audio' ? 'audio' : 'video',
+        title: String(b.title || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 120), t: Date.now() };
+      await redis(c, [['SET', P + 'live', JSON.stringify(lv), 'EX', 6 * 3600]]);
+      return send(200, { ok: true, live: lv });
+    }
+    if (a === 'live_stop' && req.method === 'POST') {
+      await redis(c, [['DEL', P + 'live']]);
+      return send(200, { ok: true });
     }
     if (a === 'overview') {
       const users = await scanKeys(c, P + 'user:*');
