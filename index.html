@@ -308,13 +308,13 @@ html[data-poem=papier] #rText .bayt::before{content:"";position:absolute;top:-2p
 html[data-head=livre] .bkh{display:block;position:relative;margin:0 -14px 14px;overflow:hidden;border-radius:0 0 28px 28px;box-shadow:0 14px 30px rgba(15,60,66,.3)}
 html[data-head=livre] .hero .bsm,html[data-head=livre] .hero #logoH,html[data-head=livre] .hero h1,html[data-head=livre] .hero #tag{display:none}
 html[data-head=livre] .hero{padding-top:16px;border-radius:24px}
-.bk-top{position:relative;padding:14px 14px 0;min-height:232px;background:linear-gradient(180deg,var(--line) 0%,var(--bg) 45%,var(--surface) 100%);color:var(--accent)}
+.bk-top{position:relative;padding:14px 14px 0;background:linear-gradient(180deg,var(--line) 0%,var(--bg) 45%,var(--surface) 100%);color:var(--accent)}
 .bk-ayat{position:absolute;top:0;right:14px;width:52%;padding:10px 10px 14px;text-align:center;background:linear-gradient(180deg,var(--hero),var(--hero2));border-radius:0 0 14px 14px;box-shadow:0 6px 16px rgba(0,0,0,.18);animation:bkDrop 1s .2s both}
 .bk-ayat::after{content:"";position:absolute;left:10px;right:10px;bottom:8px;height:6px;background:repeating-linear-gradient(180deg,#fff 0 1.5px,transparent 1.5px 3px);opacity:.8}
 .bk-ayat small{display:block;font:400 .7rem Amiri,serif;color:var(--gold2)}
 .bk-ayat b{display:block;font:700 .95rem/1.65 Amiri,serif;color:#fff}.bk-ayat em{font-style:normal;font-size:.8em;color:var(--gold2)}
 .bk-rehal{position:absolute;left:8px;top:10px;width:42%;max-width:170px;filter:drop-shadow(0 10px 10px rgba(74,36,20,.3));animation:bkFloat 4.5s ease-in-out infinite,bkIn .9s both}
-.bk-sub{position:relative;margin:104px 0 0;text-align:center;font:700 .8rem Amiri,serif;color:var(--mute);animation:bkUp .8s .5s both}
+.bk-sub{position:relative;margin:8px 0 0;text-align:center;font:700 .8rem Amiri,serif;color:var(--mute);animation:bkUp .8s .5s both}
 .bk-title{position:relative;margin:0;text-align:center;line-height:1}
 .bk-title span{display:block;font:700 3.9rem/1.15 'Aref Ruqaa',Amiri,serif;background:linear-gradient(100deg,var(--hero2) 0%,var(--hero) 28%,var(--gold2) 45%,var(--sun) 55%,var(--hero) 72%,var(--hero2) 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 3px 2px rgba(90,46,26,.25));animation:bkShine 5s linear infinite,bkUp .9s .3s both}
 .bk-title small{display:block;margin-top:-4px;font:700 .85rem Amiri,serif;letter-spacing:.45em;color:var(--sun)}
@@ -331,6 +331,18 @@ html[data-head=livre] .hero{padding-top:16px;border-radius:24px}
 .bk-site{position:relative;display:inline-block;margin-top:8px;font:800 .8rem Nunito,sans-serif;color:var(--gold2)}
 .bk-tel{position:relative;display:inline-block;margin:8px 0 0 12px;font:900 .85rem Nunito,sans-serif;color:#fff;text-decoration:none;direction:ltr}
 .bk-dust{position:absolute;inset:0;pointer-events:none}.bk-dust i{position:absolute;bottom:-10px;left:var(--x);width:6px;height:6px;border-radius:50%;background:radial-gradient(circle,#fff6d0,#d9a74a 50%,transparent 70%);animation:bkDust 6s var(--d) linear infinite}
+.bk-show{position:relative;aspect-ratio:16/9;margin:0 0 4px;border-radius:18px;overflow:hidden;background:var(--hero2);box-shadow:0 0 0 3px var(--gold2),0 14px 28px rgba(0,0,0,.28);animation:bkUp .8s both}
+.bk-show img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 28%;opacity:0;transition:opacity 1.1s ease}
+.bk-show img.on{opacity:1}
+.bk-show img.kb0{animation:bkKb0 6.5s linear both}.bk-show img.kb1{animation:bkKb1 6.5s linear both}.bk-show img.kb2{animation:bkKb2 6.5s linear both}
+.bk-show::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.6));pointer-events:none;z-index:1}
+.bk-cap{position:absolute;left:12px;right:12px;bottom:10px;z-index:2;color:#fff;text-align:start;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.bk-cap b{display:block;font:800 1rem/1.2 Nunito,sans-serif}.bk-cap small{display:block;font:700 .9rem Amiri,serif;color:var(--gold2)}
+.bk-cap.in{animation:bkUp .6s both}
+.bk-dots{position:absolute;top:10px;right:12px;z-index:2;display:flex;gap:5px}.bk-dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.5)}.bk-dots i.on{width:18px;border-radius:4px;background:var(--gold2)}
+@keyframes bkKb0{from{transform:scale(1.02) translate(0,0)}to{transform:scale(1.16) translate(-3%,-2%)}}
+@keyframes bkKb1{from{transform:scale(1.16) translate(3%,0)}to{transform:scale(1.03) translate(0,1%)}}
+@keyframes bkKb2{from{transform:scale(1.05) translate(-2%,2%)}to{transform:scale(1.18) translate(2%,-2%)}}
 /* ouverture du livre */
 .bk-pl,.bk-pr,.bk-cv{transform-box:fill-box}.bk-pl{transform-origin:100% 50%;animation:bkOpen 12s .3s infinite both}.bk-pr{transform-origin:0% 50%;animation:bkOpen 12s .3s infinite both}.bk-cv{transform-origin:50% 50%;animation:bkCover 12s .3s infinite both}
 @keyframes bkOpen{0%,9%{transform:scaleX(0);opacity:0}11%{opacity:1}20%,88%{transform:scaleX(1);opacity:1}96%,100%{transform:scaleX(0);opacity:0}}
@@ -741,12 +753,7 @@ mark.fm.cur{background:#ff9f1c;color:#1b1b1b;box-shadow:0 0 0 2px #ff9f1c}
 <div id="home">
 <section id="bookH" class="bkh" aria-label="DEFTERAM">
 <div class="bk-top"><span class="bk-dust" aria-hidden="true"><i style="--x:12%;--d:0s"></i><i style="--x:30%;--d:1.2s"></i><i style="--x:55%;--d:.6s"></i><i style="--x:72%;--d:2s"></i><i style="--x:88%;--d:1.5s"></i></span>
-<div class="bk-ayat ar" lang="ar" dir="rtl"><small>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</small><b>وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا <em>﴿٤﴾</em></b><b>الَّذِي عَلَّمَ بِالْقَلَمِ <em>﴿٤﴾</em></b></div>
-<svg class="bk-rehal" viewBox="0 0 240 150" aria-hidden="true"><defs><linearGradient id="bkp" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#e9dcc0"/></linearGradient><linearGradient id="bkw" x1="0" x2="1"><stop offset="0" stop-color="#5a2e1a"/><stop offset=".5" stop-color="#9b5a35"/><stop offset="1" stop-color="#4a2414"/></linearGradient></defs>
-<path d="M40 140 L120 66 L200 140" stroke="url(#bkw)" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M14 78 L120 104 L226 78 L236 92 L120 124 L4 92 Z" fill="url(#bkw)"/>
-<g class="bk-pl"><path d="M18 74 C58 44 100 50 120 68 L120 102 C100 86 58 80 18 96 Z" fill="url(#bkp)" stroke="var(--sun,#c9a24a)" stroke-width="1.5"/><g stroke="#9aa9b3" stroke-width="1.3" opacity=".8"><path d="M34 68 C64 52 96 56 112 70"/><path d="M34 75 C64 59 96 63 112 77"/><path d="M34 82 C64 66 96 70 112 84"/></g></g>
-<g class="bk-pr"><path d="M222 74 C182 44 140 50 120 68 L120 102 C140 86 182 80 222 96 Z" fill="url(#bkp)" stroke="var(--sun,#c9a24a)" stroke-width="1.5"/><g stroke="#9aa9b3" stroke-width="1.3" opacity=".8"><path d="M206 68 C176 52 144 56 128 70"/><path d="M206 75 C176 59 144 63 128 77"/><path d="M206 82 C176 66 144 70 128 84"/></g></g>
-<g class="bk-cv"><path d="M40 70 L120 90 L200 70 L200 82 L120 104 L40 82 Z" fill="#efe3c6"/><path d="M36 62 L120 84 L204 62 L204 72 L120 96 L36 72 Z" style="fill:var(--hero)" stroke="var(--gold2,#e2c071)" stroke-width="2"/><path d="M36 62 L120 40 L204 62 L120 84 Z" style="fill:var(--hero2)" stroke="var(--gold2,#e2c071)" stroke-width="2"/><path d="M78 62 L120 51 L162 62 L120 73 Z" fill="none" style="stroke:var(--gold2)" stroke-width="2"/><circle cx="120" cy="62" r="6" fill="none" style="stroke:var(--gold2)" stroke-width="2"/></g></svg>
+<div class="bk-show" id="bkShow" aria-label="Photos"><div class="bk-cap"><b></b><small></small></div><div class="bk-dots"></div></div>
 <p class="bk-sub ar" lang="ar" dir="rtl">مكتبة إسلامية شاملة · القرآن والقصائد والأذكار والدروس</p>
 <h1 class="bk-title"><span class="ar" lang="ar" dir="rtl">دفترام</span><small>DEFTERAM</small></h1></div>
 <svg class="bk-wave" viewBox="0 0 800 90" preserveAspectRatio="none" aria-hidden="true"><g class="bk-wv"><path d="M0 40 C100 90 200 0 300 40 C400 80 500 0 600 40 C700 80 750 20 800 40 L800 90 L0 90Z" style="fill:var(--hero2)"/><path d="M0 40 C100 90 200 0 300 40 C400 80 500 0 600 40 C700 80 750 20 800 40" fill="none" style="stroke:var(--sun)" stroke-width="8"/><path d="M0 40 C100 90 200 0 300 40 C400 80 500 0 600 40 C700 80 750 20 800 40" fill="none" style="stroke:var(--gold2)" stroke-width="2.5" transform="translate(0 6)"/></g></svg>
@@ -1159,7 +1166,15 @@ function libAv(b){var e=$('rAv');if(!e){e=document.createElement('img');e.id='rA
  var k=Object.keys(LIBS).filter(function(x){return LIBS[x].has(b)})[0];if(!k){e.classList.add('hide');e.removeAttribute('src');return}
  e.src=LIBS[k].img.replace('.jpg','-face.jpg');e.alt=LIBS[k].name;e.title=LIBS[k].name;e.classList.remove('hide')}
 function cnt(id){if(id==='guides')return GUIDES.length;if(LIBS[id])return all().filter(LIBS[id].has).length;if(id==='cours')return CRS.list?CRS.list.length:4;return all().filter(function(b){return b.cat===id}).length}
-function bookHero(){var c=$('bkChips');if(!c)return;var pm=all().filter(function(b){return b.bayts||b.lines}).length;
+var BKDEF=[{u:'img/dudal-fass.jpg',t:'Dudal Faas Gunaas',a:'دودال فاس غناس'},{u:'img/guides-collage.jpg',t:'Nos guides',a:'مشايخنا'},{u:'img/dental-mosquee.jpg',t:'Jimɗi Dental Gounass',a:'جامع دنتال غناس'},{u:'img/tidiane-medina-2.jpg',t:'Thierno Ahmadou Tidiane Ba',a:'الشيخ أحمد التجاني با'},{u:'img/saidou-ba.jpg',t:'Thierno Mouhamadou Saïdou Ba',a:'الشيخ محمد سعيد با'},{u:'img/malick-sy.jpg',t:'Seydi El Hadji Malick Sy',a:'السيد الحاج مالك سي'}];
+var BKT=null;
+function bkSlides(){var L=GTH&&GTH.ph&&GTH.ph.length?GTH.ph:BKDEF;return L}
+function bookShow(){var box=$('bkShow');if(!box)return;clearInterval(BKT);[].slice.call(box.querySelectorAll('img')).forEach(function(i){i.remove()});var L=bkSlides(),dots=box.querySelector('.bk-dots'),cap=box.querySelector('.bk-cap');dots.innerHTML='';
+ var ims=L.map(function(x,i){var im=document.createElement('img');im.src=x.u;im.alt='';im.decoding='async';if(i)im.loading='lazy';box.insertBefore(im,cap);dots.appendChild(document.createElement('i'));return im});var k=-1;
+ function go(){if(!document.documentElement.hasAttribute('data-head'))return;var p=k;k=(k+1)%L.length;ims.forEach(function(im,i){im.classList.toggle('on',i===k);if(i===k){im.className='on kb'+(k%3)}});
+  [].forEach.call(dots.children,function(d,i){d.classList.toggle('on',i===k)});cap.classList.remove('in');void cap.offsetWidth;cap.classList.add('in');cap.firstChild.textContent=L[k].t||'';cap.lastChild.textContent=L[k].a||'';}
+ go();if(L.length>1)BKT=setInterval(go,5000)}
+function bookHero(){var c=$('bkChips');if(!c)return;bookShow();var pm=all().filter(function(b){return b.bayts||b.lines}).length;
  $('bkBy1').textContent=T('Créé par','Created by','من إعداد');$('bkBy').textContent=CFG.by+' · '+T('Fass Gounass','Fass Gounass','فاس غناس');$('bkIn').textContent=T('Dans DEFTERAM','In DEFTERAM','في دفترام');
  var L=[['📖',T('Coran · 604 pages','Quran · 604 pages','القرآن · 604 صفحة')],['📜',fmtN(pm)+' '+T('poèmes','poems','قصيدة')],['🎧',T('Audios','Audio','صوتيات')],['🧭',T('Nos guides','Our guides','مشايخنا')],['🏫',T('École en ligne','Online school','مدرسة عن بعد')],['🌍',T('5 langues · gratuit','5 languages · free','5 لغات · مجاني')]];
  c.innerHTML='';L.forEach(function(x,i){var e=gel('span');e.style.animationDelay=(1.2+i*0.08)+'s';e.innerHTML='<i></i><b></b>';e.firstChild.textContent=x[0];e.lastChild.textContent=x[1];e.lastChild.style.fontWeight='700';c.appendChild(e)});
@@ -2662,6 +2677,12 @@ function adminTheme(box){var cur=JSON.parse(JSON.stringify(GTH||{}));cur.c=cur.c
  GSTY.forEach(function(x){var b=gel('button','ths'+(cur.s===x[0]?' on':''));b.type='button';b.dataset.s=x[0];b.appendChild(gel('b','',x[1]));b.appendChild(gel('small','',x[2]));b.onclick=function(){cur.s=x[0];draw()};sg.appendChild(b)});
  function opts(title,list,key){sec(title);var g=gel('div','thsty');g.dataset.k=key;d.appendChild(g);list.forEach(function(x){var b=gel('button','ths'+(cur[key]===x[0]?' on':''));b.type='button';b.dataset.v=x[0];b.appendChild(gel('b','',x[1]));b.appendChild(gel('small','',x[2]));if(key==='p'&&x[0]!=='nunito'){var u=GFURL[x[0]];if(u&&!document.getElementById('gfont-'+x[0])){var lk=document.createElement('link');lk.rel='stylesheet';lk.id='gfont-'+x[0];lk.href='https://fonts.googleapis.com/css2?family='+u+'&display=swap';document.head.appendChild(lk)}b.querySelector('b').style.fontFamily=x[1]+',serif'}b.onclick=function(){cur[key]=x[0];draw()};g.appendChild(b)});OPTS.push(g)}
  var OPTS=[];opts('🔤 Police (écriture)',GFONT,'p');opts('⬇️ Menu du bas',GNAV,'n');opts('🏠 Page d’accueil',GHOME,'h');opts('📖 Haut de l’accueil',GHEAD,'e');opts('📜 Poèmes',GPOEM,'v');
+ sec('🖼️ Photos du haut de l’accueil (16:9)');var phb=gel('div','card');d.appendChild(phb);cur.ph=cur.ph||[];
+ function drawPh(){phb.innerHTML='';var L=cur.ph.length?cur.ph:[];phb.appendChild(gel('p','note',L.length?'Les photos défilent une par une. Touche ✕ pour enlever une photo.':'Pour l’instant, les photos de l’application défilent (Dudal, nos guides, la mosquée…). Ajoute tes propres photos ici.'));
+  L.forEach(function(x,i){var r=gel('div','mk-row');var im=gel('img');im.src=x.u;im.alt='';im.style.cssText='width:96px;aspect-ratio:16/9;object-fit:cover;border-radius:8px';r.appendChild(im);var ti=gel('input');ti.className='in';ti.value=x.t||'';ti.placeholder='Titre (facultatif)';ti.setAttribute('aria-label','Titre de la photo');ti.oninput=function(){x.t=ti.value};ti.style.flex='1';r.appendChild(ti);var rm=gel('button','btn danger','✕');rm.setAttribute('aria-label','Enlever la photo');rm.onclick=function(){cur.ph.splice(i,1);drawPh();draw()};r.appendChild(rm);phb.appendChild(r)});
+  var fi=gel('input');fi.type='file';fi.accept='image/*';fi.multiple=true;fi.setAttribute('aria-label','Ajouter des photos');var ab=gel('button','btn fill wide','➕ Ajouter des photos');ab.style.marginTop='8px';ab.onclick=function(){fi.click()};fi.style.display='none';
+  fi.onchange=function(){[].forEach.call(fi.files,function(f){toast('Envoi de la photo…');upFile(f).then(function(u){cur.ph.push({u:u,t:'',a:''});drawPh();draw();toast('Photo ajoutée ✓ (n’oublie pas d’enregistrer)')},function(){toast('Envoi impossible (stockage Vercel Blob).')})});fi.value=''};phb.appendChild(ab);phb.appendChild(fi)}
+ drawPh();
  sec('🌓 Fond');var fg=gel('div','bar');d.appendChild(fg);
  [['auto','Au choix de chacun'],['light','Toujours clair'],['dark','Toujours foncé']].forEach(function(x){var b=gel('button','btn'+(cur.f===x[0]?' fill':''),x[1]);b.type='button';b.dataset.f=x[0];b.onclick=function(){cur.f=x[0];draw()};fg.appendChild(b)});
  var sv=gel('button','btn fill wide','💾 Enregistrer pour tout le monde');sv.id='thSave';sv.style.marginTop='16px';d.appendChild(sv);
