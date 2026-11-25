@@ -236,6 +236,39 @@ html[data-style=verre] .btn{border-radius:14px;border:1px solid rgba(255,255,255
 html[data-style=verre][data-theme=dark] .btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.28)}html[data-style=verre][data-theme=dark] nav{background:rgba(0,0,0,.45);border-color:rgba(255,255,255,.2)}html[data-style=verre][data-theme=dark] .pm-head,html[data-style=verre][data-theme=dark] .tile{color:var(--ink)}
 html[data-style=verre] nav{background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-color:rgba(255,255,255,.6)}
 
+/* ===== Style « Émeraude » : vert profond, or, calligraphie (toute l'application) ===== */
+html[data-style=emeraude]{--bg:#eef5f1;--surface:#ffffff;--ink:#12332c;--mute:#5f6f66;--accent:#0e6b55;--sun:#c9a24a;--gold2:#e9cf8f;--line:#d5ebe3;--hero:#0e6b55;--hero2:#073428;--onhero:#ffffff;--sunInk:#9c6b3a}
+@media (prefers-color-scheme:dark){html[data-style=emeraude]:not([data-theme="light"]){--bg:#062a21;--surface:#0b3a2e;--ink:#f1f6f3;--mute:#a6c3b7;--accent:#7fd8bb;--line:#145443;--hero:#0e6b55;--hero2:#041c16;--onhero:#ffffff;--sunInk:#e9cf8f}}
+html[data-style=emeraude][data-theme=dark]{--bg:#062a21;--surface:#0b3a2e;--ink:#f1f6f3;--mute:#a6c3b7;--accent:#7fd8bb;--line:#145443;--hero:#0e6b55;--hero2:#041c16;--onhero:#ffffff;--sunInk:#e9cf8f}
+html[data-style=emeraude] body::before{opacity:.55;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' fill='none' stroke='%230e6b55' stroke-opacity='.14' stroke-width='1'%3E%3Cpath d='M32 3 L61 32 L32 61 L3 32 Z'/%3E%3Ccircle cx='32' cy='32' r='10'/%3E%3C/svg%3E")}
+html[data-style=emeraude] .hero{border:0;border-radius:28px;background:radial-gradient(120% 90% at 80% 0,#16896d,var(--hero) 45%,var(--hero2));box-shadow:0 16px 34px rgba(7,52,40,.35)}
+html[data-style=emeraude] .hero .bsm,html[data-style=emeraude] .pm-head .bs{font-family:'Aref Ruqaa',Amiri,serif;background:linear-gradient(180deg,#fff3c4,#e2c071 50%,#a87e2c);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+html[data-style=emeraude] h3,html[data-style=emeraude] .gh,html[data-style=emeraude] .fasl{justify-content:center;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,var(--hero),var(--hero2));color:#fff;font:800 1rem Nunito,sans-serif;box-shadow:0 6px 14px rgba(7,52,40,.2)}
+html[data-style=emeraude] .fasl{font-family:Amiri,serif;font-size:1.05em}
+html[data-style=emeraude] h3::before,html[data-style=emeraude] h3::after,html[data-style=emeraude] .gh::before,html[data-style=emeraude] .gh::after,html[data-style=emeraude] .fasl::before,html[data-style=emeraude] .fasl::after{display:none}
+html[data-style=emeraude] .card{border:1.5px solid var(--line);border-radius:20px;box-shadow:0 4px 14px rgba(7,52,40,.06);background:var(--surface)}
+html[data-style=emeraude] .btn{border:1.5px solid var(--line);border-radius:12px}
+html[data-style=emeraude] .btn.fill{background:linear-gradient(135deg,var(--hero),var(--hero2));border-color:var(--hero);color:#fff}
+html[data-style=emeraude] .tile{border:1.5px solid var(--line);border-radius:20px;background:var(--surface);box-shadow:0 6px 16px rgba(7,52,40,.07)}
+html[data-style=emeraude] .tile .e::before{inset:0;border:0;border-radius:15px;background:linear-gradient(135deg,#d7a96b,#9c6b3a);box-shadow:0 6px 12px rgba(156,107,58,.3)}
+html[data-style=emeraude] .tile .e::after{display:none}
+html[data-style=emeraude] .qk i{border:0;border-radius:16px;background:linear-gradient(135deg,var(--hero),var(--hero2));box-shadow:0 6px 14px rgba(7,52,40,.25)}
+html[data-style=emeraude] .book{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;box-shadow:0 4px 12px rgba(7,52,40,.06)}
+html[data-style=emeraude] .book::before,html[data-style=emeraude] .book::after{display:none}
+html[data-style=emeraude] .book .main::before{content:"📜";flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#d7a96b,#9c6b3a);font-size:1.1rem}
+html[data-style=emeraude] .mhead,html[data-style=emeraude] .sch-head,html[data-style=emeraude] .gpf,html[data-style=emeraude] .prof,html[data-style=emeraude] .dh{border:0;border-radius:24px;background:radial-gradient(120% 90% at 80% 0,#16896d,var(--hero) 45%,var(--hero2));box-shadow:0 12px 26px rgba(7,52,40,.3)}
+html[data-style=emeraude] .pm-head{border:0;border-radius:28px;background:radial-gradient(120% 90% at 80% 0,#16896d,var(--hero) 45%,var(--hero2));box-shadow:0 14px 30px rgba(7,52,40,.3)}
+html[data-style=emeraude] .bayt{border:1.5px solid var(--line);border-radius:20px;background:var(--surface);box-shadow:0 4px 14px rgba(7,52,40,.06)}
+html[data-style=emeraude] .bayt .bn{color:#fff;font-family:Nunito,sans-serif;font-weight:900}
+html[data-style=emeraude] .bayt .bn::before{inset:4px;border:0;border-radius:11px;background:linear-gradient(135deg,#d7a96b,#9c6b3a);box-shadow:0 4px 10px rgba(156,107,58,.35)}
+html[data-style=emeraude] .bayt .bn::after{display:none}
+html[data-style=emeraude] .pm-chorus{border:1.5px dashed var(--sun);background:var(--line)}
+html[data-style=emeraude] .pm-end{border:0;border-radius:18px;background:linear-gradient(135deg,var(--hero),var(--hero2));color:#fff}
+html[data-style=emeraude] .aud{border:1.5px solid var(--line);border-radius:20px;background:var(--surface)}
+html[data-style=emeraude] .aud button{background:linear-gradient(135deg,var(--hero),var(--hero2));border-color:var(--sun)}
+html[data-style=emeraude] nav{border:1.5px solid var(--line);border-radius:24px;box-shadow:0 10px 26px rgba(7,52,40,.18)}
+html[data-style=emeraude] nav button.on{background:linear-gradient(135deg,var(--hero),var(--hero2));color:#fff}
+html[data-style=emeraude] nav button[data-n=gd].on{background:none;color:var(--accent)}
 /* ===== Polices ===== */
 html[data-font=poppins] body{font-family:Poppins,system-ui,sans-serif}
 html[data-font=lora] body{font-family:Lora,Georgia,serif}
@@ -1422,7 +1455,7 @@ function sp(){save('defteram_prof',prof)}
 /* ===== Couleurs et style choisis par l'administrateur (pour tout le monde) ===== */
 var GPAL={"1":null,"2":[{"bg":"#dce1ea","surface":"#f6f8fa","ink":"#0f2039","mute":"#5a687f","accent":"#1d3c6b","line":"#c1cbdb","hero":"#22467e","hero2":"#0e1c32"},{"bg":"#0a1423","surface":"#0f2039","ink":"#f6ead0","mute":"#9cacc5","accent":"#9cacc5","line":"#183158","hero":"#345588","hero2":"#070e19"}],"3":[{"bg":"#ecdcdf","surface":"#faf6f7","ink":"#3e1118","mute":"#845b62","accent":"#751f2d","line":"#dec2c6","hero":"#8a2535","hero2":"#370f15"},{"bg":"#270a0f","surface":"#3e1118","ink":"#f6ead0","mute":"#ca9da4","accent":"#ca9da4","line":"#611a25","hero":"#933645","hero2":"#1c070b"}],"4":[{"bg":"#e5deee","surface":"#f8f7fb","ink":"#281742","mute":"#706187","accent":"#4c2b7c","line":"#d1c6e0","hero":"#5a3392","hero2":"#24143a"},{"bg":"#190e29","surface":"#281742","ink":"#f6ead0","mute":"#b5a3ce","accent":"#b5a3ce","line":"#3f2466","hero":"#67439b","hero2":"#120a1d"}],"5":[{"bg":"#ebe6dc","surface":"#f7f7f7","ink":"#171717","mute":"#616161","accent":"#2b2b2b","line":"#c6c6c6","hero":"#333333","hero2":"#141414"},{"bg":"#121212","surface":"#1f1f1f","ink":"#f6ead0","mute":"#aaa","accent":"#e2c071","line":"#242424","hero":"#434343","hero2":"#0a0a0a"}],"6":[{"bg":"#d9ebee","surface":"#f5fafb","ink":"#083c44","mute":"#538288","accent":"#0e7180","line":"#bcdde2","hero":"#118596","hero2":"#07353c"},{"bg":"#05252a","surface":"#083c44","ink":"#f6ead0","mute":"#94c8d0","accent":"#94c8d0","line":"#0c5d69","hero":"#248f9e","hero2":"#031b1e"}],"7":[{"bg":"#ece3dc","surface":"#faf8f6","ink":"#3d2512","mute":"#826d5c","accent":"#734621","line":"#ddcfc3","hero":"#875227","hero2":"#362110"},{"bg":"#26170b","surface":"#3d2512","ink":"#f6ead0","mute":"#c9b19e","accent":"#c9b19e","line":"#5e391b","hero":"#916038","hero2":"#1b1008"}]};
 var GCOL=[[1,'Vert et or','#0f6b57'],[2,'Bleu nuit et or','#22467e'],[3,'Bordeaux et or','#8a2535'],[4,'Violet et or','#5a3392'],[5,'Noir et or','#333333'],[6,'Turquoise et or','#118596'],[7,'Marron et or','#875227']];
-var GSTY=[['classique','Classique','L’original : arches et doubles bordures dorées'],['moderne','Moderne','Cartes plates avec une bande de couleur, titres en majuscules'],['arrondi','Arrondi','Tout est rond et doux, comme des bulles'],['elegant','Élégant','Fines lignes d’or, coins droits, très raffiné'],['simple','Simple','Minimal : sans motifs, sans ombres, couleurs unies'],['verre','Verre','Cartes transparentes sur un fond coloré']];
+var GSTY=[['classique','Classique','L’original : arches et doubles bordures dorées'],['moderne','Moderne','Cartes plates avec une bande de couleur, titres en majuscules'],['arrondi','Arrondi','Tout est rond et doux, comme des bulles'],['elegant','Élégant','Fines lignes d’or, coins droits, très raffiné'],['simple','Simple','Minimal : sans motifs, sans ombres, couleurs unies'],['verre','Verre','Cartes transparentes sur un fond coloré'],['emeraude','Émeraude','Vert profond, or et calligraphie, comme les belles affiches']];
 var GFONT=[['nunito','Nunito','L’écriture actuelle, ronde et claire'],['poppins','Poppins','Moderne et nette'],['lora','Lora','Élégante, avec empattements'],['cairo','Cairo','Belle en arabe et en français'],['tajawal','Tajawal','Fine et légère'],['amiri','Amiri','Classique, comme un livre']];
 var GNAV=[['flottant','Flottant','La barre actuelle, qui flotte en bas'],['plein','Collé en bas','Toute la largeur, collé au bord'],['fonce','Foncé','Barre de la couleur principale, icônes dorées'],['icones','Icônes seules','Sans texte, juste les icônes'],['bulle','Bulles','Chaque bouton dans sa propre bulle']];
 var GHOME=[['tuiles','Tuiles','L’accueil actuel : 2 tuiles par ligne'],['liste','Liste','Une ligne par rubrique, icône à gauche'],['grandes','Grandes cartes','Une grande carte par rubrique'],['compact','Compact','3 petites tuiles par ligne'],['defile','Défilement','Les tuiles défilent de côté']];
@@ -1433,6 +1466,7 @@ function gThemeApply(th){th=th||{};var r=document.documentElement,c=GPAL[th.c],s
  function v(o){return Object.keys(o).map(function(k){return '--'+k+':'+o[k]}).join(';')}
  st.textContent=c?':root{'+v(c[0])+'}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){'+v(c[1])+'}}:root[data-theme="dark"]{'+v(c[1])+'}':'';
  [['data-style',th.s,'classique'],['data-font',th.p,'nunito'],['data-navs',th.n,'flottant'],['data-home',th.h,'tuiles']].forEach(function(x){if(x[1]&&x[1]!==x[2])r.setAttribute(x[0],x[1]);else r.removeAttribute(x[0])});
+ if(th.s==='emeraude'&&!document.getElementById('gfont-ruqaa')){var lr=document.createElement('link');lr.rel='stylesheet';lr.id='gfont-ruqaa';lr.href='https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&display=swap';document.head.appendChild(lr)}
  if(GFURL[th.p]&&!document.getElementById('gfont-'+th.p)){var lk=document.createElement('link');lk.rel='stylesheet';lk.id='gfont-'+th.p;lk.href='https://fonts.googleapis.com/css2?family='+GFURL[th.p]+'&display=swap';document.head.appendChild(lk)}
  var mc=document.querySelector('meta[name=theme-color]');if(mc)mc.content=(GCOL[(th.c||1)-1]||GCOL[0])[2];
  applyTheme()}
