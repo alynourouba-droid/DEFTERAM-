@@ -124,11 +124,12 @@ module.exports = async (req, res) => {
       const b = await readBody(req) || {}, t = b.theme || {};
       const th = {
         c: Math.max(1, Math.min(7, parseInt(t.c, 10) || 1)),
-        s: ['classique', 'moderne', 'arrondi', 'elegant', 'simple', 'verre', 'emeraude'].includes(t.s) ? t.s : 'classique',
+        s: ['classique', 'moderne', 'arrondi', 'elegant', 'simple', 'verre', 'emeraude', 'affiche'].includes(t.s) ? t.s : 'classique',
         f: ['auto', 'light', 'dark'].includes(t.f) ? t.f : 'auto',
         p: ['nunito', 'poppins', 'lora', 'cairo', 'tajawal', 'amiri'].includes(t.p) ? t.p : 'nunito',
         n: ['flottant', 'plein', 'fonce', 'icones', 'bulle'].includes(t.n) ? t.n : 'flottant',
-        h: ['tuiles', 'liste', 'grandes', 'compact', 'defile'].includes(t.h) ? t.h : 'tuiles', u: Date.now(),
+        h: ['tuiles', 'liste', 'grandes', 'compact', 'defile'].includes(t.h) ? t.h : 'tuiles',
+        v: ['normal', 'papier'].includes(t.v) ? t.v : 'normal', u: Date.now(),
       };
       await redis(c, [['SET', P + 'theme', JSON.stringify(th)]]);
       return send(200, { ok: true, theme: th });
