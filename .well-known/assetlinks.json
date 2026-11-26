@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.defteram.app",
+    "sha256_cert_fingerprints": [
+      "32:2B:5D:35:AB:C0:72:94:29:4C:DA:0B:C9:D3:F9:1D:4A:C1:0B:71:1B:D4:2C:5D:FC:90:54:B7:EB:B8:6D:3F"
+    ]
+  }
+}]

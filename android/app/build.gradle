@@ -1,0 +1,44 @@
+plugins { id 'com.android.application' }
+
+def keyProps = new Properties()
+def keyFile = rootProject.file('keystore.properties')
+if (keyFile.exists()) keyFile.withInputStream { keyProps.load(it) }
+
+android {
+    namespace 'com.defteram.app'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.defteram.app'
+        minSdk 24
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+        manifestPlaceholders = [
+            hostName: 'defteram.vercel.app',
+            defaultUrl: 'https://defteram.vercel.app/?src=app',
+            launcherName: 'DEFTERAM',
+            assetStatements: '[{ "relation": ["delegate_permission/common.handle_all_urls"], "target": {"namespace": "web", "site": "https://defteram.vercel.app"}}]'
+        ]
+    }
+    signingConfigs {
+        release {
+            if (keyFile.exists()) {
+                storeFile rootProject.file(keyProps['storeFile'])
+                storePassword keyProps['storePassword']
+                keyAlias keyProps['keyAlias']
+                keyPassword keyProps['keyPassword']
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (keyFile.exists()) signingConfig signingConfigs.release
+        }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.8.0'
+}
